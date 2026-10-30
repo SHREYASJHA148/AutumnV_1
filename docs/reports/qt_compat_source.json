@@ -1,0 +1,9 @@
+{
+  "qml_loaded": true,
+  "tray_available": true,
+  "python_version": "3.12.10",
+  "qt_version": "6.8.3",
+  "frozen": false,
+  "fixture_has_foreground": false,
+  "overlay_preserves_foreground": true
+}

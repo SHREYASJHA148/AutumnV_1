@@ -1,5 +1,6 @@
 # Local environments, dependencies, models, and build output
 .venv/
+.venv-*/
 .tools/
 .cache/
 models/

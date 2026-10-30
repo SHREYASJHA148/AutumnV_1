@@ -1,0 +1,3 @@
+# Full component import probe against the authorized older GUI/runtime trial.
+-r requirements-phase0.in
+-c requirements-qt-compat.in

@@ -1,0 +1,6 @@
+{
+  "ExitCode": 2,
+  "Scope": "AutumnQtCompat.exe",
+  "Log": ".cache/defender-qt-compat.log",
+  "CleanScanVerified": false
+}

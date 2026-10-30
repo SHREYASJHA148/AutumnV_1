@@ -1,0 +1,12 @@
+{
+  "experiment": "CPython 3.12.10 + PySide6-Essentials 6.8.3 + PyInstaller 6.22.3",
+  "started_utc": "2026-10-30T19:29:14.9040319Z",
+  "source_exit_code": 0,
+  "build_exit_code": 0,
+  "frozen_exit_code": 0,
+  "dll_patches": 0,
+  "executable_sha256": "C7C917AEE05B8E546F6B81206B0A0D4BCD650490D172B0B03A740F8C87E62EC1",
+  "result": "fail",
+  "error": "Probe check did not pass: fixture_has_foreground",
+  "elapsed_seconds": 157.09
+}

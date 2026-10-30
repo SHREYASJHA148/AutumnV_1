@@ -10,7 +10,7 @@ import os
 
 faulthandler.dump_traceback_later(20)
 
-from PySide6.QtCore import QTimer, Qt, QUrl
+from PySide6.QtCore import QTimer, Qt, QUrl, qVersion
 from PySide6.QtGui import QColor, QIcon, QPixmap
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtWidgets import QApplication, QLabel, QLineEdit, QSystemTrayIcon
@@ -48,7 +48,9 @@ ApplicationWindow {
     overlay = QLabel('Autumn confirmation test — no keyboard focus')
     overlay.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus)
     overlay.setAttribute(Qt.WA_ShowWithoutActivating)
-    report = {'qml_loaded': True, 'tray_available': QSystemTrayIcon.isSystemTrayAvailable()}
+    report = {'qml_loaded': True, 'tray_available': QSystemTrayIcon.isSystemTrayAvailable(),
+              'python_version': sys.version.split()[0], 'qt_version': qVersion(),
+              'frozen': bool(getattr(sys, 'frozen', False))}
     user32 = ctypes.WinDLL('user32')
     user32.GetForegroundWindow.restype = ctypes.c_void_p
 
@@ -65,7 +67,10 @@ ApplicationWindow {
     def finish():
         report['overlay_preserves_foreground'] = report['before'] == user32.GetForegroundWindow()
         report.pop('before')
-        (ROOT / 'docs/reports/qt_smoke.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+        report_name = os.environ.get('AUTUMN_PROBE_REPORT', 'qt_smoke.json')
+        if Path(report_name).name != report_name or not report_name.endswith('.json'):
+            raise ValueError('Probe report must be a JSON filename inside project reports')
+        (ROOT / 'docs/reports' / report_name).write_text(json.dumps(report, indent=2), encoding='utf-8')
         print(json.dumps(report))
         faulthandler.cancel_dump_traceback_later()
         tray.hide()

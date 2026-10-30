@@ -1,0 +1,70 @@
+{
+  "voice": "en_US-lessac-medium",
+  "python_version": "3.12.10",
+  "phrases_synthesized": 10,
+  "total_seconds": 19.269,
+  "playback_tested": false,
+  "owner_quality_rating": "not evaluated",
+  "rows": [
+    {
+      "case": 1,
+      "seconds_audio": 1.811,
+      "seconds_synthesis": 5.921,
+      "frames": 39936
+    },
+    {
+      "case": 2,
+      "seconds_audio": 1.66,
+      "seconds_synthesis": 0.37,
+      "frames": 36608
+    },
+    {
+      "case": 3,
+      "seconds_audio": 2.148,
+      "seconds_synthesis": 0.342,
+      "frames": 47360
+    },
+    {
+      "case": 4,
+      "seconds_audio": 1.382,
+      "seconds_synthesis": 0.367,
+      "frames": 30464
+    },
+    {
+      "case": 5,
+      "seconds_audio": 1.312,
+      "seconds_synthesis": 0.355,
+      "frames": 28928
+    },
+    {
+      "case": 6,
+      "seconds_audio": 1.788,
+      "seconds_synthesis": 0.404,
+      "frames": 39424
+    },
+    {
+      "case": 7,
+      "seconds_audio": 1.892,
+      "seconds_synthesis": 0.194,
+      "frames": 41728
+    },
+    {
+      "case": 8,
+      "seconds_audio": 2.218,
+      "seconds_synthesis": 0.437,
+      "frames": 48896
+    },
+    {
+      "case": 9,
+      "seconds_audio": 1.904,
+      "seconds_synthesis": 0.175,
+      "frames": 41984
+    },
+    {
+      "case": 10,
+      "seconds_audio": 1.115,
+      "seconds_synthesis": 0.146,
+      "frames": 24576
+    }
+  ]
+}

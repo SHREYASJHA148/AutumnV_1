@@ -6,11 +6,16 @@ import importlib
 import importlib.metadata as metadata
 import json
 import multiprocessing as mp
+import os
 from pathlib import Path
+import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / 'docs' / 'reports' / 'component_probe.json'
+REPORT_NAME = os.environ.get('AUTUMN_COMPONENT_REPORT', 'component_probe.json')
+if Path(REPORT_NAME).name != REPORT_NAME or not REPORT_NAME.endswith('.json'):
+    raise ValueError('Component report must remain a JSON filename inside project reports')
+REPORT = ROOT / 'docs' / 'reports' / REPORT_NAME
 MODULES = {
     'PySide6-Essentials': 'PySide6', 'pydantic': 'pydantic', 'sounddevice': 'sounddevice',
     'onnxruntime': 'onnxruntime', 'pywhispercpp': 'pywhispercpp.model',
@@ -38,7 +43,7 @@ def audio_worker(connection) -> None:
 
 
 def run() -> None:
-    report: dict = {'imports': {}, 'licenses': []}
+    report: dict = {'python_version': sys.version.split()[0], 'imports': {}, 'licenses': []}
     for distribution, module in MODULES.items():
         try:
             importlib.import_module(module)
