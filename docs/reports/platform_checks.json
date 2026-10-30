@@ -1,0 +1,15 @@
+{
+  "SearchService": {
+    "Name": "WSearch",
+    "Status": "Stopped"
+  },
+  "Antivirus": [
+    {
+      "displayName": "Windows Defender",
+      "productState": 397568
+    }
+  ],
+  "MicPrivacy": {
+    "Value": "Allow"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "CapturedUtc": "2026-10-30T18:53:03.3040288Z",
+  "OS": {
+    "Caption": "Microsoft Windows 11 Home Single Language",
+    "Version": "10.0.26200",
+    "BuildNumber": "26200"
+  },
+  "RAM_GiB": 15.7,
+  "CPU": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "GPU": [
+    {
+      "Name": "Intel(R) UHD Graphics",
+      "DriverVersion": "32.0.101.6874"
+    },
+    {
+      "Name": "NVIDIA GeForce RTX 5050 Laptop GPU",
+      "DriverVersion": "32.0.16.2101"
+    }
+  ],
+  "Disk": [
+    {
+      "Name": "C",
+      "Free_GiB": 59.3
+    },
+    {
+      "Name": "D",
+      "Free_GiB": 64.4
+    },
+    {
+      "Name": "Temp",
+      "Free_GiB": 59.3
+    }
+  ],
+  "AudioEndpoints": [
+    {
+      "FriendlyName": "Microphone Array (Intel® Smart Sound Technology for Digital Microphones)",
+      "Status": "OK"
+    },
+    {
+      "FriendlyName": "Speakers (Realtek(R) Audio)",
+      "Status": "OK"
+    },
+    {
+      "FriendlyName": "Headphones (Realtek(R) Audio)",
+      "Status": "OK"
+    },
+    {
+      "FriendlyName": "Microphone (Realtek(R) Audio)",
+      "Status": "OK"
+    }
+  ],
+  "Tools": [
+    {
+      "Name": "python.exe",
+      "Source": "C:\\Users\\SHREYAS JHA\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe"
+    },
+    {
+      "Name": "py.exe",
+      "Source": "C:\\Users\\SHREYAS JHA\\AppData\\Local\\Microsoft\\WindowsApps\\py.exe"
+    },
+    {
+      "Name": "ollama.exe",
+      "Source": "C:\\Users\\SHREYAS JHA\\AppData\\Local\\Programs\\Ollama\\ollama.exe"
+    },
+    {
+      "Name": "git.exe",
+      "Source": "C:\\Program Files\\Git\\cmd\\git.exe"
+    }
+  ],
+  "OllamaProcesses": []
+}

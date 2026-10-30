@@ -1,0 +1,18 @@
+# Local environments, dependencies, models, and build output
+.venv/
+.tools/
+.cache/
+models/
+build/
+dist/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+# Private recordings, runtime stores, temporary experiment data
+*.wav
+*.mp3
+*.ogg
+*.sqlite*
+*.db
+tmp/
+.env
