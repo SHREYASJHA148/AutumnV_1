@@ -1,4 +1,4 @@
-# Jarvis Local — Technical Requirements Document
+# Autumn — Technical Requirements Document
 
 Version: 2.0 (revised after adversarial review)
 Date: 31 October 2026
@@ -62,7 +62,7 @@ No dependency version is claimed as verified. Resolve and hash-lock exact versio
 
 In scope: accidental harm from model errors; audio from speakers, videos or other people issuing commands; hostile content in filenames or screen text; malformed or oversized model output; stale or replayed confirmations; supply-chain compromise of dependencies and model files; another local process calling the model runtime.
 
-Out of scope: malware already running as the user (it can already do everything Jarvis can); a determined attacker with local administrator rights; protecting data from other accounts on a shared machine beyond Windows permissions.
+Out of scope: malware already running as the user (it can already do everything Autumn can); a determined attacker with local administrator rights; protecting data from other accounts on a shared machine beyond Windows permissions.
 
 Principles: the model proposes, application code decides; origin limits authority; every consequential action is bound to exact arguments; external content is data; nothing leaves the machine except explicit setup downloads and the user's own website-open requests.
 
@@ -91,7 +91,7 @@ flowchart TD
 
 Process model: the Qt main thread owns presentation only. A controller coordinates work through typed queues and Qt signals. Audio callbacks only perform bounded buffer writes (no model calls, no disk I/O). Recognition, speech output and Windows automation run in supervised worker processes. The language-model runtime is external and reached through a bounded loopback HTTP client.
 
-Network surface: Jarvis exposes no endpoint that can trigger an action. A recognition worker may use a loopback listener only if option D-03(b) is chosen, bound to `127.0.0.1` on an ephemeral port, started and owned by Jarvis, and closed on Quit. No FastAPI or browser front end in version 1.
+Network surface: Autumn exposes no endpoint that can trigger an action. A recognition worker may use a loopback listener only if option D-03(b) is chosen, bound to `127.0.0.1` on an ephemeral port, started and owned by Autumn, and closed on Quit. No FastAPI or browser front end in version 1.
 
 ## 5. State and lifecycle
 
@@ -110,7 +110,7 @@ Task states: `IDLE`, `TRANSCRIBING`, `ROUTING`, `AWAITING_CLARIFICATION`, `AWAIT
 - Microphone off closes capture immediately, discards buffered audio, and cancels transcription and routing derived from it before dispatch. It does not undo a running action.
 - Stop increments a session cancellation generation. It silences playback, discards input and queued plans, cancels pending confirmations, and applies D-01 to capture state.
 - Sleep and lock disconnect capture and block dispatch. Resume and unlock leave capture disabled until the user re-enables it. Detect session changes with Windows session-notification and power messages through a native event filter; test both classic sleep and Modern Standby.
-- Quit closes Jarvis-owned workers and audio devices. It never stops a shared Ollama service. A single-instance mutex prevents a second capture stream.
+- Quit closes Autumn-owned workers and audio devices. It never stops a shared Ollama service. A single-instance mutex prevents a second capture stream.
 
 An action already accepted by Windows may complete after cancellation. The UI distinguishes "queue stopped" from "effects reversed". Clipboard changes, typed characters, launched apps and media events cannot all be rolled back.
 
@@ -131,7 +131,7 @@ An action already accepted by Windows may complete after cancellation. The UI di
 - Per-request JSON Schema from the live registry (D-11). Put `kind` first. Keep variants compact; if schema size slows decoding or lowers accuracy, split planning into two calls (choose skill, then fill arguments).
 - Context 4,096 tokens, output about 256 tokens, low temperature, one request at a time.
 - Disable thinking through the runtime's supported option, then verify per candidate that structured output still conforms. Do not assume the option worked.
-- Set an explicit `keep_alive` while Jarvis is active so latency is warm, and let it expire after Quit. Offer a memory-saving setting.
+- Set an explicit `keep_alive` while Autumn is active so latency is warm, and let it expire after Quit. Offer a memory-saving setting.
 - Allow only the pinned local model digest. Reject any model entry that is a remote or cloud tag, using the runtime's model-details response, and refuse to start routing if the digest differs from the manifest.
 - Routing timeout 15 seconds. On malformed output allow one bounded repair attempt, then clarify. Self-reported confidence never authorizes an action.
 
@@ -253,7 +253,7 @@ Read content is never converted to instructions. Routines and registries change 
 ## 10. Storage and privacy
 
 ```text
-%LOCALAPPDATA%\JarvisLocal\
+%LOCALAPPDATA%\Autumn\
   config\settings.json
   data\jarvis.db
   models\stt\
@@ -272,7 +272,7 @@ The hold-to-talk hook processes key events in memory only and discards non-match
 
 ## 11. Runtime, network and resources
 
-- Use `127.0.0.1` for runtime access. No LAN listener, no inbound firewall rule for Jarvis.
+- Use `127.0.0.1` for runtime access. No LAN listener, no inbound firewall rule for Autumn.
 - Loopback is not authenticated: another local process can reach the model runtime. Never place action authority in that runtime.
 - Setup downloads are explicit. Normal operation makes no cloud calls, analytics, automatic model updates or remote error reports. Reject remote or cloud model entries (section 6).
 - Recognition is CPU-first, optionally accelerated if Phase 0 proves it. The language model uses the GPU only after compatible acceleration is detected, and the discrete GPU is confirmed in use on hybrid-graphics laptops. An 8 GB VRAM figure identifies neither vendor nor compatibility.

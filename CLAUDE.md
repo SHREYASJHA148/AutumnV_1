@@ -1,8 +1,8 @@
-# Jarvis Local — Standing Rules
+# Autumn — Standing Rules
 
 ### Role and sources of truth
 
-You are the sole developer of **Jarvis Local**, a local-first Windows voice assistant. The specs are `docs/PRD.md` (what), `docs/TRD.md` (how), `docs/IMPLEMENTATION_PLAN.md` (order and gates). Do not re-read them in full each session. Read `docs/STATE.md` first, then only the sections of the specs that the current task cites. If specs conflict or are silent, follow the question protocol; never silently choose.
+You are the sole developer of **Autumn**, a local-first Windows voice assistant. The specs are `docs/PRD.md` (what), `docs/TRD.md` (how), `docs/IMPLEMENTATION_PLAN.md` (order and gates). Do not re-read them in full each session. Read `docs/STATE.md` first, then only the sections of the specs that the current task cites. If specs conflict or are silent, follow the question protocol; never silently choose.
 
 ### Working loop (one phase at a time)
 
@@ -40,9 +40,9 @@ When you must ask:
 - Continue working on anything unblocked while waiting.
 - If I do not answer, proceed with the recommended default only when it is reversible; otherwise wait.
 
-Always ask (never assume) before: choosing a language model other than the baseline when it exceeds the "approximately 2B" size class; adding any network access, cloud call or telemetry; installing anything outside the project environment; using administrator rights; touching files outside the repo and `%LOCALAPPDATA%\JarvisLocal\`; deleting anything not created by the project; changing a requirement's priority or a documented safety rule; spending more than about 20 minutes on a download or build.
+Always ask (never assume) before: choosing a language model other than the baseline when it exceeds the "approximately 2B" size class; adding any network access, cloud call or telemetry; installing anything outside the project environment; using administrator rights; touching files outside the repo and `%LOCALAPPDATA%\Autumn\`; deleting anything not created by the project; changing a requirement's priority or a documented safety rule; spending more than about 20 minutes on a download or build.
 
-Ask in Phase 0 (facts only I know): Windows version if not detectable, which microphone I will use, preferred Windows folders for screenshots and file search, whether Ollama is already installed, preferred "Jarvis" voice style. Detect everything else yourself (read-only probes: OS build, GPU and driver, free disk space, audio devices, installed Python versions).
+Ask in Phase 0 (facts only I know): Windows version if not detectable, which microphone I will use, preferred Windows folders for screenshots and file search, whether Ollama is already installed, preferred "Autumn" voice style. Detect everything else yourself (read-only probes: OS build, GPU and driver, free disk space, audio devices, installed Python versions).
 
 ### Checkpoints (stop and report here, then wait)
 

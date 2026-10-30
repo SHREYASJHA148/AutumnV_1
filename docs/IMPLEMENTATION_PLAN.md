@@ -1,4 +1,4 @@
-# Jarvis Local — Detailed Implementation Plan
+# Autumn — Detailed Implementation Plan
 
 Version: 2.0 (revised after adversarial review)
 Date: 31 October 2026
@@ -185,7 +185,7 @@ Tasks:
 2. First-run setup in the packaged app: device checks, local runtime prerequisite, explicit model downloads, license notices, free-space check.
 3. Verify downloads; recover from interrupted or corrupt artifacts.
 4. Test a clean Windows user without development tools or inherited path assumptions; test Windows Defender behavior.
-5. Verify offline operation, no cloud fallback, no unexpected network traffic, and no Jarvis listener beyond loopback (NFR-13).
+5. Verify offline operation, no cloud fallback, no unexpected network traffic, and no Autumn listener beyond loopback (NFR-13).
 6. Fault injection: unplugged devices, unavailable runtime, corrupt settings, worker crashes, permission errors, full disk, model timeouts, second instance.
 7. Stop tests at every pipeline stage, measuring acknowledgement and dispatch suppression separately.
 8. Measure cold and warm timings, peak aggregate resources, idle CPU on mains and battery, and a two-hour stability run (NFR-11).

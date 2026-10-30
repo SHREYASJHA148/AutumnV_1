@@ -1,0 +1,11 @@
+{
+  "Name": "AutumnPhase0.exe",
+  "SHA256": "CF7FEBCBB79428D1D139B7B28482E1AE323BC47A3C277452357A7C8938B8C7E3",
+  "Packager": "PyInstaller",
+  "TestScope": "Qt/tray/focus spike only; not the Autumn product",
+  "build_completed": true,
+  "standalone_launch_passed": false,
+  "launch_attempts": 3,
+  "error": "QtCore DLL procedure not found",
+  "system_runtime_modified": false
+}

@@ -1,0 +1,69 @@
+{
+  "voice": "en_US-lessac-medium",
+  "phrases_synthesized": 10,
+  "total_seconds": 22.516,
+  "playback_tested": false,
+  "owner_quality_rating": "not evaluated",
+  "rows": [
+    {
+      "case": 1,
+      "seconds_audio": 1.834,
+      "seconds_synthesis": 0.569,
+      "frames": 40448
+    },
+    {
+      "case": 2,
+      "seconds_audio": 1.556,
+      "seconds_synthesis": 0.205,
+      "frames": 34304
+    },
+    {
+      "case": 3,
+      "seconds_audio": 1.927,
+      "seconds_synthesis": 0.243,
+      "frames": 42496
+    },
+    {
+      "case": 4,
+      "seconds_audio": 1.614,
+      "seconds_synthesis": 1.886,
+      "frames": 35584
+    },
+    {
+      "case": 5,
+      "seconds_audio": 1.207,
+      "seconds_synthesis": 1.073,
+      "frames": 26624
+    },
+    {
+      "case": 6,
+      "seconds_audio": 1.788,
+      "seconds_synthesis": 0.83,
+      "frames": 39424
+    },
+    {
+      "case": 7,
+      "seconds_audio": 1.974,
+      "seconds_synthesis": 0.856,
+      "frames": 43520
+    },
+    {
+      "case": 8,
+      "seconds_audio": 2.194,
+      "seconds_synthesis": 0.805,
+      "frames": 48384
+    },
+    {
+      "case": 9,
+      "seconds_audio": 1.823,
+      "seconds_synthesis": 0.589,
+      "frames": 40192
+    },
+    {
+      "case": 10,
+      "seconds_audio": 1.138,
+      "seconds_synthesis": 0.489,
+      "frames": 25088
+    }
+  ]
+}

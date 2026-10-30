@@ -1,7 +1,53 @@
-# Phase 0 — Feasibility checkpoint preparation
+# Autumn Phase 0 — Feasibility checkpoint
 
 Date: 31 October 2026 (Asia/Calcutta)  
-Status: Incomplete; hardware inspection only. Phase 0 gate has not passed. Evaluated against the current version 2.0 specifications found on disk, not the earlier version 1.0 chat draft.
+Status: STOP checkpoint after three standalone-launch failures; Phase 0 gate has not passed. Evaluated against the version 2.0 specifications found on disk. The initial inventory tables below are historical; the latest results in this section supersede their pending labels.
+
+## Latest measured results and owner decisions
+
+Owner selected Autumn, a female English voice, and the built-in microphone. Screenshots default to Pictures/Autumn; filename search to Documents and Downloads. Local runtime access and required downloads/cache writes were approved. The baseline download was explicitly allowed up to 60 minutes. No cloud inference, telemetry, administrator use, or Phase 1 approval was added.
+
+| Experiment | Latest result | Evidence |
+|---|---|---|
+| Isolated environment | Python 3.14.6; pinned wheel-only dependencies installed with hash checks; all 11 component imports passed | requirements-phase0.lock; component_probe.json; dependency_manifest.json |
+| Qt scope | PySide6-Essentials provides required bindings; full Addons download cancelled because unused WebEngine modules were delaying setup | D0004 |
+| Source QML/tray | Pass using a local QML file, software renderer, and disabled QML disk cache | qt_smoke.json |
+| Focus overlay | Test target held foreground and overlay preserved it | qt_smoke.json; this does not test elevated windows or real confirmation hotkeys |
+| Native volume worker | Two current-volume set/read-back trials passed; owned worker termination and fresh restart passed | component_probe.json |
+| Stop hotkey primitive | Temporary CTRL+ALT+F12 registration succeeded and was unregistered | component_probe.json; delivery/hold-to-talk/elevated-focus checks still pending |
+| English female synthesis | Piper en_US-lessac-medium generated 10 valid WAVs; Windows Zira generated 10 test files | piper_tts.json; windows_tts.json; playback and owner quality not evaluated |
+| Voice artifacts | Upstream revision, sizes, SHA256 recorded; ONNX checked against upstream LFS SHA256 | voice_artifacts.json; voice-specific dataset license still needs distribution review |
+| Baseline model | qwen3:1.7b downloaded and verified by Ollama; digest and artifact size saved | baseline_model.json; inference and accuracy NOT measured |
+| Existing model | User's gemma4:12b left untouched and unused | ollama_inventory.json |
+| Standalone packaging | Build completed, executable launch failed on QtCore DLL import | packaging.json; attempts below |
+| Antivirus | Command-line scan attempted with remediation disabled; exit 2, HRESULT 0x80508023 | defender_scan.json; scan is unverified, not clean |
+| Recognition artifacts | base.en download completed and was checksum-verified before checkpoint cleanup; no captured audio, transcription or owner speech measurement | stt_base.en.json; small.en not downloaded; no recognition gate evidence |
+
+### Packaging blocker: three attempts, then stop
+
+1. PyInstaller standalone build of the working source probe: `ImportError: DLL load failed while importing QtCore: The specified procedure could not be found.`
+2. Replaced only bundle-root VC runtime DLLs with the newer versions shipped by the hash-locked Qt wheel (14.44 versus bundle-root 14.42): same error.
+3. Copied a coherent set of wheel-provided top-level Qt/shiboken DLLs into this disposable bundle's root: same error.
+
+No system runtime files were changed. Comparing primary source/bundle DLL hashes found them identical; this did not establish the missing procedure's cause. An overly broad PE inspection was stopped at 60 seconds; a faster inspection produced incomplete export comparisons and is not accepted as root-cause proof. Do not continue the same repair loop.
+
+The preferred pyside6-deploy route was also checked with `--dry-run --no-install`; it stopped because Nuitka was absent and warned that dumpbin was unavailable. PyInstaller was evaluated as a local alternative, not declared production-ready.
+
+### Checkpoint decision required
+
+Recommended: approve a fresh, bounded compatibility experiment with an older pinned Qt release and, if required, Python version, while retaining the safety rules and release gates. Alternative: explicitly approve the documented locked-environment launcher for the personal MVP and defer standalone delivery; that would require recording its effect on the Phase 0 gate rather than silently declaring a pass.
+
+No Phase 1 work has started. Remaining model comparison/inference, CPU fallback, owner speech bake-off, wake evaluation, indexed-search coverage, app-catalog launches, hold-to-talk delivery, license closure and final schedule remain unverified. No numerical accuracy or latency claim is made.
+
+### Source notes checked during this session
+
+- [Qwen3.5 2B candidate](https://ollama.com/library/qwen3.5:2b): available candidate; not downloaded or selected.
+- [pywhispercpp](https://pypi.org/project/pywhispercpp/): installed recognition binding candidate; no recognition run yet.
+- [Piper Python API](https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_PYTHON.md): synthesis adapter used for fixed test phrases.
+- [Lessac voice model card](https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/lessac/medium/MODEL_CARD): retain its dataset license link; repository-level licensing is not a substitute for voice-specific review.
+- [PyInstaller manual](https://pyinstaller.org/en/stable/): alternative standalone packager evaluated; successful build alone did not establish a working executable.
+
+## Initial read-only inventory (historical)
 
 ## Measured inventory
 

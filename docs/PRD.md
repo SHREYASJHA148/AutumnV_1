@@ -1,4 +1,4 @@
-# Jarvis Local — Product Requirements Document
+# Autumn — Product Requirements Document
 
 Version: 2.0 (revised after adversarial review)
 Date: 31 October 2026
@@ -9,9 +9,9 @@ Related documents: [Technical requirements](TRD.md) · [Implementation plan](IMP
 
 ## 1. Product definition
 
-Jarvis Local is a personal Windows desktop assistant that accepts English voice or typed requests, performs a defined set of computer tasks, and reports the result in its own interface and in an English voice. Speech recognition, language-model inference and speech generation run on the laptop after initial setup.
+Autumn is a personal Windows desktop assistant that accepts English voice or typed requests, performs a defined set of computer tasks, and reports the result in its own interface and in an English voice. Speech recognition, language-model inference and speech generation run on the laptop after initial setup.
 
-Jarvis is active only when the user starts it. It acts with the permissions of the signed-in Windows user. Its abilities come from a growing library of executable **skills**. A small language model maps language onto skills; it never executes anything itself.
+Autumn is active only when the user starts it. It acts with the permissions of the signed-in Windows user. Its abilities come from a growing library of executable **skills**. A small language model maps language onto skills; it never executes anything itself.
 
 ## 2. Confirmed user constraints
 
@@ -34,7 +34,7 @@ Windows build, free disk space, microphone quality, GPU compatibility and prefer
 
 The user wants to do everyday computer tasks by speaking, without hunting for apps, navigating folders or typing routine instructions. The product must make its abilities, listening state and real results visible, and must not pretend a small model can operate every application.
 
-Success: the user starts Jarvis, speaks a supported request, sees what it understood, and gets a result that is verified where verification is possible and honestly labelled where it is not. Failed or ambiguous requests produce a useful explanation and a next step.
+Success: the user starts Autumn, speaks a supported request, sees what it understood, and gets a result that is verified where verification is possible and honestly labelled where it is not. Failed or ambiguous requests produce a useful explanation and a next step.
 
 ## 4. Goals and exclusions
 
@@ -64,8 +64,8 @@ Exclusions bound release 1; they do not prevent later expansion.
 
 ### First run
 
-1. User launches Jarvis. A setup checklist shows the local model runtime, the language model, the recognition model, the voice, audio devices and free disk space, each with a clear state and a fix action.
-2. Voice starts disabled. The user chooses a microphone, tests it, and enables push-to-talk. The Windows microphone privacy setting is checked; if Windows delivers silence, Jarvis says so and explains where to change it.
+1. User launches Autumn. A setup checklist shows the local model runtime, the language model, the recognition model, the voice, audio devices and free disk space, each with a clear state and a fix action.
+2. Voice starts disabled. The user chooses a microphone, tests it, and enables push-to-talk. The Windows microphone privacy setting is checked; if Windows delivers silence, Autumn says so and explains where to change it.
 3. Typed commands work even if no model, microphone or voice is ready.
 
 ### Start and speak
@@ -77,15 +77,15 @@ Exclusions bound release 1; they do not prevent later expansion.
 
 ### Open an application
 
-User: "Open Notepad." Jarvis resolves a catalogued app, launches it, and reports what it could verify: launch accepted, window detected, or launch handed off but not verifiable. Unknown names produce a choice list, never a guessed path.
+User: "Open Notepad." Autumn resolves a catalogued app, launches it, and reports what it could verify: launch accepted, window detected, or launch handed off but not verifiable. Unknown names produce a choice list, never a guessed path.
 
 ### Find a file
 
-User: "Find my budget spreadsheet." Jarvis searches the configured locations by filename, using file-type words ("spreadsheet", "PDF") as type hints. Multiple matches appear as selectable results. Opening a result is a separate action. Searching does not read file contents. If the search was cut short by its limits, the result says so.
+User: "Find my budget spreadsheet." Autumn searches the configured locations by filename, using file-type words ("spreadsheet", "PDF") as type hints. Multiple matches appear as selectable results. Opening a result is a separate action. Searching does not read file contents. If the search was cut short by its limits, the result says so.
 
 ### Dictate text
 
-User starts dictation by typing the request or using hold-to-talk (not the wake phrase), chooses the destination window, and supplies the text. Jarvis shows the exact text and destination. The user confirms with a button or hotkey that does not take focus from the destination. Jarvis verifies the destination is in the foreground, then types in short chunks, stopping on any change. It never submits: dictated line breaks are not typed in version 1.
+User starts dictation by typing the request or using hold-to-talk (not the wake phrase), chooses the destination window, and supplies the text. Autumn shows the exact text and destination. The user confirms with a button or hotkey that does not take focus from the destination. Autumn verifies the destination is in the foreground, then types in short chunks, stopping on any change. It never submits: dictated line breaks are not typed in version 1.
 
 ### Run a routine
 
@@ -93,7 +93,7 @@ User creates "Start studying" from catalogued apps, folders and registered websi
 
 ### Stop or exit
 
-Stop (button or global shortcut) halts recording and speech, clears queued work, cancels pending confirmations, and requests cancellation of current work. Completed effects remain and are shown as completed. If wake listening was armed, Stop also turns it off until the user re-enables it. Quit closes everything Jarvis owns; minimizing does not quit.
+Stop (button or global shortcut) halts recording and speech, clears queued work, cancels pending confirmations, and requests cancellation of current work. Completed effects remain and are shown as completed. If wake listening was armed, Stop also turns it off until the user re-enables it. Quit closes everything Autumn owns; minimizing does not quit.
 
 ## 6. Functional requirements
 
@@ -158,13 +158,13 @@ First close asks "Keep running in tray" or "Quit" and remembers the choice. The 
 
 ## 8. Permissions, privacy and operational behavior
 
-- Run as the normal Windows user. No blanket administrator startup. Elevated windows cannot be controlled; Jarvis says so.
+- Run as the normal Windows user. No blanket administrator startup. Elevated windows cannot be controlled; Autumn says so.
 - Speech and prompts are processed locally. Model downloads are explicit setup network operations. Website opening contacts the internet, and the UI never calls that offline.
 - Raw audio is not stored by default. Transcript retention is opt-in and clearable.
 - Action history is minimal by default, omits sensitive text and paths where possible, and is kept seven days.
 - Screen text, filenames and other external content are task data, never instructions.
 - A wake phrase or voice is not identity verification.
-- Quit closes Jarvis-owned workers. An independently running shared Ollama service may remain; settings explain this.
+- Quit closes Autumn-owned workers. An independently running shared Ollama service may remain; settings explain this.
 
 ### Origin-aware policy (summary; full matrix in the TRD)
 
@@ -194,9 +194,9 @@ These are proposed acceptance targets, not measured results. Establish a baselin
 | NFR-04 | Warm response latency | Deterministic path: p50 ≤ 2 s, p95 ≤ 4 s. Model-routed path: p50 ≤ 3 s, p95 ≤ 6 s. GPU profile is the gate; CPU-only is measured and disclosed. |
 | NFR-05 | UI response | Input and Stop acknowledged visibly within 200 ms at p95. |
 | NFR-06 | Stop propagation | No new action starts more than 500 ms after Stop is received; in-flight limitations disclosed. |
-| NFR-07 | Memory | Aggregate Jarvis processes plus incremental model runtime ≤ 5 GB RAM and ≤ 4 GB VRAM during normal commands. |
+| NFR-07 | Memory | Aggregate Autumn processes plus incremental model runtime ≤ 5 GB RAM and ≤ 4 GB VRAM during normal commands. |
 | NFR-08 | Idle load | Average CPU below 5% over five minutes in wake mode on mains power; battery drain measured and reported. |
-| NFR-09 | Disk | Jarvis app plus its environment ≤ 1.5 GB; speech models and voice ≤ 1 GB; language model per measured size; Ollama counted and reported separately. Require 12 GB free for setup. Total budget stated after Phase 0. |
+| NFR-09 | Disk | Autumn app plus its environment ≤ 1.5 GB; speech models and voice ≤ 1 GB; language model per measured size; Ollama counted and reported separately. Require 12 GB free for setup. Total budget stated after Phase 0. |
 | NFR-10 | Wake activation | ≤ 1 false wake per hour in a two-hour household-audio trial; ≥ 90% detection over 50 intentional attempts. |
 | NFR-11 | Stability | Two-hour mixed-use session without crash, stuck microphone or uncancelled queue. |
 | NFR-12 | Accessibility | Narrator can read all controls and states; full keyboard operation; verified at 200% scaling. |
@@ -239,7 +239,7 @@ Free conversation, floating widget, light theme, additional skills.
 
 - **Skill:** a registered capability with a typed argument schema, a policy, and a verification method.
 - **Origin:** how a request entered the system (typed, button, hold-to-talk voice, wake voice, routine).
-- **Verified / unverified:** whether Jarvis could confirm the effect itself. Unverified is a normal, honest result.
+- **Verified / unverified:** whether Autumn could confirm the effect itself. Unverified is a normal, honest result.
 - **Deterministic path:** a request matched by exact rules without the language model.
 
 ## 13. Changes from version 1.0

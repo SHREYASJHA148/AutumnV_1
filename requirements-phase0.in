@@ -1,0 +1,14 @@
+# Phase 0 compatibility and packaging probes only.
+PySide6-Essentials
+pydantic
+sounddevice
+onnxruntime
+pywhispercpp
+piper-tts
+openwakeword
+pywin32
+pycaw
+pywinauto
+psutil
+pytest
+pyinstaller

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "MODEL_CARD",
+    "bytes": 351,
+    "sha256": "ce49eb457742208166d399a40cdec2c7fa9db77960930031564ab56f12882645",
+    "upstream_lfs_sha256": null,
+    "revision": "b4e358ffcb232591bf73a540e70f7de528e4174a",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/lessac/medium/MODEL_CARD"
+  },
+  {
+    "name": "en_US-lessac-medium.onnx",
+    "bytes": 63201294,
+    "sha256": "5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f",
+    "upstream_lfs_sha256": "5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f",
+    "revision": "b4e358ffcb232591bf73a540e70f7de528e4174a",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/lessac/medium/en_US-lessac-medium.onnx"
+  },
+  {
+    "name": "en_US-lessac-medium.onnx.json",
+    "bytes": 4885,
+    "sha256": "efe19c417bed055f2d69908248c6ba650fa135bc868b0e6abb3da181dab690a0",
+    "upstream_lfs_sha256": null,
+    "revision": "b4e358ffcb232591bf73a540e70f7de528e4174a",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
+  }
+]
