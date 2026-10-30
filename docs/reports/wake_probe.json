@@ -1,0 +1,23 @@
+{
+  "model": "hey_jarvis_v0.1.onnx",
+  "engine": "ONNX Runtime",
+  "synthetic_trials": [
+    {
+      "kind": "silence",
+      "seconds_audio": 10,
+      "seconds_compute": 0.713,
+      "maximum_score": 5.4329633712768555e-05,
+      "activation_at_0_5": false
+    },
+    {
+      "kind": "low_level_noise",
+      "seconds_audio": 10,
+      "seconds_compute": 1.14,
+      "maximum_score": 0.052208662033081055,
+      "activation_at_0_5": false
+    }
+  ],
+  "owner_positive_trials": 0,
+  "household_false_activation_trial": "not performed",
+  "license": "Code Apache-2.0; pretrained wake models CC-BY-NC-SA-4.0; personal noncommercial use only"
+}

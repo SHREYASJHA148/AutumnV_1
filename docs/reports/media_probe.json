@@ -1,0 +1,7 @@
+{
+  "binding": "PyWinRT Windows.Media.Control",
+  "session_count": 0,
+  "playback_states": [],
+  "playback_changed": false,
+  "media_titles_read": false
+}

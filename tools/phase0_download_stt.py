@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import time
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,6 +18,7 @@ def read_json(url):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('model', choices=['base.en', 'small.en'])
+    parser.add_argument('--max-seconds', type=int, default=900)
     args = parser.parse_args()
     repo = 'ggerganov/whisper.cpp'
     revision = read_json(f'https://huggingface.co/api/models/{repo}')['sha']
@@ -28,13 +29,20 @@ def main():
     destination = ROOT / 'models/stt'
     destination.mkdir(parents=True, exist_ok=True)
     partial = destination / (name + '.partial')
-    url = f'https://huggingface.co/{repo}/resolve/{revision}/{name}'
+    url = f'https://huggingface.co/{repo}/resolve/{revision}/{name}?download=true&phase0={int(time.time())}'
     started = time.monotonic()
     digest = hashlib.sha256()
-    with urlopen(url, timeout=30) as response, partial.open('wb') as stream:
+    request=Request(url,headers={'Range':f'bytes=0-{item["size"]-1}','Accept-Encoding':'identity'})
+    with urlopen(request, timeout=30) as response, partial.open('wb') as stream:
+        content_range=response.headers.get('Content-Range','')
+        if response.status==206 and not content_range.startswith('bytes 0-'):
+            raise ValueError('Unexpected partial response start offset')
+        length=response.headers.get('Content-Length')
+        if length and int(length)!=item['size']:
+            raise ValueError('Response length is not the complete artifact')
         while chunk := response.read(1024 * 1024):
-            if time.monotonic() - started > 900:
-                raise TimeoutError('Recognition weight download stopped at 15 minutes')
+            if time.monotonic() - started > min(args.max_seconds, 3600):
+                raise TimeoutError('Recognition weight download reached the approved limit')
             stream.write(chunk)
             digest.update(chunk)
     if digest.hexdigest() != expected or partial.stat().st_size != item['size']:

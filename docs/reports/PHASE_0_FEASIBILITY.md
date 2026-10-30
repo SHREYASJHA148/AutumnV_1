@@ -1,7 +1,7 @@
 # Autumn Phase 0 — Feasibility checkpoint
 
 Date: 31 October 2026 (Asia/Calcutta)  
-Status: Phase 0 remains incomplete. After owner approval, Python 3.12.10 / Qt 6.8.3 resolved the standalone loading blocker; see [the newer compatibility assessment](QT_COMPATIBILITY_ASSESSMENT.md). Its strict focus prerequisite remains unmet. The earlier failed-build and initial inventory tables below are historical, not the latest packaging result. Evaluated against the version 2.0 specifications found on disk.
+Status: Phase 0 is complete by explicit owner acceptance with validation exceptions (D0007); see [the final closeout](PHASE_0_CLOSEOUT.md). The dated measurements and incomplete validation findings below are preserved as historical evidence, not an all-tests-passed claim.
 
 ## Latest measured results and owner decisions
 

@@ -1,0 +1,13 @@
+{
+  "method": "local deterministic intent grammar; no action dispatch",
+  "transcripts_saved": false,
+  "rows": [
+    {
+      "model": "base.en",
+      "case": 20,
+      "intended_action_match": true
+    }
+  ],
+  "base_coverage": 1,
+  "small_coverage": 0
+}

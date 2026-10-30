@@ -1,0 +1,37 @@
+{
+  "model": "qwen3:1.7b",
+  "digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "cpu_requested": false,
+  "dataset": "development, not held-out",
+  "actions_executed": 0,
+  "correct": 0,
+  "total": 3,
+  "warm_p50_seconds": 20.011,
+  "warm_p95_seconds": 20.011,
+  "rows": [
+    {
+      "case": 1,
+      "expected_kind_or_skill": "app.open",
+      "correct": false,
+      "error_type": "TimeoutError",
+      "elapsed_seconds": 60.004
+    },
+    {
+      "case": 2,
+      "expected_kind_or_skill": "app.open",
+      "correct": false,
+      "error_type": "TimeoutError",
+      "elapsed_seconds": 20.011
+    },
+    {
+      "case": 3,
+      "expected_kind_or_skill": "app.open",
+      "correct": false,
+      "error_type": "TimeoutError",
+      "elapsed_seconds": 20.011
+    }
+  ],
+  "runtime_residency": {
+    "models": []
+  }
+}

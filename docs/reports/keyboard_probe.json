@@ -1,0 +1,15 @@
+{
+  "hold_down": 1,
+  "hold_up": 1,
+  "confirm_events": 4,
+  "stop_events": 1,
+  "confirm_preserved_target": false,
+  "typed_keys_saved": false,
+  "elevated_window_tested": false,
+  "capture_stop_tested": false,
+  "confirm_registered": true,
+  "stop_registered": true,
+  "hook_installed": true,
+  "target_focused_before_overlay": false,
+  "hook_removed": true
+}

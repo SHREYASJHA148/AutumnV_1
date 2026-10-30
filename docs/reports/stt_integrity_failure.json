@@ -1,0 +1,9 @@
+{
+  "name": "ggml-small.en.bin.partial",
+  "reference_revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+  "expected_size": 487614201,
+  "actual_size": 118509449,
+  "expected_sha256": "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d",
+  "actual_sha256": "84057ce031e2f1a741d582cdcf239237710a250fa039afc4bd2cb3efb26e50be",
+  "loaded": false
+}

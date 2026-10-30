@@ -85,8 +85,10 @@ def api(path, body=None, timeout=20):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cpu', action='store_true')
+    parser.add_argument('--candidate', action='store_true')
     args = parser.parse_args()
-    pinned = json.loads((ROOT / 'docs/reports/baseline_model.json').read_text(encoding='utf-8'))
+    manifest = 'candidate_model.json' if args.candidate else 'baseline_model.json'
+    pinned = json.loads((ROOT / 'docs/reports' / manifest).read_text(encoding='utf-8'))
     live = next(m for m in api('tags')['models'] if m['name'] == pinned['name'])
     assert live['digest'] == pinned['digest'], 'Pinned digest changed'
     details = api('show', {'model': pinned['name']})
@@ -122,6 +124,8 @@ def main():
                 step = plan['steps'][0]
                 correct = plan.get('kind') == 'action_plan' and step['skill'] == expected and step['arguments'] == {SPECS[expected][0]: value}
             row.update(correct=correct, thinking_disabled_verified=not bool(response['message'].get('thinking')),
+                       predicted_kind=plan.get('kind'),
+                       predicted_skill=plan.get('steps',[{}])[0].get('skill') if plan.get('steps') else None,
                        load_ms=response.get('load_duration', 0) / 1e6)
         except Exception as exc:
             row.update(correct=False, error_type=type(exc).__name__)
@@ -138,7 +142,8 @@ def main():
               'correct': sum(row['correct'] for row in rows), 'total': len(rows),
               'warm_p50_seconds': statistics.median(warm), 'warm_p95_seconds': warm[int(.95*(len(warm)-1))],
               'rows': rows, 'runtime_residency': api('ps')}
-    name = 'baseline_cpu_development.json' if args.cpu else 'baseline_development.json'
+    prefix = 'candidate' if args.candidate else 'baseline'
+    name = prefix + ('_cpu_development.json' if args.cpu else '_development.json')
     (ROOT / 'docs/reports' / name).write_text(json.dumps(report, indent=2), encoding='utf-8')
     print(json.dumps({k: v for k, v in report.items() if k not in ('rows', 'runtime_residency')}))
 

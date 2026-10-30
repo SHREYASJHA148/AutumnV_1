@@ -1,0 +1,5 @@
+# Existing exact component pins plus read-only WinRT media-session validation.
+-r requirements-phase0-compat.lock
+winrt-Windows.Media.Control
+winrt-Windows.Foundation
+winrt-Windows.Foundation.Collections

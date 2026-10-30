@@ -1,0 +1,13 @@
+{
+  "Status": {
+    "AMServiceEnabled": true,
+    "AntivirusEnabled": true,
+    "AMEngineVersion": "1.1.26100.4",
+    "AntivirusSignatureVersion": "1.463.39.0"
+  },
+  "InstalledPlatformVersions": [
+    "CurrentVersion",
+    "4.18.26100.4-0",
+    "4.18.26090.9-0"
+  ]
+}

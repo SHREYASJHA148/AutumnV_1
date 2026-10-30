@@ -1,0 +1,10 @@
+{
+  "backend": "bounded scan",
+  "fixture_files": 1000,
+  "visited": 1000,
+  "matches": 40,
+  "elapsed_seconds": 0.179004,
+  "limited": false,
+  "personal_files_tested": false,
+  "indexed_root_coverage": "not verified; Windows Search service must be checked independently"
+}

@@ -1,0 +1,31 @@
+{
+  "owner_operated": true,
+  "captured_cases": 3,
+  "raw_audio_saved": false,
+  "transcripts_saved": false,
+  "phrase_scores": [
+    {
+      "model": "base.en",
+      "case": 1,
+      "normalized_phrase_match": false,
+      "seconds": 3.862
+    },
+    {
+      "model": "base.en",
+      "case": 2,
+      "normalized_phrase_match": false,
+      "seconds": 1.794
+    },
+    {
+      "model": "base.en",
+      "case": 3,
+      "normalized_phrase_match": false,
+      "seconds": 1.985
+    }
+  ],
+  "command_routing_measured": false,
+  "playback_files_completed": 10,
+  "owner_heard_samples": false,
+  "focused_overlay_verified": true,
+  "completed": false
+}
