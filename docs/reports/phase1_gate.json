@@ -1,0 +1,25 @@
+{
+  "phase": 1,
+  "status": "passed",
+  "tests": {
+    "count": 151,
+    "passed": 151,
+    "exit_code": 0,
+    "elapsed_seconds": 10.44
+  },
+  "lint": {
+    "exit_code": 0
+  },
+  "build": {
+    "exit_code": 0,
+    "elapsed_seconds": 152.042,
+    "executable_sha256": "1c41d2cca71108a0a32f800a368fedccdf173cf4fa7958a067a5a1ce5c94ddee",
+    "bytes": 5011366,
+    "directory_bytes": 163156501,
+    "source_commit": "21ae2a2"
+  },
+  "source_smoke_passed": true,
+  "frozen_smoke_passed": true,
+  "post_gate_owned_processes": 0,
+  "scope": "Phase 1 simulation foundation only; Phase 0 exceptions retained; Phase 2 not authorized"
+}
