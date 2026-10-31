@@ -1,0 +1,33 @@
+{
+  "phase": 2,
+  "status": "passed",
+  "tests": {
+    "passed": 302,
+    "exit_code": 0,
+    "elapsed_seconds": 15.86
+  },
+  "lint_exit": 0,
+  "build": {
+    "exit_code": 0,
+    "elapsed_seconds": 128.359,
+    "executable_sha256": "d6c646702a6ef16fa9f351dbead316e5fda0f24a5144e43adacdecc6dec3af00",
+    "directory_bytes": 198332006,
+    "qml_sha256": "6cd5bd0d6132efdefbb217600605d27df9f8e4d43e195a3c8a1978ee81a9571c",
+    "qml_matches_source": true,
+    "python_source_commit": "af6fc04"
+  },
+  "source_smoke_passed": true,
+  "frozen_smoke_passed": true,
+  "native_disposable_trial_passed": true,
+  "packaged_app_trial_passed": true,
+  "post_gate_owned_processes": 0,
+  "heldout_evaluated": false,
+  "limits": [
+    "Windows Search indexed coverage unverified; bounded scan validated",
+    "no active owner media session changed; uncertain delivery covered with fake session",
+    "owned-window capture tested; whole-monitor/multi-monitor scaling matrix remains future validation",
+    "browser and folder handoff tested at API boundary without an owner browser trial",
+    "Phase 0 GPU/recognition/wake/focus/antivirus gaps retained",
+    "no live model or speech in Phase 2"
+  ]
+}

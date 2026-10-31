@@ -108,3 +108,19 @@ def test_access_denial_is_reported(settings):
     results = Engine(Denied(), settings).execute(Plan(steps=(SetVolume(arguments=VolumeArgs(percent=10)),)),
         Request(generation=0), lambda: True, lambda *_: None)
     assert results[0].code == "ACCESS_DENIED"
+
+
+@pytest.mark.parametrize("text", ["open fixtures", "open https://example.com/Path?q=one&x=two"])
+def test_native_shell_boundary_handoff_is_honestly_unverified(settings, monkeypatch, text):
+    import autumn.winworker.windows as windows
+    captured = []
+    monkeypatch.setattr(windows, "interactive_desktop", lambda: True)
+    monkeypatch.setattr(windows.os, "startfile", lambda value, verb: captured.append((value, verb)))
+    adapter = windows.WindowsAdapter()
+    adapter.cache_configured = True
+    result = Engine(adapter, settings).execute(route(text, settings).plan, Request(generation=0),
+        lambda: True, lambda *_: None)[0]
+    assert result.status == "unverified" and result.code == "HANDOFF"
+    assert len(captured) == 1 and captured[0][1] == "open"
+    if text.startswith("open https"):
+        assert captured[0][0] == "https://example.com/Path?q=one&x=two"

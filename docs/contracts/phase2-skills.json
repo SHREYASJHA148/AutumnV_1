@@ -1,0 +1,659 @@
+{
+  "phase": 2,
+  "plan_schema": {
+    "$defs": {
+      "AppArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "title": "App Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "app_id"
+        ],
+        "title": "AppArgs",
+        "type": "object"
+      },
+      "Capabilities": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/Empty"
+          },
+          "skill": {
+            "const": "help.capabilities",
+            "default": "help.capabilities",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "title": "Capabilities",
+        "type": "object"
+      },
+      "CaptureArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "monitor": {
+            "default": "primary",
+            "enum": [
+              "primary",
+              "all"
+            ],
+            "title": "Monitor",
+            "type": "string"
+          }
+        },
+        "title": "CaptureArgs",
+        "type": "object"
+      },
+      "CaptureScreen": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/CaptureArgs"
+          },
+          "skill": {
+            "const": "screen.capture",
+            "default": "screen.capture",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "title": "CaptureScreen",
+        "type": "object"
+      },
+      "Empty": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "Empty",
+        "type": "object"
+      },
+      "FolderArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Candidate Id"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Folder Id"
+          }
+        },
+        "title": "FolderArgs",
+        "type": "object"
+      },
+      "MediaArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "enum": [
+              "play_pause",
+              "next",
+              "previous"
+            ],
+            "title": "Command",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "title": "MediaArgs",
+        "type": "object"
+      },
+      "MediaControl": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/MediaArgs"
+          },
+          "skill": {
+            "const": "media.control",
+            "default": "media.control",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "MediaControl",
+        "type": "object"
+      },
+      "MuteArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "muted": {
+            "title": "Muted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "muted"
+        ],
+        "title": "MuteArgs",
+        "type": "object"
+      },
+      "OpenApp": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/AppArgs"
+          },
+          "skill": {
+            "const": "app.open",
+            "default": "app.open",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "OpenApp",
+        "type": "object"
+      },
+      "OpenFolder": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/FolderArgs"
+          },
+          "skill": {
+            "const": "folder.open",
+            "default": "folder.open",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "OpenFolder",
+        "type": "object"
+      },
+      "OpenWebsite": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/WebsiteArgs"
+          },
+          "skill": {
+            "const": "website.open",
+            "default": "website.open",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "OpenWebsite",
+        "type": "object"
+      },
+      "RoutineArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "routine_id": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "title": "Routine Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routine_id"
+        ],
+        "title": "RoutineArgs",
+        "type": "object"
+      },
+      "RunRoutine": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/RoutineArgs"
+          },
+          "skill": {
+            "const": "routine.run",
+            "default": "routine.run",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "RunRoutine",
+        "type": "object"
+      },
+      "SearchArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "root_ids": {
+            "items": {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Root Ids",
+            "type": "array"
+          },
+          "type_hint": {
+            "default": "any",
+            "enum": [
+              "any",
+              "pdf",
+              "spreadsheet",
+              "photo",
+              "document",
+              "text"
+            ],
+            "title": "Type Hint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "root_ids"
+        ],
+        "title": "SearchArgs",
+        "type": "object"
+      },
+      "SearchFiles": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/SearchArgs"
+          },
+          "skill": {
+            "const": "files.search",
+            "default": "files.search",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "SearchFiles",
+        "type": "object"
+      },
+      "SetMute": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/MuteArgs"
+          },
+          "skill": {
+            "const": "audio.set_mute",
+            "default": "audio.set_mute",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "SetMute",
+        "type": "object"
+      },
+      "SetVolume": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/VolumeArgs"
+          },
+          "skill": {
+            "const": "audio.set_volume",
+            "default": "audio.set_volume",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "SetVolume",
+        "type": "object"
+      },
+      "TextArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "target_id": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "title": "Target Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "target_id"
+        ],
+        "title": "TextArgs",
+        "type": "object"
+      },
+      "TypeText": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "$ref": "#/$defs/TextArgs"
+          },
+          "skill": {
+            "const": "text.type",
+            "default": "text.type",
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments"
+        ],
+        "title": "TypeText",
+        "type": "object"
+      },
+      "VolumeArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "percent": {
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Percent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "percent"
+        ],
+        "title": "VolumeArgs",
+        "type": "object"
+      },
+      "WebsiteArgs": {
+        "additionalProperties": false,
+        "properties": {
+          "site_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Site Id"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          }
+        },
+        "title": "WebsiteArgs",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "const": "action_plan",
+        "default": "action_plan",
+        "title": "Kind",
+        "type": "string"
+      },
+      "steps": {
+        "items": {
+          "discriminator": {
+            "mapping": {
+              "app.open": "#/$defs/OpenApp",
+              "audio.set_mute": "#/$defs/SetMute",
+              "audio.set_volume": "#/$defs/SetVolume",
+              "files.search": "#/$defs/SearchFiles",
+              "folder.open": "#/$defs/OpenFolder",
+              "help.capabilities": "#/$defs/Capabilities",
+              "media.control": "#/$defs/MediaControl",
+              "routine.run": "#/$defs/RunRoutine",
+              "screen.capture": "#/$defs/CaptureScreen",
+              "text.type": "#/$defs/TypeText",
+              "website.open": "#/$defs/OpenWebsite"
+            },
+            "propertyName": "skill"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/OpenApp"
+            },
+            {
+              "$ref": "#/$defs/OpenFolder"
+            },
+            {
+              "$ref": "#/$defs/OpenWebsite"
+            },
+            {
+              "$ref": "#/$defs/SetVolume"
+            },
+            {
+              "$ref": "#/$defs/SetMute"
+            },
+            {
+              "$ref": "#/$defs/MediaControl"
+            },
+            {
+              "$ref": "#/$defs/CaptureScreen"
+            },
+            {
+              "$ref": "#/$defs/SearchFiles"
+            },
+            {
+              "$ref": "#/$defs/Capabilities"
+            },
+            {
+              "$ref": "#/$defs/TypeText"
+            },
+            {
+              "$ref": "#/$defs/RunRoutine"
+            }
+          ]
+        },
+        "maxItems": 3,
+        "minItems": 1,
+        "title": "Steps",
+        "type": "array"
+      }
+    },
+    "required": [
+      "steps"
+    ],
+    "title": "Plan",
+    "type": "object"
+  },
+  "skills": [
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Open a reviewed app",
+      "name": "app.open",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "launch app",
+      "timeout": 10,
+      "verification": "process/new window or unverified handoff",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Open a registered folder or show a search match's folder",
+      "name": "folder.open",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "open Explorer",
+      "timeout": 5,
+      "verification": "shell handoff; window unverified",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Open a registered website or an explicit HTTP/HTTPS address",
+      "name": "website.open",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "open browser",
+      "timeout": 5,
+      "verification": "browser handoff; page unverified",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Set volume to 0\u2013100 percent",
+      "name": "audio.set_volume",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "change session volume",
+      "timeout": 5,
+      "verification": "Core Audio read-back",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Mute or unmute speakers",
+      "name": "audio.set_mute",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "change session mute",
+      "timeout": 5,
+      "verification": "Core Audio read-back",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Play/pause, next or previous media",
+      "name": "media.control",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "control current media",
+      "timeout": 5,
+      "verification": "session acceptance and playback state when available",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Save a screenshot of the primary or all monitors",
+      "name": "screen.capture",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "save an image",
+      "timeout": 15,
+      "verification": "nonzero PNG dimensions and file",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Find filenames inside configured roots",
+      "name": "files.search",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "read filename metadata",
+      "timeout": 12,
+      "verification": "root and reparse checks; limits disclosed",
+      "version": 1
+    },
+    {
+      "available": true,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Show this capabilities list",
+      "name": "help.capabilities",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "none",
+      "timeout": 5,
+      "verification": "registry generated",
+      "version": 1
+    },
+    {
+      "available": false,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Confirmed dictation (Phase 5)",
+      "name": "text.type",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "type text",
+      "timeout": 10,
+      "verification": "foreground target between chunks",
+      "version": 1
+    },
+    {
+      "available": false,
+      "cancellation": "before dispatch and between bounded checkpoints",
+      "description": "Named routines (Phase 5)",
+      "name": "routine.run",
+      "permission": "local desktop",
+      "preconditions": "enabled, resolved, session unlocked, policy allows origin",
+      "retry": "never automatically replay",
+      "side_effect": "per-step effects",
+      "timeout": 15,
+      "verification": "per-step outcomes",
+      "version": 1
+    }
+  ],
+  "version": 1
+}

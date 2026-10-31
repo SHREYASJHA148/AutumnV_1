@@ -53,7 +53,7 @@ ApplicationWindow {
                     anchors.fill: parent; anchors.margins: 18; spacing: 10
                     Label { text: "WORKSPACE"; color: "#9cb0b1"; font.pixelSize: 11; font.letterSpacing: 1.8; Layout.topMargin: 8; Layout.bottomMargin: 12 }
                     Repeater {
-                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps & folders"]
+                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders"]
                         Button {
                             required property int index
                             required property string modelData
@@ -160,9 +160,9 @@ ApplicationWindow {
                             Label { Layout.fillWidth: true; text: "Device selection and live voice controls arrive with speech integration. Typed commands use the capabilities enabled below."; wrapMode: Text.WordWrap; color: "#a0b5b6" }
                             Label { text: "Controls"; font.pixelSize: 18; color: "#ddb78a" }
                             Label { text: "Stop shortcut" }
-                            ComboBox { id: stopChoice; objectName: "stopChoice"; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.stopShortcut); Accessible.name: "Stop shortcut" }
+                            ComboBox { id: stopChoice; objectName: "stopChoice"; Layout.preferredWidth: 280; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.stopShortcut); Accessible.name: "Stop shortcut" }
                             Label { text: "Voice readiness shortcut" }
-                            ComboBox { id: voiceChoice; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.voiceShortcut); Accessible.name: "Voice readiness shortcut" }
+                            ComboBox { id: voiceChoice; Layout.preferredWidth: 280; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.voiceShortcut); Accessible.name: "Voice readiness shortcut" }
                             Label { text: "Keep activity for this many days (1–90)" }
                             SpinBox { id: days; from: 1; to: 90; value: vm.retentionDays; editable: true; Accessible.name: "History retention days" }
                             Button { text: "Save settings"; enabled: vm.canSend; Accessible.name: "Save settings"; onClicked: vm.saveSettings(days.value, stopChoice.currentText, voiceChoice.currentText) }

@@ -19,7 +19,8 @@
   "owned_window_capture": {
     "status": "succeeded",
     "width": 530,
-    "height": 276
+    "height": 276,
+    "png_decoded": true
   },
   "filename_search": {
     "status": "succeeded",

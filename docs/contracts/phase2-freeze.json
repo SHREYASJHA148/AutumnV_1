@@ -1,0 +1,16 @@
+{
+  "schema_sha256": "cca490434919b5bb0faa3a0aabbac3a2b381b6978e2b67a87837bbe04fb137a5",
+  "active_skills": 9,
+  "reserved_disabled_skills": 2,
+  "heldout": {
+    "file": ".cache/evaluation-lockbox/starter-heldout.json",
+    "sha256": "0ea541777353f5938a047c260bdc5533a58c585832f0f8cbd522aaba02b62054",
+    "bytes": 6624,
+    "supported_cases": 15,
+    "ambiguous_unsupported_cases": 5,
+    "evaluated": false,
+    "used_for_tuning": false,
+    "access": "current Windows user only",
+    "completion_required_before_release_evaluation": "expand independently to 200 supported and 50 ambiguous/unsupported, including owner/other-person wording; no readback or tuning from this starter set"
+  }
+}
