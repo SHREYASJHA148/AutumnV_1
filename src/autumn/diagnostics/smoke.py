@@ -30,11 +30,20 @@ class SmokeTrial(QObject):
         self.checks: dict[str, bool] = {}
         self.error = False
         self.error_type = None
+        self.original_exception_hook = sys.excepthook
+        sys.excepthook = self.uncaught
         vm.acknowledged.connect(self.ack)
         window.frameSwapped.connect(self.frame)
 
     def start(self) -> None:
         self.timer.start()
+
+    def uncaught(self, kind, error, traceback) -> None:
+        # Qt slots otherwise print and swallow Python exceptions, creating false-positive UI trials.
+        self.error = True
+        self.error_type = kind.__name__
+        self.timer.stop()
+        self.app.quit()
 
     @Slot(str)
     def ack(self, kind: str) -> None:
@@ -77,8 +86,8 @@ class SmokeTrial(QObject):
             self.launch_ms = (time.monotonic() - self.started) * 1000
             # Fill the one-running/five-pending request queue while the worker is busy.
             for _ in range(6):
-                self.vm.submit("Fixed foundation preview")
-            self.vm.submit("Fixed overflow preview")
+                self.vm.submit("help")
+            self.vm.submit("help")
             self.checks["bounded_request_queue"] = self.vm.queuedCount == 5 and "Busy:" in self.vm.notice
             self.vm.stop()
             self.vm.toggleVoice()
@@ -109,17 +118,26 @@ class SmokeTrial(QObject):
             self.checks["stop_discards_pending"] = self.vm.session.active is None and not self.vm.session.pending
             self.checks["input_rendered_samples"] = len(self.samples["input"]) == 40
             self.checks["stop_rendered_samples"] = len(self.samples["stop"]) == 40
-            self.vm.submit("Fixed completion preview")
+            self.vm.submit("Fixed completion preview" if self.vm.preview_mode else "help")
             self.stage = "completion"
         elif self.stage == "completion" and self.vm.session.active is None:
-            self.checks["simulation_completed"] = any(row["code"] == "SIMULATED" for row in self.vm.history)
-            if not self.checks["simulation_completed"]:
+            self.checks["command_completed"] = any(row["code"] == ("SIMULATED" if self.vm.preview_mode else "OK") for row in self.vm.history)
+            if not self.checks["command_completed"]:
                 return
             self.checks["history_has_no_text"] = all(set(row) <= {"created", "skill_id", "origin", "status", "code", "duration_ms"} for row in self.vm.history)
             self.vm.clearHistory()
             self.stage = "clear"
         elif self.stage == "clear" and not self.vm.history:
             self.checks["history_cleared"] = True
+            self.snapshot_page = 0
+            self.stage = "snapshots"
+        elif self.stage == "snapshots":
+            self.window.grabWindow().save(str(self.vm.supervisor.root / f"page-{self.snapshot_page}.png"))
+            self.snapshot_page += 1
+            if self.snapshot_page < 5:
+                self.window.setProperty("page", self.snapshot_page)
+                return
+            self.window.setProperty("page", 0)
             from PySide6.QtGui import QWindow
 
             self.window.grabWindow().save(str(self.vm.supervisor.root / "preview.png"))
@@ -151,11 +169,13 @@ class SmokeTrial(QObject):
             self.app.quit()
 
     def finish(self, shutdown_clean: bool) -> int:
+        sys.excepthook = self.original_exception_hook
         if self.child is not None and self.child.poll() is None:
             self.child.terminate()
             self.child.wait(timeout=2)
         self.checks["workers_closed"] = shutdown_clean
         self.checks["no_test_exception"] = not self.error
+        self.checks["no_qt_warnings"] = not getattr(self, "qt_issues", [])
         timings = {}
         for kind, values in self.samples.items():
             values = sorted(values)

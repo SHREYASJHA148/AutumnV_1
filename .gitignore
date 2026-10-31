@@ -9,6 +9,8 @@ dist/
 *.egg-info/
 __pycache__/
 .pytest_cache/
+.hypothesis/
+.ruff_cache/
 # Private recordings, runtime stores, temporary experiment data
 *.wav
 *.mp3

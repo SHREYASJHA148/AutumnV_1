@@ -35,7 +35,7 @@ class TaskState(StrEnum):
 
 class Request(Contract):
     request_id: UUID = Field(default_factory=uuid4)
-    origin: Literal["typed", "button", "hold_to_talk", "wake", "routine"] = "typed"
+    origin: Literal["typed", "button", "ptt_voice", "wake_voice", "routine"] = "typed"
     generation: int = Field(ge=0)
     # Text stays in the UI's bounded, memory-only conversation, never in this queue.
 
@@ -54,8 +54,13 @@ class Event(Contract):
 
 class HistoryEvent(Contract):
     request_id: UUID
-    origin: Literal["typed", "button", "hold_to_talk", "wake", "routine"]
+    origin: Literal["typed", "button", "ptt_voice", "wake_voice", "routine"]
     status: Literal["succeeded", "failed", "unverified", "cancelled", "partial"]
-    code: Literal["SIMULATED", "CANCELLED", "WORKER_UNAVAILABLE"]
+    code: Literal["SIMULATED", "CANCELLED", "WORKER_UNAVAILABLE", "OK", "HANDOFF", "UNKNOWN_TARGET",
+                  "INVALID_ARGUMENTS", "DENIED", "DISABLED", "ACCESS_DENIED", "NO_SESSION",
+                  "UNSUPPORTED", "TIMEOUT", "PARTIAL", "COMPONENT_UNAVAILABLE", "CLARIFICATION"]
     duration_ms: int = Field(ge=0)
-    skill_id: Literal["foundation.preview"] = "foundation.preview"
+    skill_id: Literal["foundation.preview", "controller.request", "app.open", "folder.open", "website.open",
+                      "audio.set_volume", "audio.set_mute", "media.control", "screen.capture", "files.search",
+                      "help.capabilities", "text.type", "routine.run"] = "foundation.preview"
+    step_id: int = Field(default=0, ge=0, le=3)

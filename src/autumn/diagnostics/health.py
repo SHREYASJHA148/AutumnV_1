@@ -11,12 +11,12 @@ def snapshot() -> list[dict[str, str]]:
     except OSError:
         audio = "Device enumeration unavailable; no stream open"
     return [
-        {"name": "Language model", "detail": "Not connected in Phase 1; pinned qwen3:1.7b reserved for Phase 3"},
-        {"name": "Recognition", "detail": "Not connected in Phase 1; Phase 0 accuracy findings carried forward"},
+        {"name": "Language model", "detail": "Not connected yet; pinned qwen3:1.7b reserved for Phase 3"},
+        {"name": "Recognition", "detail": "Live speech arrives in Phase 4; Phase 0 accuracy findings carried forward"},
         {"name": "Female English voice", "detail": "Lessac medium selected; playback integration in Phase 4"},
         {"name": "Audio devices", "detail": audio},
         {"name": "Microphone permission", "detail": "Not tested here; microphone stays closed"},
-        {"name": "Computer actions", "detail": "Simulation only; no Windows action adapter connected"},
+        {"name": "Computer actions", "detail": "Typed action engine connected; only enabled skills and reviewed registered targets"},
         {"name": "Privacy", "detail": "Offline; no audio, transcripts or typed commands persisted"},
         {"name": "Phase 0 carry-forward", "detail": "GPU routing, speech/wake accuracy, cross-window focus and antivirus validation remain open"},
     ]

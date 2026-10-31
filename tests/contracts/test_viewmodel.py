@@ -42,6 +42,8 @@ def test_stale_reply_does_not_complete_new_request_or_write_success():
         vm.poll()
         assert vm.session.active == current
         assert not any(job.records and job.records[0].code == "SIMULATED" for job in supervisor.jobs)
-        assert all("Fixed" not in job.model_dump_json() and "Another" not in job.model_dump_json() for job in supervisor.jobs)
+        # Phase 2 routing needs transient input in IPC; persistence jobs must remain redacted.
+        assert all("Fixed" not in job.model_dump_json() and "Another" not in job.model_dump_json()
+                   for job in supervisor.jobs if job.kind in {"record", "save_settings"})
     finally:
         vm.shutdown()

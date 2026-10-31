@@ -7,7 +7,7 @@ from pathlib import Path
 
 from autumn.controller.contracts import HistoryEvent
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class HistoryStore:
@@ -40,10 +40,17 @@ class HistoryStore:
             self.connection.execute("CREATE TABLE IF NOT EXISTS schema_version(version INTEGER NOT NULL)")
             self.connection.execute("DELETE FROM schema_version")
             self.connection.execute("INSERT INTO schema_version VALUES (?)", (SCHEMA_VERSION,))
+            if current == 1:
+                self.connection.execute("ALTER TABLE action_events RENAME TO action_events_v1")
             self.connection.execute("""CREATE TABLE IF NOT EXISTS action_events(
-                id INTEGER PRIMARY KEY, created REAL NOT NULL, request_id TEXT NOT NULL UNIQUE,
+                id INTEGER PRIMARY KEY, created REAL NOT NULL, request_id TEXT NOT NULL,
                 skill_id TEXT NOT NULL, origin TEXT NOT NULL, status TEXT NOT NULL,
-                code TEXT NOT NULL, duration_ms INTEGER NOT NULL)""")
+                code TEXT NOT NULL, duration_ms INTEGER NOT NULL, step_id INTEGER NOT NULL DEFAULT 0,
+                UNIQUE(request_id,step_id))""")
+            # Each step's storage identity is distinct; original request/step binding remains in memory.
+            if current == 1:
+                self.connection.execute("INSERT INTO action_events SELECT *,0 FROM action_events_v1")
+                self.connection.execute("DROP TABLE action_events_v1")
             # Later phases supply their own versioned columns and data migrations.
             for table in ("routines", "routine_steps", "app_catalog"):
                 self.connection.execute(f"CREATE TABLE IF NOT EXISTS {table}(id TEXT PRIMARY KEY)")
@@ -51,9 +58,9 @@ class HistoryStore:
     def add(self, event: HistoryEvent, now: float | None = None) -> None:
         with self.connection:
             self.connection.execute(
-                "INSERT OR IGNORE INTO action_events(created,request_id,skill_id,origin,status,code,duration_ms) VALUES (?,?,?,?,?,?,?)",
+                "INSERT OR IGNORE INTO action_events(created,request_id,skill_id,origin,status,code,duration_ms,step_id) VALUES (?,?,?,?,?,?,?,?)",
                 (time.time() if now is None else now, str(event.request_id), event.skill_id,
-                 event.origin, event.status, event.code, event.duration_ms),
+                 event.origin, event.status, event.code, event.duration_ms, event.step_id),
             )
 
     def list_recent(self) -> list[dict]:

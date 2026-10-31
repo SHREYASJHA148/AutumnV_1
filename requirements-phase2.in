@@ -1,0 +1,11 @@
+-r requirements-phase1.lock
+-c requirements-phase0-platform.lock
+# Windows launch/catalog APIs, Core Audio and the Phase 0 media binding.
+pywin32
+pycaw
+comtypes
+winrt-Windows.Media.Control
+winrt-Windows.Foundation
+winrt-Windows.Foundation.Collections
+# Required generated policy and authority-boundary tests.
+hypothesis

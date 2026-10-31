@@ -93,3 +93,18 @@ def test_async_settings_saved_and_restored(tmp_path):
         assert not message["settings"]["microphone_enabled_at_start"]
     finally:
         assert restored.shutdown()
+
+
+def test_cancel_quarantines_a_blocked_worker_within_bounded_time(tmp_path):
+    supervisor = Supervisor(tmp_path, allow_faults=True)
+    try:
+        wait_for(supervisor, "ready")
+        supervisor.submit(Job(kind="hang", generation=0))
+        supervisor.busy_until = time.monotonic() + 5
+        supervisor.cancel(1)
+        started = time.monotonic()
+        wait_for(supervisor, "worker_failed", timeout=2)
+        assert time.monotonic() - started < 1
+        wait_for(supervisor, "ready")
+    finally:
+        assert supervisor.shutdown()

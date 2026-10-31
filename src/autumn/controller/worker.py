@@ -11,24 +11,34 @@ from typing import Literal
 
 from pydantic import Field
 
+from autumn.actions.engine import Engine, Outcome
+from autumn.actions.registry import REGISTRY
+from autumn.actions.router import route
+from autumn.actions.schemas import Plan
 from autumn.controller.contracts import Contract, Event, HistoryEvent, Request, TaskState
 from autumn.diagnostics.health import snapshot
 from autumn.storage.history import HistoryStore
 from autumn.storage.settings import Settings, atomic_save, load_settings
+from autumn.winworker.windows import WindowsAdapter, import_apps
 
 
 class Job(Contract):
-    kind: Literal["bootstrap", "simulate", "save_settings", "history", "clear_history", "record", "diagnostics", "hang", "crash"]
+    kind: Literal["bootstrap", "simulate", "execute", "import_catalog", "save_settings", "history", "clear_history", "record", "diagnostics", "hang", "crash"]
     generation: int = Field(ge=0)
     request: Request | None = None
     settings: Settings | None = None
     records: tuple[HistoryEvent, ...] = ()
+    text: str | None = Field(default=None, max_length=2000)
+    plan: Plan | None = None
 
 
 def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool) -> None:
     parent = os.getppid()
     history: HistoryStore | None = None
     settings = Settings()
+    adapter = WindowsAdapter(data_dir=Path(root))
+    engine = Engine(adapter, settings)
+    adapter.engine = engine
     last_beat = 0.0
 
     def send(kind: str, **data) -> None:
@@ -62,8 +72,63 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                         history.prune(settings.history_days)
                     except (OSError, ValueError, sqlite3.Error):
                         history, code = None, "STORAGE_UNAVAILABLE"
+                    engine.settings = settings
                     send("ready", settings=settings.model_dump(mode="json"), code=code,
                          history=history.list_recent() if history is not None else [], diagnostics=snapshot())
+                elif job.kind == "execute" and job.request is not None:
+                    req = job.request
+                    if req.generation != job.generation or generation.value != req.generation:
+                        continue
+                    def checkpoint():
+                        return alive() and generation.value == req.generation
+
+                    # IPC carries input in memory only. Never add it to history or diagnostics.
+                    routing = route(job.text or "", settings) if job.plan is None else None
+                    plan = job.plan or (routing.plan if routing else None)
+                    if plan is None:
+                        send("event", event=Event(kind="TaskStateChanged", request_id=req.request_id,
+                             generation=req.generation, state=TaskState.AWAITING_CLARIFICATION).model_dump(mode="json"))
+                        outcome = Outcome(status="failed", code="CLARIFICATION", message=routing.message + (
+                            " Suggestions: " + ", ".join(routing.choices) if routing.choices else ""), verification="deterministic grammar")
+                        record = HistoryEvent(request_id=req.request_id, origin=req.origin, status="failed",
+                            code="CLARIFICATION", duration_ms=0, skill_id="controller.request")
+                        if history is not None:
+                            history.add(record)
+                        send("action_result", request_id=str(req.request_id), generation=req.generation,
+                             outcome=outcome.model_dump(mode="json"), finished=True)
+                        continue
+                    send("event", event=Event(kind="TaskStateChanged", request_id=req.request_id,
+                         generation=req.generation, state=TaskState.EXECUTING).model_dump(mode="json"))
+                    send("busy", timeout=sum(REGISTRY[step.skill].timeout for step in plan.steps) + 1)
+
+                    def completed(record, outcome):
+                        if history is not None:
+                            history.add(record)
+                        send("action_result", request_id=str(req.request_id), generation=req.generation,
+                             skill=record.skill_id, outcome=outcome.model_dump(mode="json"), finished=False)
+
+                    engine.execute(plan, req, checkpoint, completed, on_dispatch=lambda timeout: send("busy", timeout=timeout + 0.2))
+                    send("action_finished", request_id=str(req.request_id), generation=req.generation)
+                    if history is not None:
+                        history.prune(settings.history_days)
+                        send("history", rows=history.list_recent())
+                    send("idle")
+                elif job.kind == "import_catalog":
+                    from autumn.winworker.cache import configure
+                    configure(Path(root))
+                    deadline = time.monotonic() + 15
+                    expected = job.generation
+                    send("busy", timeout=16)
+                    imported = import_apps(lambda: alive() and generation.value == expected and time.monotonic() < deadline)
+                    # Preserve owner-edited entries; newly discovered apps stay disabled/unreviewed.
+                    previous = {entry.id: entry for entry in settings.apps}
+                    for entry in imported:
+                        previous.setdefault(entry.id, entry)
+                    settings = settings.model_copy(update={"apps": tuple(previous.values())[:500]})
+                    atomic_save(Path(root) / "config/settings.json", settings)
+                    engine.settings = settings
+                    send("settings_saved", settings=settings.model_dump(mode="json"))
+                    send("idle")
                 elif job.kind == "simulate" and job.request is not None:
                     req = job.request
                     # Fixed simulated latency exercises asynchronous cancellation; no input text needed.
@@ -83,6 +148,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                 elif job.kind == "save_settings" and job.settings is not None:
                     atomic_save(Path(root) / "config/settings.json", job.settings)
                     settings = job.settings
+                    engine.settings = settings
                     if history is not None:
                         history.prune(settings.history_days)
                     send("settings_saved", settings=settings.model_dump(mode="json"))
@@ -104,6 +170,11 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                         pass
             except (OSError, ValueError, RuntimeError, sqlite3.Error, queue.Full):
                 send("error", code="STORAGE_OR_COMPONENT_UNAVAILABLE")
+                if job.kind == "execute" and job.request is not None:
+                    send("event", event=Event(kind="TaskStateChanged", request_id=job.request.request_id,
+                         generation=job.generation, state=TaskState.ERROR).model_dump(mode="json"))
+                    send("action_finished", request_id=str(job.request.request_id), generation=job.generation)
+                send("idle")
     finally:
         if history is not None:
             history.close()
@@ -128,6 +199,8 @@ class Supervisor:
         self.last_seen = 0.0
         self.started = 0.0
         self.retired: list = []
+        self.busy_until = 0.0
+        self.cancelled_at = 0.0
         self.start()
 
     def start(self) -> None:
@@ -153,6 +226,8 @@ class Supervisor:
 
     def cancel(self, generation: int) -> None:
         self.generation.value = generation
+        if self.busy_until:
+            self.cancelled_at = time.monotonic()
 
     def _retire(self) -> None:
         if self.process is not None:
@@ -180,12 +255,19 @@ class Supervisor:
             except queue.Empty:
                 break
             self.last_seen = now
-            if message["kind"] != "heartbeat":
+            if message["kind"] == "busy":
+                self.busy_until = now + min(message["timeout"], 46)
+            elif message["kind"] == "idle":
+                self.busy_until = self.cancelled_at = 0.0
+            elif message["kind"] != "heartbeat":
                 messages.append(message)
         # A cold spawned process gets 10 seconds to import and bootstrap.
-        overdue = now - self.last_seen > self.heartbeat_timeout and now - self.started > 10
+        overdue = ((now - self.last_seen > self.heartbeat_timeout and now - self.started > 10 and not self.busy_until)
+                   or (self.busy_until and now > self.busy_until)
+                   or (self.cancelled_at and now - self.cancelled_at > 0.5))
         if not self.process.is_alive() or overdue:
             self._retire()
+            self.busy_until = self.cancelled_at = 0.0
             self.restarts += 1
             self.disabled = self.restarts >= 3
             self.next_start = now + min(0.25 * 2 ** (self.restarts - 1), 2.0)

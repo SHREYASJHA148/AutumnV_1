@@ -10,6 +10,8 @@ from uuid import uuid4
 
 from pydantic import Field, ValidationError, field_validator, model_validator
 
+from autumn.actions.catalog import AppEntry, FolderEntry, SiteEntry
+from autumn.actions.registry import DEFAULT_ENABLED, REGISTRY
 from autumn.controller.contracts import Contract
 
 MODEL_DIGEST = "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7"
@@ -36,7 +38,7 @@ class Hotkeys(Contract):
 
 
 class Settings(Contract):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[1, 2] = 2
     microphone_enabled_at_start: Literal[False] = False
     wake_enabled: Literal[False] = False
     conversation_persistence: Literal[False] = False
@@ -48,9 +50,24 @@ class Settings(Contract):
     history_days: int = Field(default=7, ge=1, le=90)
     model_tag: Literal["qwen3:1.7b"] = "qwen3:1.7b"
     model_digest: Literal[MODEL_DIGEST] = MODEL_DIGEST
-    enabled_skills: tuple[str, ...] = ()
+    enabled_skills: tuple[str, ...] = DEFAULT_ENABLED
+    apps: tuple[AppEntry, ...] = Field(default=(), max_length=500)
+    folders: tuple[FolderEntry, ...] = Field(default_factory=lambda: (
+        FolderEntry(id="documents", name="Documents", path=str(Path.home() / "Documents")),
+        FolderEntry(id="downloads", name="Downloads", path=str(Path.home() / "Downloads")),
+    ), max_length=8)
+    sites: tuple[SiteEntry, ...] = Field(default=(), max_length=100)
     screenshot_folder: str = str(Path.home() / "Pictures" / "Autumn")
     search_roots: tuple[str, ...] = (str(Path.home() / "Documents"), str(Path.home() / "Downloads"))
+
+    @model_validator(mode="after")
+    def registries_valid(self):
+        if any(skill not in REGISTRY or not REGISTRY[skill].available for skill in self.enabled_skills):
+            raise ValueError("Unsupported skill enabled")
+        for rows in (self.apps, self.folders, self.sites):
+            if len({row.id for row in rows}) != len(rows):
+                raise ValueError("Duplicate registry ID")
+        return self
 
 
 def app_directory() -> Path:
@@ -79,9 +96,14 @@ def load_settings(path: Path) -> tuple[Settings, str]:
         atomic_save(path, settings)
         return settings, "DEFAULTS_CREATED"
     try:
-        if path.stat().st_size > 64_000:
+        if path.stat().st_size > 2_000_000:
             raise ValueError("Settings too large")
-        return Settings.model_validate_json(path.read_text(encoding="utf-8")), "LOADED"
+        settings = Settings.model_validate_json(path.read_text(encoding="utf-8"))
+        if settings.schema_version == 1:
+            settings = settings.model_copy(update={"schema_version": 2, "enabled_skills": DEFAULT_ENABLED})
+            atomic_save(path, settings)
+            return settings, "MIGRATED"
+        return settings, "LOADED"
     except (ValidationError, ValueError, UnicodeError, json.JSONDecodeError):
         # Preserve the original and refuse unsafe overwrite if preservation fails.
         backup = path.with_name(f"settings.recovered-{uuid4().hex}.json")

@@ -14,12 +14,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Autumn local desktop assistant")
     parser.add_argument("--data-dir", type=Path, help="Explicit isolated settings directory for testing")
     parser.add_argument("--smoke-report", type=Path, help="Run a self-closing, metadata-only build test")
+    parser.add_argument("--phase2-smoke-report", type=Path, help="Self-closing typed-action UI test using only capabilities help")
     args = parser.parse_args()
     os.environ.setdefault("QT_QUICK_BACKEND", "software")
     os.environ.setdefault("QML_DISABLE_DISK_CACHE", "1")
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Fusion")
 
-    from PySide6.QtCore import QTimer, QUrl
+    from PySide6.QtCore import QTimer, QtMsgType, QUrl, qInstallMessageHandler
     from PySide6.QtQml import QQmlApplicationEngine
     from PySide6.QtQuick import QQuickWindow
     from PySide6.QtWidgets import QApplication, QMessageBox
@@ -30,9 +31,15 @@ def main() -> int:
     from autumn.ui.windows import NativeEvents, SingleInstance
 
     app = QApplication(sys.argv[:1])
+    qt_issues = []
+    if args.smoke_report or args.phase2_smoke_report:
+        def qt_message(kind, context, message):
+            if kind in {QtMsgType.QtWarningMsg, QtMsgType.QtCriticalMsg, QtMsgType.QtFatalMsg}:
+                qt_issues.append(int(kind.value))
+        qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.1.0")
+    app.setApplicationVersion("0.2.0")
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -44,7 +51,7 @@ def main() -> int:
         instance.close()
         return 0
     supervisor = Supervisor(root)
-    vm = ViewModel(supervisor)
+    vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report))
     native = NativeEvents(vm.stop, vm.toggleVoice, vm.suspend, vm.resume)
     app.installNativeEventFilter(native)
     engine = QQmlApplicationEngine()
@@ -91,9 +98,10 @@ def main() -> int:
 
     app.aboutToQuit.connect(shutdown)
     smoke = None
-    if args.smoke_report:
+    if args.smoke_report or args.phase2_smoke_report:
         from autumn.diagnostics.smoke import SmokeTrial
-        smoke = SmokeTrial(app, window, vm, native, args.smoke_report)
+        smoke = SmokeTrial(app, window, vm, native, args.smoke_report or args.phase2_smoke_report)
+        smoke.qt_issues = qt_issues
         smoke.start()
     result = app.exec()
     if smoke is not None:

@@ -1,0 +1,33 @@
+{
+  "personal_files_searched": false,
+  "browser_opened": false,
+  "media_toggled": false,
+  "executable_launch": {
+    "status": "succeeded",
+    "code": "OK",
+    "message": "App launch verified by a new window.",
+    "verification": "new window matched launch PID"
+  },
+  "single_instance_handoff": {
+    "status": "unverified",
+    "code": "HANDOFF",
+    "message": "Launch handed to Windows; a new app window was not verified. It may have reused an existing instance.",
+    "verification": "launch accepted; window unverified"
+  },
+  "shortcut_import_and_launch": true,
+  "shortcut_handoffs": 2,
+  "owned_window_capture": {
+    "status": "succeeded",
+    "width": 424,
+    "height": 221
+  },
+  "filename_search": {
+    "status": "succeeded",
+    "matches": 1,
+    "backend": "bounded scan if index/coverage unavailable"
+  },
+  "audio_readback": true,
+  "media_sessions": 0,
+  "no_media_session_result": "NO_SESSION",
+  "passed": true
+}

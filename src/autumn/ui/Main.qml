@@ -53,7 +53,7 @@ ApplicationWindow {
                     anchors.fill: parent; anchors.margins: 18; spacing: 10
                     Label { text: "WORKSPACE"; color: "#9cb0b1"; font.pixelSize: 11; font.letterSpacing: 1.8; Layout.topMargin: 8; Layout.bottomMargin: 12 }
                     Repeater {
-                        model: ["Conversation", "Activity", "Settings", "Diagnostics"]
+                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps & folders"]
                         Button {
                             required property int index
                             required property string modelData
@@ -64,17 +64,17 @@ ApplicationWindow {
                         }
                     }
                     Item { Layout.fillHeight: true }
-                    Label { text: "FOUNDATION PREVIEW"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
-                    Label { Layout.fillWidth: true; text: "Commands are simulated.\nMicrophone stays closed."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
+                    Label { text: "TYPED WORKSPACE"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
+                    Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nMicrophone stays closed."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "Phase 1 · 0.1.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "Phase 2 · 0.2.0"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
             }
             ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: 28; spacing: 16
                 RowLayout {
                     Layout.fillWidth: true
-                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
+                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
                     Label { text: vm.taskStatus + (vm.queuedCount ? " · " + vm.queuedCount + " queued" : ""); color: "#a4d8bd"; Accessible.name: "Task status: " + text }
                 }
                 Label { Layout.fillWidth: true; text: vm.captureStatus; color: "#a0b5b6"; Accessible.name: text }
@@ -101,10 +101,21 @@ ApplicationWindow {
                                 }
                             }
                         }
-                        Label { text: "TRY A PREVIEW"; color: "#9cb0b1"; font.pixelSize: 10; font.letterSpacing: 1.5 }
+                        ListView {
+                            id: results; Layout.fillWidth: true; Layout.preferredHeight: count ? 136 : 0
+                            clip: true; spacing: 6; model: vm.resultCards
+                            ScrollBar.vertical: ScrollBar {}
+                            delegate: RowLayout {
+                                required property var modelData
+                                width: results.width - 16
+                                Label { Layout.fillWidth: true; text: modelData.name + "\n" + modelData.path; textFormat: Text.PlainText; wrapMode: Text.WrapAnywhere; color: "#c1d0ce"; font.pixelSize: 12 }
+                                Button { text: "Show folder"; visible: modelData.kind === "match"; Accessible.name: "Show containing folder for " + modelData.name; onClicked: vm.showMatchFolder(modelData.id) }
+                            }
+                        }
+                        Label { text: "TRY A COMMAND"; color: "#9cb0b1"; font.pixelSize: 10; font.letterSpacing: 1.5 }
                         RowLayout {
-                            Button { text: "Open Notepad"; Accessible.name: "Preview Open Notepad"; enabled: vm.canSend; onClicked: vm.submit(text) }
-                            Button { text: "Find a file"; Accessible.name: "Preview Find a file"; enabled: vm.canSend; onClicked: vm.submit(text) }
+                            Button { text: "What can you do?"; Accessible.name: text; enabled: vm.canSend; onClicked: vm.submit(text) }
+                            Button { text: "Review apps"; Accessible.name: text; onClicked: window.page = 4 }
                             Item { Layout.fillWidth: true }
                         }
                         RowLayout {
@@ -113,7 +124,7 @@ ApplicationWindow {
                                 id: input; objectName: "commandInput"; Layout.fillWidth: true
                                 placeholderText: "Type a request…"; maximumLength: 2000
                                 enabled: vm.canSend; selectByMouse: true
-                                Accessible.name: "Type a request"; Accessible.description: "Phase 1 simulation only. Press Enter or Send."
+                                Accessible.name: "Type a request"; Accessible.description: "Type a supported command. Press Enter or Send."
                                 onAccepted: { vm.submit(text); text = "" }
                             }
                             Button { objectName: "sendButton"; text: "Send"; enabled: vm.canSend && input.text.trim().length > 0; Accessible.name: "Send typed request"; onClicked: { vm.submit(input.text); input.text = ""; input.forceActiveFocus() } }
@@ -131,7 +142,7 @@ ApplicationWindow {
                                 width: activityList.width - 14; height: 82; radius: 10; color: "#1b2a31"
                                 ColumnLayout {
                                     anchors.fill: parent; anchors.margins: 14
-                                    Label { text: (modelData.code === "SIMULATED" ? "Simulated preview" : "Preview interrupted") + " · " + modelData.status; color: "#e0e9e5" }
+                                    Label { text: modelData.skill_id + " · " + modelData.status; color: "#e0e9e5" }
                                     Label { text: Qt.formatDateTime(new Date(modelData.created * 1000), "ddd d MMM, hh:mm") + " · " + modelData.origin + " · " + modelData.duration_ms + " ms"; color: "#a7b9ba"; font.pixelSize: 12 }
                                 }
                             }
@@ -141,11 +152,12 @@ ApplicationWindow {
                     }
                     ScrollView {
                         clip: true
+                        enabled: vm.canConfigure
                         ColumnLayout {
                             width: parent.width - 22; spacing: 16
                             Label { text: "Voice & privacy"; font.pixelSize: 18; color: "#ddb78a" }
                             Label { Layout.fillWidth: true; text: "English · Female voice: Lessac\nBuilt-in microphone preferred · System default speakers\nMicrophone is off at every launch. Wake mode and conversation saving are off."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
-                            Label { Layout.fillWidth: true; text: "Device selection and live voice controls arrive with speech integration. No computer actions are enabled in this preview."; wrapMode: Text.WordWrap; color: "#a0b5b6" }
+                            Label { Layout.fillWidth: true; text: "Device selection and live voice controls arrive with speech integration. Typed commands use the capabilities enabled below."; wrapMode: Text.WordWrap; color: "#a0b5b6" }
                             Label { text: "Controls"; font.pixelSize: 18; color: "#ddb78a" }
                             Label { text: "Stop shortcut" }
                             ComboBox { id: stopChoice; objectName: "stopChoice"; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.stopShortcut); Accessible.name: "Stop shortcut" }
@@ -156,7 +168,17 @@ ApplicationWindow {
                             Button { text: "Save settings"; enabled: vm.canSend; Accessible.name: "Save settings"; onClicked: vm.saveSettings(days.value, stopChoice.currentText, voiceChoice.currentText) }
                             Label { text: "Saved locations"; font.pixelSize: 18; color: "#ddb78a" }
                             Label { Layout.fillWidth: true; text: vm.locations; textFormat: Text.PlainText; wrapMode: Text.WrapAnywhere; color: "#a7b9ba" }
-                            Label { text: "Location editing and permission controls arrive with the action engine."; wrapMode: Text.WordWrap; Layout.fillWidth: true; color: "#a7b9ba" }
+                            Button { text: "Choose screenshot folder"; Accessible.name: text; onClicked: vm.chooseScreenshotFolder() }
+                            Label { text: "Enabled capabilities"; font.pixelSize: 18; color: "#ddb78a" }
+                            Repeater {
+                                model: vm.skillSettings
+                                CheckBox {
+                                    required property var modelData
+                                    text: modelData.description; checked: modelData.enabled
+                                    Accessible.name: text
+                                    onClicked: vm.enableSkill(modelData.id, checked)
+                                }
+                            }
                         }
                     }
                     ColumnLayout {
@@ -178,6 +200,55 @@ ApplicationWindow {
                             }
                         }
                         Button { text: "Refresh checks"; enabled: vm.canSend; Accessible.name: "Refresh workspace diagnostics"; onClicked: vm.refreshDiagnostics() }
+                    }
+                    ColumnLayout {
+                        spacing: 10
+                        enabled: vm.canConfigure
+                        Label { Layout.fillWidth: true; text: "Imported apps stay disabled until you review and save them. Shortcuts with arguments or script launchers are skipped."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                        RowLayout {
+                            Button { text: "Import installed apps"; enabled: vm.canSend; Accessible.name: text; onClicked: vm.importApps() }
+                            Button { text: "Add app…"; enabled: vm.canSend; Accessible.name: text; onClicked: vm.addApp() }
+                        }
+                        ListView {
+                            id: apps; Layout.fillWidth: true; Layout.fillHeight: true; clip: true
+                            model: vm.appCatalog; spacing: 10; ScrollBar.vertical: ScrollBar {}
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: apps.width - 16; height: 160; radius: 9; color: "#1b2a31"
+                                ColumnLayout {
+                                    anchors.fill: parent; anchors.margins: 10; spacing: 4
+                                    RowLayout {
+                                        TextField { id: appName; text: modelData.name; Layout.fillWidth: true; maximumLength: 80; Accessible.name: "App name" }
+                                        CheckBox { id: appEnabled; text: "Enabled"; checked: modelData.enabled; Accessible.name: "Enable " + modelData.name }
+                                    }
+                                    TextField { id: appAliases; text: modelData.alias_text; placeholderText: "Aliases separated by commas"; Layout.fillWidth: true; Accessible.name: "App aliases" }
+                                    Label { text: modelData.kind + ": " + modelData.target; textFormat: Text.PlainText; Layout.fillWidth: true; elide: Text.ElideMiddle; color: "#a7b9ba"; font.pixelSize: 11 }
+                                    RowLayout {
+                                        Button { text: "Review & save"; Accessible.name: "Review and save " + modelData.name; onClicked: vm.saveApp(modelData.id, appName.text, appAliases.text, appEnabled.checked) }
+                                        Button { text: "Remove"; Accessible.name: "Remove " + modelData.name; onClicked: vm.removeApp(modelData.id) }
+                                    }
+                                }
+                            }
+                        }
+                        RowLayout {
+                            TextField { id: folderName; placeholderText: "Folder name"; Layout.fillWidth: true; maximumLength: 80; Accessible.name: "Registered folder name" }
+                            Button { text: "Choose folder…"; Accessible.name: text; onClicked: vm.addFolder(folderName.text) }
+                        }
+                        RowLayout {
+                            TextField { id: siteName; placeholderText: "Website name"; Layout.preferredWidth: 150; maximumLength: 80; Accessible.name: "Registered website name" }
+                            TextField { id: siteUrl; placeholderText: "https://example.com"; Layout.fillWidth: true; maximumLength: 2048; Accessible.name: "Website address" }
+                            Button { text: "Add site"; Accessible.name: text; onClicked: vm.addSite(siteName.text, siteUrl.text) }
+                        }
+                        ListView {
+                            id: locations; Layout.fillWidth: true; Layout.preferredHeight: 100; clip: true
+                            model: vm.registeredLocations; ScrollBar.vertical: ScrollBar {}
+                            delegate: RowLayout {
+                                required property var modelData
+                                width: locations.width - 16
+                                Label { text: modelData.name + " · " + modelData.detail; Layout.fillWidth: true; elide: Text.ElideMiddle; color: "#a7b9ba"; textFormat: Text.PlainText }
+                                Button { text: "Remove"; Accessible.name: "Remove " + modelData.name; onClicked: vm.removeLocation(modelData.id, modelData.kind) }
+                            }
+                        }
                     }
                 }
                 Rectangle {
