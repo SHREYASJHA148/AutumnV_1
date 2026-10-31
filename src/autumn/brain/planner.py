@@ -131,7 +131,7 @@ class Planner:
         if guarded is not None:
             self.clear_context()
             if isinstance(guarded,Clarification):
-                labels=tuple(sorted(build_schema(settings,text,candidate_ids).choices))[:5]
+                labels=tuple(sorted(build_schema(settings,text,candidate_ids).choices))[:5] if re.search(r"\b(open|show)\b",text.casefold()) else ()
                 guarded=guarded.model_copy(update={"choices":labels})
                 self.context=Context(text[:240],guarded.message,labels,request.origin,request.generation,self.clock()+30)
             self.last_metrics = {"path":"intent_guard","elapsed_ms":0,"profile":"cpu","repairs":0}

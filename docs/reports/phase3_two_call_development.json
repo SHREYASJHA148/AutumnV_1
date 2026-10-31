@@ -1,0 +1,40 @@
+{
+  "actions_dispatched": 0,
+  "dataset": "four development requests, not held-out",
+  "profile": "cpu",
+  "correct": 3,
+  "total": 4,
+  "p50_seconds": 3.984,
+  "rows": [
+    {
+      "case": 1,
+      "expected_skill": "audio.set_mute",
+      "selected_skill": "audio.set_mute",
+      "correct": true,
+      "elapsed_seconds": 4.812
+    },
+    {
+      "case": 2,
+      "expected_skill": "audio.set_mute",
+      "selected_skill": "audio.set_volume",
+      "correct": false,
+      "elapsed_seconds": 3.968
+    },
+    {
+      "case": 3,
+      "expected_skill": "audio.set_volume",
+      "selected_skill": "audio.set_volume",
+      "correct": true,
+      "elapsed_seconds": 4.0
+    },
+    {
+      "case": 4,
+      "expected_skill": "screen.capture",
+      "selected_skill": "screen.capture",
+      "correct": true,
+      "elapsed_seconds": 3.813
+    }
+  ],
+  "selection_rule": "retain one-call unless the two-call approach improves development accuracy without unacceptable latency",
+  "scoring": "Skill selection only; this prototype was rejected before any held-out evaluation."
+}

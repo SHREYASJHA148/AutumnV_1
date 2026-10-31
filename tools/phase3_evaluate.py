@@ -20,6 +20,16 @@ from autumn.storage.settings import MODEL_DIGEST, Settings
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def source_fingerprint():
+    paths=["src/autumn/actions/router.py","src/autumn/actions/schemas.py",
+           "src/autumn/brain/contracts.py","src/autumn/brain/intent.py","src/autumn/brain/planner.py",
+           "src/autumn/brain/schema.py","src/autumn/brain/transport.py"]
+    digest=hashlib.sha256()
+    for name in paths:
+        digest.update(name.encode()+b"\0"+(ROOT/name).read_bytes().replace(b"\r\n",b"\n"))
+    return digest.hexdigest()
+
+
 def development():
     catalog = {"apps":[{"id":"editor","name":"Fixture Editor"},{"id":"calculator","name":"Calculator"}],
         "folders":[{"id":"documents","name":"Documents"},{"id":"downloads","name":"Downloads"}],
@@ -124,6 +134,8 @@ def main():
         from autumn.brain.planner import SYSTEM
         if lock["prompt_sha256"]!=hashlib.sha256(SYSTEM.encode()).hexdigest():
             raise SystemExit("Release prompt changed; held-out trial blocked")
+        if lock["source_sha256"]!=source_fingerprint():
+            raise SystemExit("Release routing code changed; held-out trial blocked")
         marker=ROOT/".cache/evaluation-lockbox"/("evaluated-"+lock["rc_id"]+".marker")
         with marker.open("x") as f:
             f.write("Routing-only release trial begun. Never rerun this candidate or tune from this dataset.\n")

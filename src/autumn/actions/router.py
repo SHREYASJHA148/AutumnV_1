@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
+from autumn.actions.catalog import safe_url
 from autumn.actions.schemas import (
     AppArgs,
     Capabilities,
@@ -91,7 +92,10 @@ def route(text: str, settings) -> Routing:
         if name.startswith(("http:", "https:")):
             # Preserve the original URL's case-sensitive path/query.
             raw = text.strip()[5:].strip()
-            action = OpenWebsite(arguments=WebsiteArgs(url=raw))
+            try:
+                action = OpenWebsite(arguments=WebsiteArgs(url=safe_url(raw)))
+            except ValueError:
+                return Routing(message="Use a valid HTTP/HTTPS address without credentials or embedded commands.")
         else:
             candidates = []
             aliases = []
