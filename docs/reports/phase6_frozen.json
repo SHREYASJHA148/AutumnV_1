@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "frozen": true,
+  "checks": {
+    "voice_setup_loaded": true,
+    "talk_control_loaded": true,
+    "dictation_controls_loaded": true,
+    "routine_editor_loaded": true,
+    "wake_setup_loaded": true,
+    "wake_disabled_at_launch": true,
+    "window_fits_available_screen": true,
+    "qml_loaded": true,
+    "microphone_disabled": true,
+    "input_available": true,
+    "session_notifications": true,
+    "shortcuts_registered": true,
+    "bounded_request_queue": true,
+    "stop_returns_ptt_ready": true,
+    "suspend_blocks_requests": true,
+    "resume_microphone_disabled": true,
+    "dictationTarget_visible_in_layout": true,
+    "routineName_visible_in_layout": true,
+    "wakeCheckButton_visible_in_layout": true,
+    "stop_discards_pending": true,
+    "input_rendered_samples": true,
+    "stop_rendered_samples": true,
+    "command_completed": true,
+    "history_has_no_text": true,
+    "history_cleared": true,
+    "separate_target_had_focus": true,
+    "second_instance_exit_zero": true,
+    "first_instance_alive": true,
+    "second_instance_focused_window": true,
+    "finished_before_timeout": true,
+    "workers_closed": true,
+    "no_test_exception": true,
+    "no_qt_warnings": true,
+    "input_p95_below_200ms": true,
+    "stop_p95_below_200ms": true
+  },
+  "test_exception_type": null,
+  "input_to_render": {
+    "input": {
+      "samples": 40,
+      "p95_ms": 16.0
+    },
+    "stop": {
+      "samples": 40,
+      "p95_ms": 16.0
+    }
+  },
+  "load": "80 alternating typed-input/Stop events, 100-row conversation cap, six-request overflow trial; worker active",
+  "ui_ready_after_qml_ms": 78.0,
+  "elapsed_seconds": 9.937
+}

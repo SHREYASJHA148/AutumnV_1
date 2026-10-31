@@ -88,6 +88,10 @@ class SmokeTrial(QObject):
             self.checks["talk_control_loaded"] = self.window.findChild(QObject, "talkButton") is not None
             self.checks["dictation_controls_loaded"] = self.window.findChild(QObject, "dictationTarget") is not None
             self.checks["routine_editor_loaded"] = self.window.findChild(QObject, "routineName") is not None
+            self.checks["wake_setup_loaded"] = self.window.findChild(QObject, "wakeCheckButton") is not None
+            self.checks["wake_disabled_at_launch"] = not self.vm.wake.enabled and not self.vm.wake.monitoring
+            screen=self.window.screen().availableGeometry()
+            self.checks["window_fits_available_screen"] = self.window.width()<=screen.width() and self.window.height()<=screen.height()
             self.window.setProperty("page", 0)
             self.checks.update(qml_loaded=True, microphone_disabled=not self.vm.voiceReady,
                                input_available=self.input is not None,
@@ -109,9 +113,23 @@ class SmokeTrial(QObject):
             self.checks["suspend_blocks_requests"] = self.vm.session.active is None
             self.vm.resume()
             self.checks["resume_microphone_disabled"] = not self.vm.voiceReady
-            self.stage = "load"
+            self.stage = "new_pages"
+            self.pages_remaining = [(6,"dictationTarget"),(7,"routineName"),(8,"wakeCheckButton")]
+            self.page_control = None
         elif self.stage == "disable_model_for_load" and not self.vm.settings_pending:
             self.stage="startup"
+        elif self.stage == "new_pages":
+            if self.page_control:
+                item=self.window.findChild(QObject,self.page_control)
+                position=item.mapToItem(self.window.contentItem(),QPointF(0,0))
+                self.checks[self.page_control+"_visible_in_layout"] = (position.x()>=0 and position.y()>=0 and
+                    position.x()+item.width()<=self.window.width()+1 and position.y()+item.height()<=self.window.height()+1)
+            if self.pages_remaining:
+                page,self.page_control=self.pages_remaining.pop(0)
+                self.window.setProperty('page',page)
+            else:
+                self.window.setProperty('page',0)
+                self.stage='load'
         elif self.stage == "load":
             self.measure_start = time.monotonic()
             if self.index % 2 == 0:

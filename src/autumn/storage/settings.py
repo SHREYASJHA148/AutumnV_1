@@ -39,7 +39,10 @@ class Hotkeys(Contract):
 
 
 class Settings(Contract):
-    schema_version: Literal[1, 2, 3, 4, 5] = 5
+    schema_version: Literal[1, 2, 3, 4, 5, 6] = 6
+    wake_threshold: float = Field(default=.5,ge=.1,le=.95)
+    close_behavior: Literal['ask','tray','quit'] = 'ask'
+    reduced_motion: bool = True
     routines: tuple[Routine, ...] = Field(default=(), max_length=100)
     microphone_enabled_at_start: Literal[False] = False
     wake_enabled: Literal[False] = False
@@ -114,11 +117,11 @@ def load_settings(path: Path) -> tuple[Settings, str]:
         if path.stat().st_size > 2_000_000:
             raise ValueError("Settings too large")
         settings = Settings.model_validate_json(path.read_text(encoding="utf-8"))
-        if settings.schema_version in {1,2,3,4}:
-            changes = {"schema_version":5}
+        if settings.schema_version in {1,2,3,4,5}:
+            changes = {"schema_version":6}
             if settings.schema_version == 1:
                 changes["enabled_skills"] = DEFAULT_ENABLED
-            else:
+            elif settings.schema_version < 5:
                 changes["enabled_skills"] = tuple(dict.fromkeys((*settings.enabled_skills,"text.type","routine.run")))
             settings = settings.model_copy(update=changes)
             atomic_save(path, settings)

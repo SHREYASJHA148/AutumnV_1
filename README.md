@@ -1,6 +1,6 @@
 # Autumn
 
-A local Windows desktop assistant. Phase 4 adds English push-to-talk, local speech recognition and a female voice to the pinned `qwen3:1.7b` planner and reviewed computer actions. This remains a personal preview: Phase 3 accuracy targets failed, GPU acceptance is unverified, and the owner's 100-utterance speech test is pending.
+A local Windows desktop assistant. Phases 5 and 6 add confirmed dictation, reviewed routines, calibrated wake mode and tray controls to English push-to-talk, a female local voice and the pinned `qwen3:1.7b` planner. This is a personal preview: earlier accuracy targets failed and human/hardware acceptance remains incomplete. Phase 7 has not started.
 
 Use `dist/Autumn preview Ã©/Autumn/Autumn.exe` after building. Closing its window quits Autumn and its worker. A second launch brings the existing window forward. A shared Ollama service is left running.
 
@@ -13,7 +13,7 @@ For development, run these commands from this folder in PowerShell:
 .\tools\dev.ps1 build
 ```
 
-The measured environment is `.venv-qt-compat` with project-local CPython 3.12.10. Reproduce dependencies with the local `uv` tool and `requirements-phase4.lock` using `--require-hashes`; do not install from the unpinned input file. Older environments and locks are preserved.
+The measured environment is `.venv-qt-compat` with project-local CPython 3.12.10. Reproduce dependencies with the local `uv` tool and `requirements-phase6.lock` using `--require-hashes`; do not install from the unpinned input file. Older environments and locks are preserved.
 
 Stop is **Ctrl+Alt+Backspace**. Enable voice, then hold **Ctrl+Alt+Space** or **Hold to talk** to record a command. Voice setup also offers toggle recording, which ends after a pause; every recording is bounded to 20 seconds. Stop and microphone-off discard unfinished voice work. Both work independently of recognition and the model. Every launch starts with the microphone off.
 
@@ -29,7 +29,15 @@ Open the separately installed Ollama runtime for flexible commands. **Settings â
 
 Exact commands run before model routing and keep working if Ollama is unavailable. Turn off **Flexible English commands** to use them exclusively. **Save memory** releases the model after each request; otherwise it may stay warm for five minutes. Starting Autumn does not warm the model until a flexible request or explicit check. Quit never stops the separate Ollama runtime.
 
-Model replies pass strict argument, live-registry and origin-policy checks. They never contain executable authority or launch paths. A request has a 15-second planning deadline and at most one repair. Unsupported/unclear input can be declined conservatively; exact names and the supported command forms are the most dependable option. Clarification choices last 30 seconds, preserve the original input authority and disappear on Stop. General conversation, dictation and routines remain unavailable.
+Model replies pass strict argument, live-registry and origin-policy checks. They never contain executable authority or launch paths. A request has a 15-second planning deadline and at most one repair. Unsupported/unclear input can be declined conservatively; exact names and the supported command forms are the most dependable option. Clarification choices last 30 seconds, preserve the original input authority and disappear on Stop. General conversation remains unavailable.
+
+**Dictation:** refresh supported windows, choose a standard Windows Edit/RichEdit field, and enter a single line or choose the next hold-to-talk recording as dictation. Request the exact preview, return to that app and focus the field. Confirm with **Ctrl+Alt+Y**, cancel with **Ctrl+Alt+N** or Stop. The overlay does not request focus; approval is single-use and expires in 30 seconds. Password/read-only/elevated fields, control characters and changed targets are refused. No Enter, shortcut or clipboard paste is sent; partial or uncertain input is never retried. Native foreground/delivery acceptance is still unverified because Windows activation calls failed during the unattended trial.
+
+**Routines:** add up to five individual supported commands in Routines, reorder/delete them, review the preview and save a unique name. Use Run or `run routine <name>`. Steps use current reviewed targets and the initiating request's permissions. They execute in order and stop on failure, showing completed effects. No nesting, dictation or unregistered URLs in saved routines.
+
+**Wake:** always off at launch. In Wake and desktop, verify files and complete measured calibration before arming the pretrained phrase **hey jarvis** (the assistant is still Autumn). Calibration requires 50 intentional attempts with at least 45 detections, two active hours of household audio with at most two false wakes, and a five-minute CPU window below 5% on mains. Device/default endpoint, model or threshold changes invalidate the profile. Calibration never runs commands or saves audio. Wake-origin commands cannot dictate or open unregistered URLs. Playback closes the listener before speaking; Stop, microphone-off, lock, sleep and Quit disarm it. Owner room/speaker and physical power trials remain pending, so no wake acceptance is claimed.
+
+**Desktop:** the tray shows microphone/task state and offers Open, Stop, microphone-off and Quit. First close asks whether to stay in the tray or quit and remembers the explicit choice. Keeping it running preserves the microphone state. Login startup is optional in the standalone app and stays off until explicitly selected; it never enables voice. Reduced motion defaults on and pages scroll on smaller displays. Qt scale-2 layout checks pass; Narrator, actual Windows 200% scaling and physical sleep/Modern Standby/battery trials remain unverified.
 
 Try `what can you do?`, `open <reviewed app or folder name>`, `open https://example.com`, `set volume to 35 percent`, `mute`, `unmute`, `play pause`, `next track`, `previous track`, `take a screenshot`, `screenshot all monitors`, or `find spreadsheet budget in Downloads`. Use exact registered names; fuzzy matches only suggest names. One command at a time; negations, extra instructions and shell text do not execute. The URL example opens your browser only when you explicitly request it.
 

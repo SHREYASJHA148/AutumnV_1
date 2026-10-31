@@ -1,0 +1,213 @@
+{
+  "date": "2026-10-31",
+  "version": "0.6.0",
+  "completed_implementation_phases": [
+    5,
+    6
+  ],
+  "acceptance": "NOT PASSED: human/hardware and prior gates pending",
+  "phase7_started": false,
+  "complete_v1_declared": false,
+  "software": {
+    "unique_test_cases": 393,
+    "full_suite_cases": 391,
+    "additional_cases": 2,
+    "failures": 0,
+    "errors": 0,
+    "full_suite_process_exit": 0,
+    "lint_passed": true,
+    "source_and_standalone_ui_passed": true,
+    "qt_scale2_layout_passed": true,
+    "actual_windows_scaling_and_narrator_verified": false,
+    "standalone_render_ms": {
+      "input": {
+        "samples": 40,
+        "p95_ms": 16.0
+      },
+      "stop": {
+        "samples": 40,
+        "p95_ms": 16.0
+      }
+    }
+  },
+  "local_inference": {
+    "wake_synthetic": {
+      "phase6_wake_source.json": {
+        "scope": "synthetic silence/noise only; no microphone/speakers; NOT NFR-08 or NFR-10",
+        "owner_attempts": 0,
+        "household_audio_seconds": 0,
+        "trials": [
+          {
+            "kind": "silence",
+            "synthetic_audio_seconds": 10,
+            "maximum_score": 7.867813110351562e-05,
+            "trigger_frames": 0,
+            "cpu_seconds": 0.156
+          },
+          {
+            "kind": "noise",
+            "synthetic_audio_seconds": 10,
+            "maximum_score": 0.049306780099868774,
+            "trigger_frames": 0,
+            "cpu_seconds": 0.281
+          }
+        ],
+        "passed": true,
+        "elapsed_seconds": 2.235
+      },
+      "phase6_wake_frozen.json": {
+        "scope": "synthetic silence/noise only; no microphone/speakers; NOT NFR-08 or NFR-10",
+        "owner_attempts": 0,
+        "household_audio_seconds": 0,
+        "trials": [
+          {
+            "kind": "silence",
+            "synthetic_audio_seconds": 10,
+            "maximum_score": 6.052851676940918e-05,
+            "trigger_frames": 0,
+            "cpu_seconds": 0.203
+          },
+          {
+            "kind": "noise",
+            "synthetic_audio_seconds": 10,
+            "maximum_score": 0.05633893609046936,
+            "trigger_frames": 0,
+            "cpu_seconds": 0.328
+          }
+        ],
+        "passed": true,
+        "elapsed_seconds": 18.656
+      }
+    },
+    "standalone_speech": {
+      "cases": 10,
+      "exact_normalized_matches": 9,
+      "warm_cpu_recognition_p50_seconds": 2.875,
+      "warm_cpu_recognition_p95_seconds": 2.9316,
+      "scope": "synthetic TTS-to-PCM-to-STT only; NOT owner speech accuracy or GPU/end-to-end latency"
+    }
+  },
+  "operating_defaults": {
+    "wake_off_at_launch": true,
+    "wake_arm_requires_measured_profile": true,
+    "owner_calibration_trials_collected": 0,
+    "household_audio_trial_performed": false,
+    "automatic_microphone_or_audible_playback_tests": false,
+    "registry_startup_modified_in_tests": false,
+    "startup_opt_in_only": true,
+    "voice_female": "en_US-lessac-medium",
+    "brain": "pinned qwen3:1.7b CPU profile"
+  },
+  "phase5": {
+    "implementation": "complete",
+    "software_unique_cases": 372,
+    "source_and_standalone_ui_passed": true,
+    "native_probe": {
+      "frozen": false,
+      "scope": "disposable native Edit only; no microphone/speakers/personal targets",
+      "checks": {
+        "password_control_refused": true
+      },
+      "passed": false,
+      "error_type": "error",
+      "elapsed_seconds": 0.219
+    },
+    "native_typing_overlay_foreground_acceptance": "unverified; activation call failed; no further unattended focus forcing",
+    "routine_storage": "atomic schema-5/6 settings; reserved SQLite routine tables unused (D0019)"
+  },
+  "pending_acceptance": [
+    "50 intentional owner wake attempts",
+    "two active household-audio hours including speaker media",
+    "five-minute mains wake CPU and battery drain",
+    "Narrator and actual Windows 200% scaling",
+    "physical sleep/Modern Standby/lock and real audio hardware transitions",
+    "native dictation delivery/overlay focus/focus-stealing trial",
+    "Phase 4 owner 100 utterances and GPU/end-to-end timing",
+    "network-disabled supported local tasks and ten-minute network trace",
+    "prior Phase 3 81% supported / 80% negatives below 95% targets"
+  ],
+  "artifacts": {
+    "exe_sha256": "bdda810e0300706315dfac068ee0d7c5ab63f7ea6f8f60fd9d525914567fe23b",
+    "qml_matches_source": true,
+    "pinned_speech_wake_weights_bundled": false,
+    "source_sha256": {
+      "src/autumn/__init__.py": "6f2c4531efb17f9f2523944313d129f2bda8f2d69565c323a7a0e840c09e9acf",
+      "src/autumn/actions/__init__.py": "a4706e2ee46a9cbd02c5dd6ac35709e0ae481ab91be3618ddee10942cb489a21",
+      "src/autumn/actions/catalog.py": "e45a51255b95abd1e0ae376cc1049a5e8c024457e854973f4c430a4fbe5fa6ea",
+      "src/autumn/actions/engine.py": "5e2ba1a5445d8d80e252d52c2176e5735d2da5c35e0f8ecd2fb75398af03639f",
+      "src/autumn/actions/registry.py": "c40d69d46391bb681cae40ad74f0a14f983f12c9566b4ce170448d2592524207",
+      "src/autumn/actions/router.py": "e4316a0dc308115962e25618eb5505784fa6b0c5becaba019c8831211e6ff07c",
+      "src/autumn/actions/routines.py": "41aa490b5d9d421e32f05fecd761fd21d23a12c53f6e9546101ae90d9659d6b1",
+      "src/autumn/actions/schemas.py": "e2c477c74ca829e3cfb1b6135d588f7e5628e1335ff0c8a3cfec02771da8e048",
+      "src/autumn/audio/__init__.py": "a5188f39d33b76753080c5e2005d09a544a18965eebd4db97ba8f80e4b25d48f",
+      "src/autumn/audio/buffer.py": "16858441d62b49a00e989605f20985d9bcf732c9555e2ae34eb9d62cedd3306b",
+      "src/autumn/audio/calibration.py": "75d6c6554e8b21d765eb0a8db44436381392ab404d071cd816c555a8cf7a0cd1",
+      "src/autumn/audio/devices.py": "48e0b77a02e5ea84d295b989dd7e250bce5801b0985c73784392ea70072e630f",
+      "src/autumn/audio/hotkeys.py": "f2e30bebde332449b3e488765a6729e79acfb471858f149903cafb7c93fbfc18",
+      "src/autumn/audio/source.py": "d2d1ffc3d72ba1dd6841f09871edfece6461e64f2673b993c072973918295ad5",
+      "src/autumn/audio/wake.py": "59973c276f82a7ca5a9a18c91059bd35ea2e292d5935013067b83d572c0aca4b",
+      "src/autumn/audio/wake_worker.py": "12ef102e22ff744513b571d8fa3f67cc98dc0ef8d8bb7fd9a81b01c1d8696e66",
+      "src/autumn/brain/__init__.py": "db5438c0c7aa0767744b6792650720e94f5c772aa2180182d50736fbfc251312",
+      "src/autumn/brain/contracts.py": "08075a5de3a9b8271cc2a7e1fc55d8082516fb6a2b87dc75b75cc3f1e4cb038c",
+      "src/autumn/brain/intent.py": "abd4afdf929807777da0bd34fe11925577ed8a92103a65f4a8dee0ae8dd0276e",
+      "src/autumn/brain/planner.py": "b84604c99a14c1b4e8f6cd7a22fee07020eb3b2046bcb26862c18b887e2c6c05",
+      "src/autumn/brain/schema.py": "bba3ae66f66e22ab68c235dc20c2104cebd2b2da77886822ec833c0dc84bce02",
+      "src/autumn/brain/transport.py": "54523a4eb0e10e274523a992db252caeb8be371065bd65731083d947b98a0064",
+      "src/autumn/controller/__init__.py": "0d30a4396b39a7c39fd939745278cc77d9dba659cb401364c9ff2d4a4568120b",
+      "src/autumn/controller/contracts.py": "242e51b1d25152e4d560133befd8ccc5dd702b266e18fe0faebf9dc85b2396e2",
+      "src/autumn/controller/state.py": "9b71c681441d43e637aa3910945face673781987faee07dba6693f3351b28539",
+      "src/autumn/controller/worker.py": "758482fc5c807a8798809b370962d2daa196d8f8891550036763d7160184addf",
+      "src/autumn/diagnostics/__init__.py": "afe1b9c2463e103059f1d81eff0f2ac1e5d7e8e3fd4943f7a8795006ad502f19",
+      "src/autumn/diagnostics/dictation_target.py": "a2bede9672072b7d2741e63d6345d1a23c3cfd9e80a550c10c8a07299a2aa8fe",
+      "src/autumn/diagnostics/health.py": "4a171f955a8c609bb9efd741bd761e563e44743dbf7f803a3fd1bf1eed575cbc",
+      "src/autumn/diagnostics/phase5_probe.py": "a89660bdfa671e01298254a0a97b51e302ab551b29c828cd7592a12963c39008",
+      "src/autumn/diagnostics/smoke.py": "60f8c36c07d54af9d9c2d8536d513f6670ffe61a826dd8dbbab66bcdff7469cf",
+      "src/autumn/diagnostics/speech_probe.py": "18cbbeae3514a7455a8ccfd13657742f1f14276cee444a8c4dfe638ca044db45",
+      "src/autumn/diagnostics/wake_probe.py": "a218b1f91a6313d467c27a466a10c321572fd1d512a500d511a7b62c117432ee",
+      "src/autumn/main.py": "2ea03474f434d7f87335a230e6fa135f8c2cb6295e921edc47017ca51b7a6748",
+      "src/autumn/policy/__init__.py": "d2b3daf6129ccae417ce1bb804aa3591cbea8fe09e63d482684655d0fa98159d",
+      "src/autumn/policy/confirmation.py": "0e5b9fa0de59ec9624fc8b40f157563a677b49344f11bae0e393b3c96344a7cf",
+      "src/autumn/policy/matrix.py": "6ceb7d8fc83ea37a7aa5eef5f23e739f6ad81a7e11d0afd0bc0096849006cfcb",
+      "src/autumn/speech/__init__.py": "6827ae95bb9bc7552512fc0b820183063fa827b94f694fe545646d490769556c",
+      "src/autumn/speech/assets.py": "1c0784afe97039443513e6751700adbdf1cf36f26b89d599fb215b4077e322f9",
+      "src/autumn/speech/recognition.py": "d5307cadad5cedf79a8157e0211957778150dc56382707165bbc56b8c1601de2",
+      "src/autumn/speech/service.py": "aaac4a57068fe6ed0eef66fe20071752c2df3b2048cfb77285eada1825af6aa7",
+      "src/autumn/speech/synthesis.py": "e85d0b844974eb7e6098337eb72ce20340ac3974e6a901866735069cf2b54f62",
+      "src/autumn/speech/workers.py": "2da3e3819087c0e82f2dbf7d96dcb99468e97cb9b61a9c8ae7a824e394f15080",
+      "src/autumn/storage/__init__.py": "cb38f8412a76d8f43ce99dc4e6ae16d54b9d0b36ba9a4550f7f0db0307f4e5e6",
+      "src/autumn/storage/history.py": "048d46fa13a1db647e7f4b6a3dbfd002a1e9a4ddcb30f812fb9ae702fbd2ad38",
+      "src/autumn/storage/settings.py": "e455cee5984b65cc32e5f6c1c01aa120125fc6d8b0bd04d1398faaf3b6c22baf",
+      "src/autumn/ui/__init__.py": "036a67ad9f329c1122a3bdafafb3c36bcdff83ceaad9074574dd2eeca6e4cfa8",
+      "src/autumn/ui/advanced.py": "c55ab1f546c2c517731b9dc029a41c54a96f2c1a3556d5e3511504ea6d7201fa",
+      "src/autumn/ui/confirmation.py": "e556f2f6dfc83f69df7beca849088e23972a67dd573b8fc16fa61ef171d5ef3a",
+      "src/autumn/ui/desktop.py": "bbba166b0d6dd1ac694dc17ae6c655e7d94191c847ce8ce13fef6888d9fd82d4",
+      "src/autumn/ui/Main.qml": "cb955edcc9b35556f233cdfc6ecfffe75c2f7553ec3cffdf83c01408a6030c04",
+      "src/autumn/ui/viewmodel.py": "46dd2bfb5e6621701e8712d579e41ffcda956c35cf6b6426183dffb3525e6835",
+      "src/autumn/ui/voice.py": "895ae70d18f98fb0e93d8e2d3649a82c920830781fbd99f9bb3f44a20408f805",
+      "src/autumn/ui/wake.py": "10c6310c406d7d9163a8cffc71bebec0a8429f44be8d292515d64377009ea0a1",
+      "src/autumn/ui/windows.py": "9a392fd2f8d20e5663c4b8163c9753b7a8c64d203d25fc4d3a52b1b0d53bae05",
+      "src/autumn/winworker/__init__.py": "f0e660eaf1de0043780835ce8e7446fafdc9ebedfd83e7b92b50a75bc9ea6c96",
+      "src/autumn/winworker/cache.py": "76758995676f6f03dab695fef2afad4f7e0881d997c1decea7561d40f5012c3c",
+      "src/autumn/winworker/capture.py": "70a0e664f3bedd57246bb3d2821b5e6fb8e99ca5b2bb3989a1010312b5a4a7ec",
+      "src/autumn/winworker/dictation.py": "45cf6dda9a64e729f1e0178610dcdb5156e5ae8d2e47a7d6b6f66448c4a63e8f",
+      "src/autumn/winworker/search.py": "6fe96d7bb59b9c3e28ed9ff2f9e7e706016f0dbb293f1db1dc6cc67af59d6acf",
+      "src/autumn/winworker/windows.py": "4e115bf560e62fdc5180aad0f0a57994613a1f331c777d9aa79cbc519d457fdd"
+    }
+  },
+  "evidence": [
+    "PHASE_5_GATE.md",
+    "PHASE_6_GATE.md",
+    "phase6_tests.xml",
+    "phase6_regressions.xml",
+    "phase6_source.json",
+    "phase6_frozen.json",
+    "phase6_scale2.json",
+    "phase6_frozen_scale2.json",
+    "phase6_wake_source.json",
+    "phase6_wake_frozen.json",
+    "phase6_speech_frozen.json",
+    "phase6_scale2_before_width_fix.json",
+    "phase6_dependencies.json",
+    "../validation/PHASE_5_6_OWNER_TEST.md"
+  ]
+}

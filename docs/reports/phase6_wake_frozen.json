@@ -1,0 +1,23 @@
+{
+  "scope": "synthetic silence/noise only; no microphone/speakers; NOT NFR-08 or NFR-10",
+  "owner_attempts": 0,
+  "household_audio_seconds": 0,
+  "trials": [
+    {
+      "kind": "silence",
+      "synthetic_audio_seconds": 10,
+      "maximum_score": 6.052851676940918e-05,
+      "trigger_frames": 0,
+      "cpu_seconds": 0.203
+    },
+    {
+      "kind": "noise",
+      "synthetic_audio_seconds": 10,
+      "maximum_score": 0.05633893609046936,
+      "trigger_frames": 0,
+      "cpu_seconds": 0.328
+    }
+  ],
+  "passed": true,
+  "elapsed_seconds": 18.656
+}

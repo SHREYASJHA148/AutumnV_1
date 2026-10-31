@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 
 ApplicationWindow {
     id: window
@@ -8,8 +9,9 @@ ApplicationWindow {
     property bool setupShown: false
     Connections { target: vm; function onSettingsChanged() { if (vm.firstRun && !window.setupShown) { window.page = 5; window.setupShown = true } } }
     visible: true
-    width: 1140; height: 800
-    minimumWidth: 940; minimumHeight: 680
+    width: Math.min(1140, Screen.desktopAvailableWidth || 1140); height: Math.min(800, Screen.desktopAvailableHeight || 800)
+    minimumWidth: Math.min(940, Screen.desktopAvailableWidth || 940); minimumHeight: Math.min(680, Screen.desktopAvailableHeight || 680)
+    onClosing: function(event) { event.accepted = false; desktop.requestClose() }
     title: "Autumn"
     color: "#10191e"
     font.family: "Segoe UI"
@@ -43,7 +45,7 @@ ApplicationWindow {
                 }
                 Item { Layout.fillWidth: true }
                 Label { text: "●  Local only"; color: "#a4d8bd"; Accessible.name: "Local only. No network connections." }
-                Button { objectName: "voiceButton"; text: voice.enabledVoice ? "Microphone off" : "Enable voice"; Accessible.name: text; onClicked: vm.toggleVoice() }
+                Button { objectName: "voiceButton"; text: voice.enabledVoice || wake.enabledWake || wake.busy ? "Microphone off" : "Enable voice"; Accessible.name: text; onClicked: vm.toggleVoice() }
                 Button { objectName: "stopButton"; text: "Stop"; Accessible.name: "Stop all work"; onClicked: vm.stop(); highlighted: true }
             }
         }
@@ -51,11 +53,13 @@ ApplicationWindow {
             Layout.fillWidth: true; Layout.fillHeight: true; spacing: 0
             Rectangle {
                 Layout.preferredWidth: 205; Layout.fillHeight: true; color: "#142025"
+                ScrollView {
+                    anchors.fill: parent; anchors.margins: 12; clip: true
                 ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 18; spacing: 10
+                    width: 175; spacing: 10
                     Label { text: "WORKSPACE"; color: "#9cb0b1"; font.pixelSize: 11; font.letterSpacing: 1.8; Layout.topMargin: 8; Layout.bottomMargin: 12 }
                     Repeater {
-                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders", "Voice setup", "Dictation", "Routines"]
+                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders", "Voice setup", "Dictation", "Routines", "Wake and desktop"]
                         Button {
                             required property int index
                             required property string modelData
@@ -69,14 +73,15 @@ ApplicationWindow {
                     Label { text: "LOCAL WORKSPACE"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
                     Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nVoice starts switched off."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "Phase 5 · 0.5.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "Phase 6 · 0.6.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                }
                 }
             }
             ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: 28; spacing: 16
                 RowLayout {
                     Layout.fillWidth: true
-                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets", "Make Autumn hear you", "Say it, review it, confirm it", "Your everyday sequences"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
+                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets", "Make Autumn hear you", "Review and confirm", "Your everyday sequences", "Listening on your terms"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     Label { text: vm.taskStatus + (vm.queuedCount ? " · " + vm.queuedCount + " queued" : ""); color: "#a4d8bd"; Accessible.name: "Task status: " + text }
                 }
                 Label { Layout.fillWidth: true; text: vm.captureStatus; color: "#a0b5b6"; Accessible.name: text }
@@ -170,7 +175,7 @@ ApplicationWindow {
                         Button { text: "Clear history"; Accessible.name: "Clear Autumn activity history"; enabled: vm.canSend; onClicked: vm.clearHistory() }
                     }
                     ScrollView {
-                        clip: true
+                        clip: true; contentWidth: availableWidth
                         enabled: vm.canConfigure
                         ColumnLayout {
                             width: parent.width - 22; spacing: 16
@@ -275,7 +280,7 @@ ApplicationWindow {
                         }
                     }
                     ScrollView {
-                        clip: true
+                        clip: true; contentWidth: availableWidth
                         ColumnLayout {
                             width: parent.width - 22; spacing: 14
                             Label { Layout.fillWidth: true; text: voice.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7"; Accessible.name: text }
@@ -325,7 +330,7 @@ ApplicationWindow {
                         }
                     }
                     ScrollView {
-                        clip: true
+                        clip: true; contentWidth: availableWidth
                         ColumnLayout {
                             width: parent.width - 22; spacing: 14
                             Label { Layout.fillWidth: true; text: advanced.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7" }
@@ -341,8 +346,10 @@ ApplicationWindow {
                             Label { Layout.fillWidth: true; text: "After requesting: return to the chosen app and focus its edit field. Confirm the overlay with Ctrl+Alt+Y; cancel with Ctrl+Alt+N. Confirmation expires in 30 seconds. Any target change stops typing. Partial or uncertain input is never retried. Wake input cannot dictate."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
                         }
                     }
+                    ScrollView {
+                        clip: true; contentWidth: availableWidth
                     ColumnLayout {
-                        enabled: vm.canConfigure; spacing: 10
+                        width: parent.width - 22; enabled: vm.canConfigure; spacing: 10
                         Label { Layout.fillWidth: true; text: advanced.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7" }
                         ListView {
                             Layout.fillWidth: true; Layout.preferredHeight: 140; clip: true; model: advanced.routineRows
@@ -365,7 +372,7 @@ ApplicationWindow {
                             Button { text: "Add step"; onClicked: { advanced.addStep(routineStep.text); routineStep.text = "" } }
                         }
                         ListView {
-                            Layout.fillWidth: true; Layout.fillHeight: true; clip: true; model: advanced.draftRows
+                            Layout.fillWidth: true; Layout.preferredHeight: 220; clip: true; model: advanced.draftRows
                             delegate: RowLayout {
                                 required property var modelData
                                 width: ListView.view.width
@@ -377,6 +384,42 @@ ApplicationWindow {
                         }
                         Label { Layout.fillWidth: true; text: "Review this preview before saving. Up to five steps, run in order and stop on the first failure. Each step inherits the request's permissions. No nesting, dictation or unregistered websites."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
                         Button { text: "Save reviewed routine"; onClicked: advanced.saveRoutine(routineName.text) }
+                    }
+                    }
+                    ScrollView {
+                        clip: true; contentWidth: availableWidth
+                        ColumnLayout {
+                            width: parent.width - 22; spacing: 14
+                            Label { Layout.fillWidth: true; text: wake.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7"; Accessible.name: text }
+                            Label { Layout.fillWidth: true; text: wake.progress; wrapMode: Text.WordWrap; color: "#c1d0ce"; Accessible.name: text }
+                            Label { Layout.fillWidth: true; text: "Wake is a separate opt-in and always starts off. The pretrained phrase is hey jarvis; the assistant is Autumn. Say the phrase, pause briefly, then speak a command. Calibration never runs commands or saves audio."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                            RowLayout {
+                                Button { objectName: "wakeCheckButton"; text: "Check files / load calibration"; enabled: !wake.busy; onClicked: wake.checkFiles() }
+                                Button { text: "Arm calibrated wake"; enabled: wake.calibrated && !wake.busy && vm.canSend; onClicked: wake.arm() }
+                                Button { text: "Wake off"; onClicked: wake.disarm() }
+                            }
+                            Label { Layout.fillWidth: true; text: "Calibration: press Next attempt, wait for Listening, then say hey jarvis once within five seconds. Repeat 50 times. Then start 120 minutes of normal household audio, including speaker media. Keep the laptop on mains power so a five-minute CPU window can be measured. At least 45/50 detections, at most two false wakes, and under 5% CPU are required to arm."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
+                            Flow {
+                                Layout.fillWidth: true; spacing: 8
+                                Button { text: "Next intentional attempt"; enabled: !wake.busy && vm.canSend; onClicked: wake.positiveTrial() }
+                                Button { text: "Start household-audio trial"; enabled: !wake.busy && vm.canSend; onClicked: wake.negativeTrial() }
+                                Button { text: "Stop and save measurements"; onClicked: wake.saveCalibration() }
+                                Button { text: "Reset this session"; onClicked: wake.resetCalibration() }
+                            }
+                            Label { text: "Wake threshold (changing it requires matching calibration)"; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                            Slider { id: wakeThreshold; Layout.fillWidth: true; from: .1; to: .95; value: .5; enabled: vm.canConfigure; Accessible.name: "Wake detection threshold" }
+                            Button { text: "Save threshold"; enabled: vm.canConfigure; onClicked: wake.saveThreshold(wakeThreshold.value) }
+                            Label { Layout.fillWidth: true; text: "Stop, microphone-off, lock, sleep and Quit disarm wake. Playback closes the listener before speaking and waits for its acoustic tail before rearming. Wake cannot dictate or open an unregistered URL. Real wake, room audio, battery, Narrator and power-transition acceptance trials are still pending."; wrapMode: Text.WordWrap; color: "#ddb78a" }
+                            Label { text: "Desktop and accessibility"; font.pixelSize: 18; color: "#ddb78a" }
+                            CheckBox { id: reducedMotion; text: "Reduced motion"; checked: desktop.reducedMotion; Accessible.name: text }
+                            Label { Layout.fillWidth: true; text: "All pages use static transitions. Controls support Tab, Shift+Tab, Space and Enter; Stop and confirmation shortcuts remain global."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                            ComboBox { id: closeBehavior; model: ["ask", "tray", "quit"]; currentIndex: model.indexOf(desktop.closeBehavior); Accessible.name: "Window close behavior" }
+                            Button { text: "Save desktop settings"; enabled: vm.canConfigure; onClicked: desktop.saveOptions(closeBehavior.currentText,reducedMotion.checked) }
+                            Label { Layout.fillWidth: true; text: desktop.statusText; wrapMode: Text.WordWrap; color: "#c1d0ce" }
+                            CheckBox { text: "Start Autumn when I sign in (microphone stays off)"; checked: desktop.startupEnabled; onClicked: desktop.setStartup(checked); Accessible.name: text }
+                            Button { text: "Check login startup setting"; onClicked: desktop.checkStartup() }
+                            Button { text: "Quit Autumn"; onClicked: desktop.quit() }
+                        }
                     }
                 }
                 Rectangle {

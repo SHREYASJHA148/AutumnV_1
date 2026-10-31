@@ -18,6 +18,16 @@ def test_first_launch_safe_and_roundtrip(tmp_path):
     assert load_settings(path)[0].history_days == 14
 
 
+def test_schema5_migration_preserves_explicitly_disabled_phase5_skills(tmp_path):
+    path=tmp_path/'settings.json'
+    settings=Settings(schema_version=5,enabled_skills=('help.capabilities',))
+    atomic_save(path,settings)
+    restored,code=load_settings(path)
+    assert code=='MIGRATED' and restored.schema_version==6
+    assert restored.enabled_skills==('help.capabilities',)
+    assert not restored.microphone_enabled_at_start and not restored.wake_enabled
+
+
 @pytest.mark.parametrize("text", ["{bad", '{"schema_version":99}', '{"microphone_enabled_at_start":true}', '[1]', '"text"'])
 def test_corrupt_settings_preserved(tmp_path, text):
     path = tmp_path / "settings.json"

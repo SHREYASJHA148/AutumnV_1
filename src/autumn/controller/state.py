@@ -64,10 +64,12 @@ class Session:
             and self.active is not None and event.request_id == self.active.request_id
         )
 
-    def begin_transcription(self,voice_generation=0):
+    def begin_transcription(self,voice_generation=0,origin='ptt_voice'):
         if self.suspended or self.active is not None or self.task!=T.IDLE:
             return None
-        request=Request(generation=self.generation,origin='ptt_voice',voice_generation=voice_generation)
+        if origin not in {'ptt_voice','wake_voice'}:
+            raise ValueError('Invalid audio origin')
+        request=Request(generation=self.generation,origin=origin,voice_generation=voice_generation)
         self.active=request
         self.set_task(T.TRANSCRIBING)
         return request

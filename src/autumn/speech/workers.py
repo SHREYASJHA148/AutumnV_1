@@ -73,6 +73,7 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
     last_default_check = 0.0
     recognizer = Recognizer() if role == "recognition" else None
     synthesizer = Synthesizer() if role == "playback" else None
+    acknowledged_generation = generation.value
 
     def send(kind, **fields):
         if kind in {"level", "heartbeat"}:
@@ -128,6 +129,9 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
 
     try:
         while alive():
+            if current is None and generation.value != acknowledged_generation:
+                acknowledged_generation = generation.value
+                send('idle')
             if current is not None:
                 if not checkpoint(current):
                     finish(True, "CANCELLED")

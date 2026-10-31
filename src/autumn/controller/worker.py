@@ -312,6 +312,7 @@ class Supervisor:
         self.start()
 
     def start(self) -> None:
+        self.worker_ready = False
         self.commands = self.context.Queue(maxsize=8)
         self.replies = self.context.Queue(maxsize=32)
         self.stopping = self.context.Event()
@@ -350,8 +351,9 @@ class Supervisor:
             return False
 
     def cancel(self, generation: int) -> None:
+        changed = self.generation.value != generation
         self.generation.value = generation
-        if self.busy_until:
+        if changed and (self.busy_until or (self.use_job and getattr(self,'worker_ready',False))):
             self.cancelled_at = time.monotonic()
 
     def cancel_voice(self):
@@ -396,6 +398,8 @@ class Supervisor:
             except queue.Empty:
                 break
             self.last_seen = now
+            if message['kind'] in {'ready','speech_ready','wake_ready'}:
+                self.worker_ready = True
             if message["kind"] == "busy":
                 self.busy_until = now + min(message["timeout"], 46)
             elif message["kind"] == "idle":

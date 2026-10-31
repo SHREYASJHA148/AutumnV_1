@@ -19,7 +19,11 @@ def main() -> int:
     parser.add_argument("--speech-probe-report", type=Path, help="Synthetic in-memory speech test; no microphone or playback")
     parser.add_argument("--phase5-probe-report",type=Path,help="Disposable native dictation/overlay test")
     parser.add_argument("--dictation-fixture-ready",type=Path,help="Spawn the disposable diagnostic Edit target")
+    parser.add_argument("--wake-probe-report",type=Path,help="Synthetic ONNX wake test; never opens microphone")
     args = parser.parse_args()
+    if args.wake_probe_report:
+        from autumn.diagnostics.wake_probe import run
+        return run(args.wake_probe_report)
     if args.phase5_probe_report or args.dictation_fixture_ready:
         if args.data_dir is None:
             parser.error("An isolated --data-dir is required")
@@ -59,6 +63,7 @@ def main() -> int:
     from autumn.ui.windows import NativeEvents, SingleInstance
 
     app = QApplication(sys.argv[:1])
+    app.setQuitOnLastWindowClosed(False)
     qt_issues = []
     if args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report:
         def qt_message(kind, context, message):
@@ -67,7 +72,7 @@ def main() -> int:
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.5.0")
+    app.setApplicationVersion("0.6.0")
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -80,6 +85,8 @@ def main() -> int:
         return 0
     supervisor = Supervisor(root)
     vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report))
+    from autumn.ui.desktop import Desktop
+    desktop = Desktop(vm,app)
     from autumn.ui.confirmation import ConfirmationOverlay
     overlay = ConfirmationOverlay(vm.advanced)
     native = NativeEvents(vm.stop, vm.voice.toggleRecording, vm.suspend, vm.resume,
@@ -90,6 +97,8 @@ def main() -> int:
     engine.rootContext().setContextProperty("vm", vm)
     engine.rootContext().setContextProperty('voice',vm.voice)
     engine.rootContext().setContextProperty('advanced',vm.advanced)
+    engine.rootContext().setContextProperty('wake',vm.wake)
+    engine.rootContext().setContextProperty('desktop',desktop)
     engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "ui/Main.qml")))
     if not engine.rootObjects():
         failure_report = args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report
@@ -102,6 +111,7 @@ def main() -> int:
         instance.close()
         return 1
     window = engine.rootObjects()[0]
+    desktop.window = window
     if not isinstance(window, QQuickWindow):
         vm.shutdown()
         native.close()
@@ -130,6 +140,7 @@ def main() -> int:
     clean = []
 
     def shutdown() -> None:
+        desktop.shutdown()
         overlay.hide()
         focus_timer.stop()
         native.close()

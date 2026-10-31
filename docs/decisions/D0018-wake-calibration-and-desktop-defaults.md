@@ -1,0 +1,5 @@
+# D0018 — Wake acceptance and desktop defaults
+Question: Which Phase 6 defaults support unattended implementation without pretending human acceptance passed?
+Options: Arm the existing wake model without room trials; keep it opt-in, acceptance-gated and off at every launch while implementing calibration and desktop controls.
+Choice: Existing pinned hey-jarvis ONNX assets, openwakeword 0.6.0, one-thread CPU inference, threshold 0.5 with two consecutive frames and four-second cooldown; require 45/50 intentional detections, two active household-audio hours at ≤1 false wake/hour, and a five-minute <5% normalized CPU window on mains before arming. Bind records to device/default endpoint/threshold/model hashes; calibration never dispatches commands or saves audio.
+Reason: Owner is away; no real microphone, speaker, household, battery, Narrator or physical power tests run automatically. Stop/off/lock/sleep/Quit disarm; close choice is explicit and remembered; login startup stays off unless explicitly changed later through the UI, and never enables the microphone. Preserve earlier failed gates and stop before Phase 7.

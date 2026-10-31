@@ -1,0 +1,5 @@
+# D0019 — Routine persistence and supported editor scope
+Question: How should this preview persist routine definitions and define supported dictation targets?
+Options: Add a separate SQLite routine migration plus catalog/settings transaction coordination and general UI Automation; keep reviewed action definitions in the existing atomic settings document and support native Edit/RichEdit controls conservatively.
+Choice: Schema-5/6 settings persist validated routines with catalog IDs in the same atomic file; SQLite history remains metadata-only and its reserved routine tables are not used. Standard native Edit/RichEdit fields only; no custom/browser editor claim, nesting, routine dictation or unregistered routine URLs. No new dependency in Phase 5.
+Reason: The owner authorized implementation choices without questions. Atomic reference/configuration snapshots avoid split-store authority and incomplete migrations; conservative target detection rejects unsupported fields. This documents the preview's storage deviation from TRD section 10 and supported-app limit without changing confirmation, privacy, origin or acceptance requirements.
