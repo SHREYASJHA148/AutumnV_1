@@ -1,0 +1,2 @@
+# Frozen schema hashes must survive Windows checkout line-ending conversion.
+docs/contracts/*.json text eol=lf
