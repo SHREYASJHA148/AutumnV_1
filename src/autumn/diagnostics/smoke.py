@@ -1,0 +1,172 @@
+"""Self-closing in-app test. Only fixed test input and metadata are used."""
+from __future__ import annotations
+
+import json
+import math
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+from PySide6.QtCore import QObject, QPoint, QPointF, Qt, QTimer, Slot
+from PySide6.QtTest import QTest
+
+
+class SmokeTrial(QObject):
+    def __init__(self, app, window, vm, native, report: Path) -> None:
+        super().__init__()
+        self.app, self.window, self.vm, self.native, self.report = app, window, vm, native, report
+        self.timer = QTimer(self)
+        self.timer.setInterval(65)
+        self.timer.timeout.connect(self.step)
+        self.started = time.monotonic()
+        self.index = 0
+        self.stage = "startup"
+        self.samples: dict[str, list[float]] = {"input": [], "stop": []}
+        self.pending: list[tuple[str, float]] = []
+        self.measure_start = 0.0
+        self.child = None
+        self.focus_target = None
+        self.checks: dict[str, bool] = {}
+        self.error = False
+        self.error_type = None
+        vm.acknowledged.connect(self.ack)
+        window.frameSwapped.connect(self.frame)
+
+    def start(self) -> None:
+        self.timer.start()
+
+    @Slot(str)
+    def ack(self, kind: str) -> None:
+        if self.measure_start:
+            self.pending.append((kind, self.measure_start))
+            self.window.requestUpdate()
+
+    @Slot()
+    def frame(self) -> None:
+        now = time.monotonic()
+        for kind, started in self.pending:
+            self.samples[kind].append((now - started) * 1000)
+        self.pending.clear()
+
+    def step(self) -> None:
+        try:
+            self._step()
+        except Exception as error:
+            # Never persist exception strings (may include paths or user data).
+            self.error = True
+            self.error_type = type(error).__name__
+            self.timer.stop()
+            self.app.quit()
+
+    def _step(self) -> None:
+        if time.monotonic() - self.started > 30:
+            self.checks["finished_before_timeout"] = False
+            self.timer.stop()
+            self.app.quit()
+            return
+        if self.stage == "startup":
+            if not self.vm.canSend:
+                return
+            self.input = self.window.findChild(QObject, "commandInput")
+            self.stop_button = self.window.findChild(QObject, "stopButton")
+            self.checks.update(qml_loaded=True, microphone_disabled=not self.vm.voiceReady,
+                               input_available=self.input is not None,
+                               session_notifications=self.native.session_registered,
+                               shortcuts_registered=len(self.native.registered) == 2)
+            self.launch_ms = (time.monotonic() - self.started) * 1000
+            # Fill the one-running/five-pending request queue while the worker is busy.
+            for _ in range(6):
+                self.vm.submit("Fixed foundation preview")
+            self.vm.submit("Fixed overflow preview")
+            self.checks["bounded_request_queue"] = self.vm.queuedCount == 5 and "Busy:" in self.vm.notice
+            self.vm.stop()
+            self.vm.toggleVoice()
+            self.vm.stop()
+            self.checks["stop_returns_ptt_ready"] = self.vm.voiceReady
+            self.vm.toggleVoice()
+            self.vm.suspend()
+            self.vm.submit("Must be blocked while suspended")
+            self.checks["suspend_blocks_requests"] = self.vm.session.active is None
+            self.vm.resume()
+            self.checks["resume_microphone_disabled"] = not self.vm.voiceReady
+            self.stage = "load"
+        elif self.stage == "load":
+            self.measure_start = time.monotonic()
+            if self.index % 2 == 0:
+                self.input.forceActiveFocus()
+                QTest.keyClick(self.window, Qt.Key_A)
+                QTest.keyClick(self.window, Qt.Key_Return)
+            else:
+                p = self.stop_button.mapToScene(QPointF(self.stop_button.width() / 2, self.stop_button.height() / 2))
+                QTest.mouseClick(self.window, Qt.LeftButton, Qt.NoModifier, QPoint(int(p.x()), int(p.y())))
+            self.measure_start = 0.0
+            self.index += 1
+            if self.index == 80:
+                self.stage = "drain"
+                self.drain_until = time.monotonic() + 0.8
+        elif self.stage == "drain" and time.monotonic() >= self.drain_until:
+            self.checks["stop_discards_pending"] = self.vm.session.active is None and not self.vm.session.pending
+            self.checks["input_rendered_samples"] = len(self.samples["input"]) == 40
+            self.checks["stop_rendered_samples"] = len(self.samples["stop"]) == 40
+            self.vm.submit("Fixed completion preview")
+            self.stage = "completion"
+        elif self.stage == "completion" and self.vm.session.active is None:
+            self.checks["simulation_completed"] = any(row["code"] == "SIMULATED" for row in self.vm.history)
+            if not self.checks["simulation_completed"]:
+                return
+            self.checks["history_has_no_text"] = all(set(row) <= {"created", "skill_id", "origin", "status", "code", "duration_ms"} for row in self.vm.history)
+            self.vm.clearHistory()
+            self.stage = "clear"
+        elif self.stage == "clear" and not self.vm.history:
+            self.checks["history_cleared"] = True
+            from PySide6.QtGui import QWindow
+
+            self.window.grabWindow().save(str(self.vm.supervisor.root / "preview.png"))
+            self.focus_target = QWindow()
+            self.focus_target.setTitle("Autumn disposable focus target")
+            self.focus_target.resize(320, 160)
+            self.focus_target.show()
+            self.focus_target.requestActivate()
+            self.focus_deadline = time.monotonic() + 2
+            self.stage = "focus_target"
+        elif self.stage == "focus_target":
+            if not self.focus_target.isActive() and time.monotonic() < self.focus_deadline:
+                return
+            self.checks["separate_target_had_focus"] = self.focus_target.isActive() and not self.window.isActive()
+            executable = [sys.executable] if getattr(sys, "frozen", False) else [sys.executable, "-m", "autumn.main"]
+            self.child = subprocess.Popen([*executable, "--data-dir", str(self.vm.supervisor.root)],
+                                          creationflags=subprocess.CREATE_NO_WINDOW)
+            self.stage = "second_instance"
+            self.focus_deadline = time.monotonic() + 3
+        elif self.stage == "second_instance" and self.child.poll() is not None:
+            if not self.window.isActive() and time.monotonic() < self.focus_deadline:
+                return
+            self.checks["second_instance_exit_zero"] = self.child.returncode == 0
+            self.checks["first_instance_alive"] = self.window.isVisible() and self.vm.canSend
+            self.checks["second_instance_focused_window"] = self.window.isActive()
+            self.checks["finished_before_timeout"] = True
+            self.focus_target.close()
+            self.timer.stop()
+            self.app.quit()
+
+    def finish(self, shutdown_clean: bool) -> int:
+        if self.child is not None and self.child.poll() is None:
+            self.child.terminate()
+            self.child.wait(timeout=2)
+        self.checks["workers_closed"] = shutdown_clean
+        self.checks["no_test_exception"] = not self.error
+        timings = {}
+        for kind, values in self.samples.items():
+            values = sorted(values)
+            p95 = values[max(0, math.ceil(len(values) * 0.95) - 1)] if values else None
+            timings[kind] = {"samples": len(values), "p95_ms": round(p95, 3) if p95 is not None else None}
+            self.checks[f"{kind}_p95_below_200ms"] = p95 is not None and p95 <= 200
+        self.report.parent.mkdir(parents=True, exist_ok=True)
+        passed = bool(self.checks) and all(self.checks.values())
+        self.report.write_text(json.dumps({"passed": passed, "frozen": bool(getattr(sys, "frozen", False)),
+            "checks": self.checks, "test_exception_type": self.error_type, "input_to_render": timings,
+            "load": "80 alternating typed-input/Stop events, 100-row conversation cap, six-request overflow trial; worker active",
+            "ui_ready_after_qml_ms": round(getattr(self, "launch_ms", 0), 3),
+            "elapsed_seconds": round(time.monotonic() - self.started, 3)}, indent=2), encoding="utf-8")
+        return 0 if passed else 1
