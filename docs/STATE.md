@@ -1,12 +1,13 @@
 # STATE
-Phase: 3 — implementation COMPLETE; acceptance gate FAILED (D0013: NFR-01/02 misses, NFR-04 GPU unverified); STOP at checkpoint before Phase 4.
-Hardware facts: Windows 11 Home Single Language build 26200; i5-13420H; 15.7 GiB RAM; RTX 5050 Laptop 8151 MiB/driver 621.01; C:59.4 GiB and D:64.4 GiB free.
-Runtime facts: Original .venv preserved; .venv-qt-compat uses project-local Python 3.12.10, Qt/shiboken 6.8.3, PyInstaller 6.22.3, hash-locked packages.
-Done: 324 tests and lint pass; source/standalone pinned-model UI pass; one model-planned disposable app launch verified; RC1 once-only held-out run completed with zero evaluation dispatches.
-Next: Await owner decision: further routing work with a fresh independent dataset, or explicit acceptance of shortfalls before Phase 4; never tune from RC1 data or rerun that candidate.
-Blockers: NFR-01 162/200 (81%), NFR-02 40/50 (80%), both below 95%; CPU model p50 3.1806s/p95 4.9735s; GPU gate unverified; Phase 0/2 exceptions retained.
-Stubs: Live speech/hold-to-talk remain for Phase 4; text.type and routine.run remain reserved/disabled until Phase 5.
-Decisions: D0013 failed acceptance checkpoint; D0012 one-call preferred over slower 3/4-skill two-call prototype; D0011 pinned CPU planner; D0010 action contracts unchanged.
-Dependencies: requirements-phase2.lock unchanged; standard-library transport only; validation runtime owned PID recorded in .cache/phase3-owned-server.pid, loopback/cloud disabled.
-Open questions for owner: none; three owner examples collected for private held-out use, never used to tune; no Phase 4 authorization.
-Evidence: docs/reports/PHASE_3_GATE.md, phase3_gate.json, phase3_heldout_rc1.json, phase3_native_e2e.json, phase3_frozen.json; docs/contracts/phase3-rc-lock.json; private shards stay read-only and out of Git.
+Phase: 4 — implementation COMPLETE; acceptance NOT PASSED (owner/hardware/network tests pending, prior Phase 3 failed gate retained); STOP at checkpoint before Phase 5.
+Hardware facts: Windows 11 Home Single Language build 26200; i5-13420H; 15.7 GiB RAM; RTX 5050 Laptop 8151 MiB/driver 621.01; ~56 GiB C: free; built-in microphone array/speakers; no Bluetooth headset.
+Runtime facts: .venv-qt-compat uses project-local Python 3.12.10, Qt/shiboken 6.8.3, PyInstaller 6.22.3; clean 0.4.0 standalone in dist/Autumn preview é/Autumn/Autumn.exe; original environments preserved.
+Done: FR-03/13/14/19/26 voice UI, hold/toggle, bounded memory PCM, VAD/resampling, persistent CPU small.en and female Piper/Windows fallback, half duplex, independent Stop/microphone lease, first-run checks/export; 350 tests + lint pass, source/standalone UI pass.
+Done: standalone synthetic speech 10 processed / 9 normalized exact matches; silence/noise rejected; CPU recognition p50 2.907 s/p95 3.010 s only, no owner audio/actions; visible standalone input/Stop render p95 16 ms; all speech artifacts SHA verified.
+Next: Await owner's return for the 100-utterance and built-in capture/listening trial; complete actual endpoint-change/GPU/network acceptance or obtain explicit owner advancement; never tune from Phase 3 RC1 or start Phase 5 automatically.
+Blockers: NFR-03 pending by owner choice; NFR-04 GPU/end-to-end unverified; NFR-13 disconnected tasks and ten-minute capture pending; Phase 3 NFR-01 81% and NFR-02 80% remain below 95%; Phase 0/2 exceptions retained.
+Stubs: Actual microphone/voice intelligibility/default-device trials pending; Bluetooth unavailable; wake, text.type and routine.run remain unavailable/reserved for later phases.
+Decisions: D0014 authorized Phase 4 with preserved shortfalls and owner test deferred; D0015 native ASCII aliases, windowless null streams/native log discard, shared hold gate and bounded telemetry; prior D0011–13 remain.
+Dependencies: requirements-phase4.lock hash-pins project-local audio/STT/TTS/VAD stack; VAD MIT/BSD, Piper GPL and voice-specific license inventory in THIRD_PARTY_NOTICES.md; no automatic downloads/cloud/telemetry.
+Open questions for owner: none; user chose build now and leave speech test pending. All agent tests used synthetic/injected audio; no real microphone capture or audible playback; no Phase 5 authorization.
+Evidence: docs/reports/PHASE_4_GATE.md, phase4_gate.json, phase4_tests.xml, phase4_source/frozen.json, phase4_synthetic_source/frozen.json, phase4_packaging_failures.json; docs/validation/PHASE_4_OWNER_TEST.md; Phase 3 lockbox remains private/read-only/unchanged.

@@ -1,0 +1,5 @@
+# D0015 — Native pronunciation path and capture release
+Question: How should speech work from the required non-ASCII build path and avoid opening the microphone after an early release?
+Options: Change installation paths/settings; resolve an existing ASCII Windows path alias with a safe fallback, and use an independent shared capture gate.
+Choice: Validate model hashes first, use existing short paths only for native speech APIs, refuse unsupported native paths before initialization, and retain Windows female/text fallback. Give windowed recognition a null Python stream and native discard-log callback. Release and Stop close the shared capture gate independently of queued jobs; drop disposable heartbeat telemetry under backpressure.
+Reason: espeak exited natively on the `é` data path; an isolated in-memory reproduction passed with its existing ASCII alias. pywhispercpp flushes sys.stderr during load, whereas windowed apps set it to None; real windowless recognition and the regression passed with the null stream. No path renaming, global changes or audio files. An early release opens no stream, and Stop does not depend on the model.

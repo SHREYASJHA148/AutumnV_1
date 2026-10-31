@@ -1,0 +1,134 @@
+{
+  "phase": 4,
+  "version": "0.4.0",
+  "date": "2026-10-31",
+  "status": "implementation_complete_acceptance_not_passed",
+  "personal_mvp_declared": false,
+  "phase5_started": false,
+  "software": {
+    "tests": 350,
+    "failures": 0,
+    "errors": 0,
+    "process_exit": 0,
+    "lint_passed": true,
+    "source_ui": true,
+    "standalone_ui": true,
+    "source_input_stop_render": {
+      "input": {
+        "samples": 40,
+        "p95_ms": 31.0
+      },
+      "stop": {
+        "samples": 40,
+        "p95_ms": 31.0
+      }
+    },
+    "standalone_input_stop_render": {
+      "input": {
+        "samples": 40,
+        "p95_ms": 16.0
+      },
+      "stop": {
+        "samples": 40,
+        "p95_ms": 16.0
+      }
+    }
+  },
+  "synthetic_development": {
+    "scope": "TTS to PCM to STT only; NOT owner accuracy or end-to-end command latency",
+    "standalone_passed": true,
+    "cases": 10,
+    "exact_normalized_matches": 9,
+    "silence_rejected": true,
+    "noise_rejected": true,
+    "warm_recognition_cpu_p50_seconds": 2.907,
+    "warm_recognition_cpu_p95_seconds": 3.0096,
+    "clean_shutdown": true,
+    "microphone_opened": false,
+    "speaker_playback": false,
+    "actions_dispatched": 0
+  },
+  "acceptance": {
+    "NFR-03": "PENDING: owner explicitly deferred 100 user-recorded utterances; none collected",
+    "NFR-04": "UNVERIFIED: GPU profile and full voice end-to-end latency; recognition measurements are CPU only",
+    "NFR-13": "PENDING: physically disconnected local tasks and ten-minute activity capture",
+    "FR-26": "setup checklist and preview/export implemented; owner signal/intelligibility checks pending",
+    "bluetooth": "unavailable: no headset",
+    "default_endpoint_change": "injected recovery passed; actual hardware change trial pending",
+    "NFR-01-02": "Phase 3 failed acceptance preserved: 81% supported / 80% negatives; both targets 95%"
+  },
+  "privacy": {
+    "audio_files_written": false,
+    "private_transcripts_in_reports": false,
+    "automatic_microphone_or_playback_tests": false
+  },
+  "deployment": {
+    "sha256": "c1a14cb4a0ffd6d8a0f6965d289391069c3497b3936756435f11936c95a2b434",
+    "speech_weights_bundled": false,
+    "free_storage_gib": 55.9,
+    "clean_build": true,
+    "native_log_handler_verified_in_archive": true,
+    "ui_resource_matches_source": true
+  },
+  "source_sha256": {
+    "src/autumn/__init__.py": "33e3086fe59fb26e023e758940b1f97f466ce44e9b71a52fde8cec564e268cb0",
+    "src/autumn/actions/__init__.py": "a4706e2ee46a9cbd02c5dd6ac35709e0ae481ab91be3618ddee10942cb489a21",
+    "src/autumn/actions/catalog.py": "e45a51255b95abd1e0ae376cc1049a5e8c024457e854973f4c430a4fbe5fa6ea",
+    "src/autumn/actions/engine.py": "d3050bfb18e7d27cc751eb2fda2ed76dcb545e38ad6702376cd800ae778b8fb3",
+    "src/autumn/actions/registry.py": "b12f728b78591e73e85fcde11b9d9e827ed87e862e75c30597f2cee34a70da64",
+    "src/autumn/actions/router.py": "1fe67265eaa62675bc28bba8cf0f7f47c8b3849eceb1b070e7ceb8faf05e2cca",
+    "src/autumn/actions/schemas.py": "51d84bd060e3197656f8d9b11cc816d9e48ddd31192b8347bb73a59f4bd7ff02",
+    "src/autumn/audio/__init__.py": "a5188f39d33b76753080c5e2005d09a544a18965eebd4db97ba8f80e4b25d48f",
+    "src/autumn/audio/buffer.py": "16858441d62b49a00e989605f20985d9bcf732c9555e2ae34eb9d62cedd3306b",
+    "src/autumn/audio/devices.py": "48e0b77a02e5ea84d295b989dd7e250bce5801b0985c73784392ea70072e630f",
+    "src/autumn/audio/hotkeys.py": "f2e30bebde332449b3e488765a6729e79acfb471858f149903cafb7c93fbfc18",
+    "src/autumn/audio/source.py": "d2d1ffc3d72ba1dd6841f09871edfece6461e64f2673b993c072973918295ad5",
+    "src/autumn/brain/__init__.py": "db5438c0c7aa0767744b6792650720e94f5c772aa2180182d50736fbfc251312",
+    "src/autumn/brain/contracts.py": "08075a5de3a9b8271cc2a7e1fc55d8082516fb6a2b87dc75b75cc3f1e4cb038c",
+    "src/autumn/brain/intent.py": "abd4afdf929807777da0bd34fe11925577ed8a92103a65f4a8dee0ae8dd0276e",
+    "src/autumn/brain/planner.py": "b84604c99a14c1b4e8f6cd7a22fee07020eb3b2046bcb26862c18b887e2c6c05",
+    "src/autumn/brain/schema.py": "c7968f639448a9fba6035c23864acc779ed0f67cd45283ca43155f97031c14a7",
+    "src/autumn/brain/transport.py": "54523a4eb0e10e274523a992db252caeb8be371065bd65731083d947b98a0064",
+    "src/autumn/controller/__init__.py": "0d30a4396b39a7c39fd939745278cc77d9dba659cb401364c9ff2d4a4568120b",
+    "src/autumn/controller/contracts.py": "d61c3069a911caaa710e813795d7f27f5b2ac14e1ed1cd9f14dca4f67e108a84",
+    "src/autumn/controller/state.py": "915efb9f454cc4bbfff8d6664257f2680e7454a41e29e5fe090a83196986b685",
+    "src/autumn/controller/worker.py": "2bc4e50b22f298b1fa3b8bc88cfb785144662a755ebdbeddce28c0a60f83b5e6",
+    "src/autumn/diagnostics/__init__.py": "afe1b9c2463e103059f1d81eff0f2ac1e5d7e8e3fd4943f7a8795006ad502f19",
+    "src/autumn/diagnostics/health.py": "4a171f955a8c609bb9efd741bd761e563e44743dbf7f803a3fd1bf1eed575cbc",
+    "src/autumn/diagnostics/smoke.py": "d626193cfc30537debc650f9e844c5a78db99015f9794b970675f390b4ae27ed",
+    "src/autumn/diagnostics/speech_probe.py": "18cbbeae3514a7455a8ccfd13657742f1f14276cee444a8c4dfe638ca044db45",
+    "src/autumn/main.py": "4dd0d364a2bbce7bfb0c2bf8e9e35cf271f29aadc01f2c0fa763176c4d84f14e",
+    "src/autumn/policy/__init__.py": "d2b3daf6129ccae417ce1bb804aa3591cbea8fe09e63d482684655d0fa98159d",
+    "src/autumn/policy/matrix.py": "c6ce15507470b9d335613df87b3eb0c24e0a10d4e48eb5709c1cbf9aa0a781f6",
+    "src/autumn/speech/__init__.py": "6827ae95bb9bc7552512fc0b820183063fa827b94f694fe545646d490769556c",
+    "src/autumn/speech/assets.py": "6613a9db5b6531ae78dd74370bd216299cd84ff898e75ea905d4200c5e85cbe0",
+    "src/autumn/speech/recognition.py": "d5307cadad5cedf79a8157e0211957778150dc56382707165bbc56b8c1601de2",
+    "src/autumn/speech/service.py": "aaac4a57068fe6ed0eef66fe20071752c2df3b2048cfb77285eada1825af6aa7",
+    "src/autumn/speech/synthesis.py": "e85d0b844974eb7e6098337eb72ce20340ac3974e6a901866735069cf2b54f62",
+    "src/autumn/speech/workers.py": "0dab46339a80e00b87a1cc31df77136fc29c66f51ef00c5372246a2f0167d582",
+    "src/autumn/storage/__init__.py": "cb38f8412a76d8f43ce99dc4e6ae16d54b9d0b36ba9a4550f7f0db0307f4e5e6",
+    "src/autumn/storage/history.py": "048d46fa13a1db647e7f4b6a3dbfd002a1e9a4ddcb30f812fb9ae702fbd2ad38",
+    "src/autumn/storage/settings.py": "38825eb1a4f9b724539bbe26cbf19b838c1299134a746ba134382bc55db391db",
+    "src/autumn/ui/__init__.py": "036a67ad9f329c1122a3bdafafb3c36bcdff83ceaad9074574dd2eeca6e4cfa8",
+    "src/autumn/ui/viewmodel.py": "3aa5eba3d07affe44143c38914c8d354091694126e2f0733692d2baee92788d6",
+    "src/autumn/ui/voice.py": "30b336d4d7f4869ccbb824475fb40c91fed0954ccb7540c0c05824d816a4ae71",
+    "src/autumn/ui/windows.py": "e8610540eb2cf7824188bc1b1dd91e46845c54dc4b0a4079c5f1b208bab33bf8",
+    "src/autumn/winworker/__init__.py": "f0e660eaf1de0043780835ce8e7446fafdc9ebedfd83e7b92b50a75bc9ea6c96",
+    "src/autumn/winworker/cache.py": "76758995676f6f03dab695fef2afad4f7e0881d997c1decea7561d40f5012c3c",
+    "src/autumn/winworker/capture.py": "70a0e664f3bedd57246bb3d2821b5e6fb8e99ca5b2bb3989a1010312b5a4a7ec",
+    "src/autumn/winworker/search.py": "6fe96d7bb59b9c3e28ed9ff2f9e7e706016f0dbb293f1db1dc6cc67af59d6acf",
+    "src/autumn/winworker/windows.py": "3d9b6f5e9341c561787e22feb78285a524d5872d72d1decc27ebce002c0e5f81"
+  },
+  "evidence": [
+    "phase4_tests.xml",
+    "phase4_source.json",
+    "phase4_frozen.json",
+    "phase4_synthetic_source.json",
+    "phase4_synthetic_frozen.json",
+    "phase4_windowed_source.json",
+    "phase4_dependencies.json",
+    "phase4_packaging_failures.json",
+    "phase4_frozen_hidden.json",
+    "stt_small.en.json"
+  ]
+}

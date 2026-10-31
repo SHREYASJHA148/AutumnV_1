@@ -16,9 +16,24 @@ def main() -> int:
     parser.add_argument("--smoke-report", type=Path, help="Run a self-closing, metadata-only build test")
     parser.add_argument("--phase2-smoke-report", type=Path, help="Self-closing typed-action UI test using only capabilities help")
     parser.add_argument("--phase3-smoke-report", type=Path, help="Self-closing UI and pinned-model capabilities test")
+    parser.add_argument("--speech-probe-report", type=Path, help="Synthetic in-memory speech test; no microphone or playback")
     args = parser.parse_args()
-    if (args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report) and args.data_dir is None:
+    if (args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report or args.speech_probe_report) and args.data_dir is None:
         parser.error("Smoke trials require an explicit isolated --data-dir")
+    if args.speech_probe_report:
+        try:
+            from autumn.diagnostics.speech_probe import run
+            return run(args.speech_probe_report, args.data_dir.resolve())
+        except Exception as error:
+            import json
+            import traceback
+            frames = traceback.extract_tb(error.__traceback__)
+            details = {"pipeline_operational": False, "stage": "probe_initialization", "error_type": type(error).__name__,
+                       "frames": [{"module": Path(frame.filename).name, "line": frame.lineno} for frame in frames],
+                       "missing_module": error.name if isinstance(error, ModuleNotFoundError) else None}
+            args.speech_probe_report.parent.mkdir(parents=True, exist_ok=True)
+            args.speech_probe_report.write_text(json.dumps(details, indent=2), encoding="utf-8")
+            return 1
     os.environ.setdefault("QT_QUICK_BACKEND", "software")
     os.environ.setdefault("QML_DISABLE_DISK_CACHE", "1")
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Fusion")
@@ -42,7 +57,7 @@ def main() -> int:
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.3.0")
+    app.setApplicationVersion("0.4.0")
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -55,10 +70,12 @@ def main() -> int:
         return 0
     supervisor = Supervisor(root)
     vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report))
-    native = NativeEvents(vm.stop, vm.toggleVoice, vm.suspend, vm.resume)
+    native = NativeEvents(vm.stop, vm.voice.toggleRecording, vm.suspend, vm.resume,
+                         on_hold_start=vm.voice.beginHold,on_hold_end=vm.voice.endHold)
     app.installNativeEventFilter(native)
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("vm", vm)
+    engine.rootContext().setContextProperty('voice',vm.voice)
     engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "ui/Main.qml")))
     if not engine.rootObjects():
         failure_report = args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report
@@ -80,7 +97,7 @@ def main() -> int:
     native.bind_window(int(window.winId()))
 
     def shortcuts() -> None:
-        vm.shortcut_rows = native.register(vm.settings.hotkeys)
+        vm.shortcut_rows = native.register(vm.settings.hotkeys,vm.settings.capture_mode)
         vm.shortcut_rows.append({"name": "Session notifications", "detail": "Registered" if native.session_registered else "Unavailable; close the app before lock or sleep"})
         vm.changed.emit()
 

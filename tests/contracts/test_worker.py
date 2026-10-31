@@ -108,3 +108,19 @@ def test_cancel_quarantines_a_blocked_worker_within_bounded_time(tmp_path):
         wait_for(supervisor, "ready")
     finally:
         assert supervisor.shutdown()
+
+
+def test_microphone_lease_rejects_old_voice_but_preserves_typed_commands(tmp_path):
+    supervisor = Supervisor(tmp_path)
+    try:
+        wait_for(supervisor, "ready")
+        supervisor.cancel_voice()
+        assert supervisor.submit(Job(kind="execute", generation=0, request=Request(generation=0, origin="ptt_voice", voice_generation=0), text="help"))
+        supervisor.submit(Job(kind="diagnostics", generation=0))
+        _, observed = wait_for(supervisor, "diagnostics")
+        assert not any(event["kind"] in {"action_result", "action_finished"} for event in observed)
+        supervisor.submit(Job(kind="execute", generation=0, request=Request(generation=0), text="help"))
+        event, _ = wait_for(supervisor, "action_result")
+        assert event["outcome"]["status"] == "succeeded"
+    finally:
+        assert supervisor.shutdown()

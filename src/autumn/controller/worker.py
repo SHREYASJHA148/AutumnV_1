@@ -35,7 +35,7 @@ class Job(Contract):
     plan: Plan | None = None
 
 
-def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool) -> None:
+def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool, *, voice_generation=None) -> None:
     initialize_dpi()
     parent = os.getppid()
     history: HistoryStore | None = None
@@ -45,6 +45,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
     brain = Planner()
     adapter.engine = engine
     last_beat = 0.0
+    last_voice_generation = voice_generation.value if voice_generation is not None else 0
 
     def send(kind: str, **data) -> None:
         # Bounded IPC; a non-reading parent eventually causes a supervised restart.
@@ -65,6 +66,10 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                 job = Job.model_validate(commands.get(timeout=0.05))
             except queue.Empty:
                 continue
+            if voice_generation is not None and voice_generation.value!=last_voice_generation:
+                if brain.context is not None and brain.context.origin in {'ptt_voice','wake_voice'}:
+                    brain.clear_context()
+                last_voice_generation=voice_generation.value
             try:
                 if job.kind == "bootstrap":
                     code = "LOADED"
@@ -85,7 +90,10 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     if req.generation != job.generation or generation.value != req.generation:
                         continue
                     def checkpoint():
-                        return alive() and generation.value == req.generation
+                        return (alive() and generation.value == req.generation and
+                            (req.origin not in {'ptt_voice','wake_voice'} or voice_generation is None or voice_generation.value==req.voice_generation))
+                    if not checkpoint():
+                        continue
 
                     # IPC carries input in memory only. Never add it to history or diagnostics.
                     routing = route(job.text or "", settings) if job.plan is None else None
@@ -228,12 +236,17 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
 
 class Supervisor:
     """poll() never waits. shutdown() is bounded and runs after the window closes."""
-    def __init__(self, root: Path, *, heartbeat_timeout: float = 3.0, allow_faults: bool = False) -> None:
+    def __init__(self, root: Path, *, heartbeat_timeout: float = 3.0, allow_faults: bool = False, worker_target=None, owned_job: bool = False) -> None:
         self.root = root
         self.context = get_context("spawn")
         self.generation = self.context.Value("L", 0)
+        self.voice_generation = self.context.Value("L", 0)
+        self.capture_gate = self.context.Value("b", False)
         self.heartbeat_timeout = heartbeat_timeout
         self.allow_faults = allow_faults
+        self.worker_target = worker_target or worker_main
+        self.use_job = owned_job
+        self.job_handle = None
         self.process = None
         self.commands = None
         self.replies = None
@@ -254,18 +267,35 @@ class Supervisor:
         self.replies = self.context.Queue(maxsize=32)
         self.stopping = self.context.Event()
         self.process = self.context.Process(
-            target=worker_main, args=(self.commands, self.replies, self.generation,
+            target=self.worker_target, args=(self.commands, self.replies, self.generation,
                                      self.stopping, str(self.root), self.allow_faults), daemon=True,
+            kwargs=({'voice_generation':self.voice_generation} if self.worker_target is worker_main else
+                    {'capture_gate':self.capture_gate} if self.use_job else {}),
         )
         self.process.start()
+        if self.use_job:
+            import win32job
+            try:
+                self.job_handle = win32job.CreateJobObject(None, "")
+                limits = win32job.QueryInformationJobObject(self.job_handle,win32job.JobObjectExtendedLimitInformation)
+                limits['BasicLimitInformation']['LimitFlags'] |= win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+                win32job.SetInformationJobObject(self.job_handle,win32job.JobObjectExtendedLimitInformation,limits)
+                win32job.AssignProcessToJobObject(self.job_handle,self.process.sentinel)
+            except Exception:
+                if self.job_handle is not None:
+                    self.job_handle.Close()
+                self.job_handle = None
+                self.process.terminate()
+                self.process.join(timeout=.5)
+                raise RuntimeError('Cannot contain the owned speech worker') from None
         self.last_seen = self.started = time.monotonic()
-        self.submit(Job(kind="bootstrap", generation=self.generation.value))
+        self.commands.put_nowait({'kind':'bootstrap','generation':self.generation.value})
 
     def submit(self, job: Job) -> bool:
         if self.closed or self.disabled or self.process is None:
             return False
         try:
-            self.commands.put_nowait(job.model_dump(mode="json"))
+            self.commands.put_nowait(job.model_dump(mode="python"))
             return True
         except queue.Full:
             return False
@@ -275,7 +305,23 @@ class Supervisor:
         if self.busy_until:
             self.cancelled_at = time.monotonic()
 
+    def cancel_voice(self):
+        self.voice_generation.value+=1
+        return self.voice_generation.value
+
+    def restart(self):
+        if self.closed:
+            return
+        self._retire()
+        self.disabled=False
+        self.restarts=0
+        self.busy_until=self.cancelled_at=0
+        self.next_start=time.monotonic()
+
     def _retire(self) -> None:
+        if self.job_handle is not None:
+            self.job_handle.Close()
+            self.job_handle = None
         if self.process is not None:
             if self.process.is_alive():
                 self.process.terminate()

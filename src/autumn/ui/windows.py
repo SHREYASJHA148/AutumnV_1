@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QAbstractNativeEventFilter
 
+from autumn.audio.hotkeys import HoldHook
 from autumn.storage.settings import Hotkeys
 
 
@@ -67,7 +68,7 @@ CHORDS = {
 
 
 class NativeEvents(QAbstractNativeEventFilter):
-    def __init__(self, on_stop, on_voice, on_suspend, on_resume) -> None:
+    def __init__(self, on_stop, on_voice, on_suspend, on_resume, *, on_hold_start=None,on_hold_end=None) -> None:
         super().__init__()
         self.user = ctypes.WinDLL("user32", use_last_error=True)
         self.user.RegisterHotKey.argtypes = [wintypes.HWND, ctypes.c_int, wintypes.UINT, wintypes.UINT]
@@ -81,12 +82,13 @@ class NativeEvents(QAbstractNativeEventFilter):
         self.registered: list[int] = []
         self.window: int | None = None
         self.session_registered = False
+        self.hook=HoldHook(on_hold_start or on_voice,on_hold_end or (lambda:None))
 
     def bind_window(self, handle: int) -> None:
         self.window = handle
         self.session_registered = bool(self.wts.WTSRegisterSessionNotification(handle, 0))
 
-    def register(self, settings: Hotkeys) -> list[dict[str, str]]:
+    def register(self, settings: Hotkeys, mode: str = 'toggle') -> list[dict[str, str]]:
         self.unregister()
         rows = []
         for identifier, name, chord in (
@@ -96,11 +98,16 @@ class NativeEvents(QAbstractNativeEventFilter):
             mods, key = CHORDS[chord]
             ok = bool(self.user.RegisterHotKey(None, identifier, mods, key))
             if ok:
-                self.registered.append(identifier)
+                if identifier==0xA102 and mode=='hold':
+                    self.user.UnregisterHotKey(None,identifier)
+                    ok=self.hook.install(key)
+                else:
+                    self.registered.append(identifier)
             rows.append({"name": name, "detail": f"{chord}: {'registered' if ok else 'unavailable — use the on-screen button'}"})
         return rows
 
     def unregister(self) -> None:
+        self.hook.close()
         for identifier in self.registered:
             self.user.UnregisterHotKey(None, identifier)
         self.registered.clear()

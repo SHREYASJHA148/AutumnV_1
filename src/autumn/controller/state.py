@@ -16,7 +16,7 @@ CAPTURE_EDGES = {
     C.DEVICE_ERROR: {C.DISABLED, C.PTT_READY},
 }
 TASK_EDGES = {
-    T.IDLE: {T.TRANSCRIBING, T.ROUTING},
+    T.IDLE: {T.TRANSCRIBING, T.ROUTING, T.SPEAKING},
     T.TRANSCRIBING: {T.ROUTING, T.ERROR},
     T.ROUTING: {T.EXECUTING, T.AWAITING_CLARIFICATION, T.AWAITING_CONFIRMATION, T.ERROR},
     T.AWAITING_CLARIFICATION: {T.ROUTING, T.IDLE, T.ERROR},
@@ -47,10 +47,10 @@ class Session:
             raise ValueError("Invalid task transition")
         self.task = state
 
-    def enqueue(self, origin: str = "typed") -> Request | None:
+    def enqueue(self, origin: str = "typed", voice_generation: int = 0) -> Request | None:
         if self.suspended or (self.active is not None and len(self.pending) >= 5):
             return None
-        request = Request(generation=self.generation, origin=origin)
+        request = Request(generation=self.generation, origin=origin,voice_generation=voice_generation)
         if self.active is None:
             self.active = request
             self.set_task(T.ROUTING)
@@ -63,6 +63,14 @@ class Session:
             not self.suspended and event.generation == self.generation
             and self.active is not None and event.request_id == self.active.request_id
         )
+
+    def begin_transcription(self,voice_generation=0):
+        if self.suspended or self.active is not None or self.task!=T.IDLE:
+            return None
+        request=Request(generation=self.generation,origin='ptt_voice',voice_generation=voice_generation)
+        self.active=request
+        self.set_task(T.TRANSCRIBING)
+        return request
 
     def finish(self) -> Request | None:
         self.set_task(T.IDLE)
@@ -88,6 +96,20 @@ class Session:
         self.capture = C.DISABLED
         self.suspended = True
         return cancelled
+
+    def cancel_voice(self):
+        removed=[request for request in self.pending if request.origin in {'ptt_voice','wake_voice'}]
+        self.pending=deque(request for request in self.pending if request.origin not in {'ptt_voice','wake_voice'})
+        promoted=None
+        if self.active is not None and self.active.origin in {'ptt_voice','wake_voice'}:
+            removed.insert(0,self.active)
+            self.set_task(T.CANCELLING)
+            self.set_task(T.IDLE)
+            self.active=self.pending.popleft() if self.pending else None
+            promoted=self.active
+            if promoted is not None:
+                self.set_task(T.ROUTING)
+        return removed,promoted
 
     def resume(self) -> None:
         self.suspended = False

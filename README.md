@@ -1,6 +1,6 @@
 # Autumn
 
-A local Windows desktop assistant. Phase 3 adds flexible English text planning with the pinned local `qwen3:1.7b` model, alongside the reviewed app catalog, volume/media controls, screenshots and filename search. Live voice arrives in Phase 4.
+A local Windows desktop assistant. Phase 4 adds English push-to-talk, local speech recognition and a female voice to the pinned `qwen3:1.7b` planner and reviewed computer actions. This remains a personal preview: Phase 3 accuracy targets failed, GPU acceptance is unverified, and the owner's 100-utterance speech test is pending.
 
 Use `dist/Autumn preview é/Autumn/Autumn.exe` after building. Closing its window quits Autumn and its worker. A second launch brings the existing window forward. A shared Ollama service is left running.
 
@@ -13,9 +13,13 @@ For development, run these commands from this folder in PowerShell:
 .\tools\dev.ps1 build
 ```
 
-The measured environment is `.venv-qt-compat` with project-local CPython 3.12.10. Reproduce dependencies with the local `uv` tool and `requirements-phase2.lock` using `--require-hashes`; do not install from the unpinned input file. Older environments and locks are preserved.
+The measured environment is `.venv-qt-compat` with project-local CPython 3.12.10. Reproduce dependencies with the local `uv` tool and `requirements-phase4.lock` using `--require-hashes`; do not install from the unpinned input file. Older environments and locks are preserved.
 
-Stop is **Ctrl+Alt+Backspace**. **Ctrl+Alt+Space** toggles voice readiness in this preview; it never records. Both controls have on-screen buttons. Change the shortcuts and activity retention in Settings; Diagnostics reports registration conflicts. Every launch starts with the microphone off.
+Stop is **Ctrl+Alt+Backspace**. Enable voice, then hold **Ctrl+Alt+Space** or **Hold to talk** to record a command. Voice setup also offers toggle recording, which ends after a pause; every recording is bounded to 20 seconds. Stop and microphone-off discard unfinished voice work. Both work independently of recognition and the model. Every launch starts with the microphone off.
+
+**Voice setup** provides local file checks, microphone/speaker selection, a four-second recording test, editable recognized text, female voice volume/speed and explicit playback tests. Audio stays in memory; microphone tests never run commands. Sending edited text creates a new typed request. Playback suspends recording and adds a 300 ms acoustic tail. Lessac/Piper is primary; Windows Zira is the default-speaker fallback, with text available if neither voice works. Wake listening remains a later phase.
+
+Speech files stay outside the executable in `models/stt` and `models/tts`, with exact SHA-256 checks before loading. The developer build points to this project's models; a moved installation can select its own verified local models folder. It never downloads missing files automatically. First-run setup is re-runnable in Voice setup and includes a diagnostics export preview without audio, recognized words or device names. For a synthetic-only test, use `--speech-probe-report <report.json> --data-dir <isolated-folder>`; it opens neither microphone nor speakers and dispatches no actions.
 
 Settings and redacted activity are stored under `%LOCALAPPDATA%\Autumn\`. Activity retains seven days by default and can be cleared. Typed input stays in memory, including transient worker messages, and is never written into history or diagnostics. Corrupt settings are preserved in a recovery copy before safe defaults are created. History clearing is ordinary deletion, not secure erasure. Exported screenshots remain separate user files.
 

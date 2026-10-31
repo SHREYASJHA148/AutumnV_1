@@ -84,10 +84,13 @@ class SmokeTrial(QObject):
                 return
             self.input = self.window.findChild(QObject, "commandInput")
             self.stop_button = self.window.findChild(QObject, "stopButton")
+            self.checks["voice_setup_loaded"] = self.window.findChild(QObject, "transcriptEditor") is not None
+            self.checks["talk_control_loaded"] = self.window.findChild(QObject, "talkButton") is not None
+            self.window.setProperty("page", 0)
             self.checks.update(qml_loaded=True, microphone_disabled=not self.vm.voiceReady,
                                input_available=self.input is not None,
                                session_notifications=self.native.session_registered,
-                               shortcuts_registered=len(self.native.registered) == 2)
+                               shortcuts_registered=len(self.native.registered)+bool(self.native.hook.handle) == 2)
             self.launch_ms = (time.monotonic() - self.started) * 1000
             # Fill the one-running/five-pending request queue while the worker is busy.
             for _ in range(6):

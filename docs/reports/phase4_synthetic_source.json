@@ -1,0 +1,97 @@
+{
+  "frozen": false,
+  "scope": "public synthetic development audio; NOT owner/NFR-03 or GPU acceptance",
+  "microphone_opened": false,
+  "speaker_playback": false,
+  "action_dispatches": 0,
+  "verified_artifacts": {
+    "small.en": true,
+    "base.en": true,
+    "voice": true,
+    "voice_config": true
+  },
+  "devices": {
+    "input": 12,
+    "output": 11
+  },
+  "silence_rejected": true,
+  "noise_rejected": true,
+  "synthetic_cases": [
+    {
+      "index": 0,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 6.64,
+      "recognition_seconds": 3.687
+    },
+    {
+      "index": 1,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.047,
+      "recognition_seconds": 2.891
+    },
+    {
+      "index": 2,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.047,
+      "recognition_seconds": 2.953
+    },
+    {
+      "index": 3,
+      "accepted": true,
+      "exact_normalized_match": false,
+      "synthesis_seconds": 0.062,
+      "recognition_seconds": 2.953
+    },
+    {
+      "index": 4,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.047,
+      "recognition_seconds": 3.032
+    },
+    {
+      "index": 5,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.062,
+      "recognition_seconds": 3.375
+    },
+    {
+      "index": 6,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.047,
+      "recognition_seconds": 3.047
+    },
+    {
+      "index": 7,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.031,
+      "recognition_seconds": 3.156
+    },
+    {
+      "index": 8,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.063,
+      "recognition_seconds": 3.219
+    },
+    {
+      "index": 9,
+      "accepted": true,
+      "exact_normalized_match": true,
+      "synthesis_seconds": 0.031,
+      "recognition_seconds": 2.937
+    }
+  ],
+  "synthetic_exact_matches": 9,
+  "recognition_warm_p50_seconds": 3.032,
+  "recognition_warm_p95_seconds": 3.3126,
+  "pipeline_operational": true,
+  "clean_shutdown": true,
+  "elapsed_seconds": 41.204
+}

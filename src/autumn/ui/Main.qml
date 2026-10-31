@@ -5,6 +5,8 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: window
     objectName: "autumnWindow"
+    property bool setupShown: false
+    Connections { target: vm; function onSettingsChanged() { if (vm.firstRun && !window.setupShown) { window.page = 5; window.setupShown = true } } }
     visible: true
     width: 1140; height: 800
     minimumWidth: 940; minimumHeight: 680
@@ -41,7 +43,7 @@ ApplicationWindow {
                 }
                 Item { Layout.fillWidth: true }
                 Label { text: "●  Local only"; color: "#a4d8bd"; Accessible.name: "Local only. No network connections." }
-                Button { objectName: "voiceButton"; text: vm.voiceReady ? "Voice preview off" : "Voice preview on"; Accessible.name: text; onClicked: vm.toggleVoice() }
+                Button { objectName: "voiceButton"; text: voice.enabledVoice ? "Microphone off" : "Enable voice"; Accessible.name: text; onClicked: vm.toggleVoice() }
                 Button { objectName: "stopButton"; text: "Stop"; Accessible.name: "Stop all work"; onClicked: vm.stop(); highlighted: true }
             }
         }
@@ -53,7 +55,7 @@ ApplicationWindow {
                     anchors.fill: parent; anchors.margins: 18; spacing: 10
                     Label { text: "WORKSPACE"; color: "#9cb0b1"; font.pixelSize: 11; font.letterSpacing: 1.8; Layout.topMargin: 8; Layout.bottomMargin: 12 }
                     Repeater {
-                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders"]
+                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders", "Voice setup"]
                         Button {
                             required property int index
                             required property string modelData
@@ -64,17 +66,17 @@ ApplicationWindow {
                         }
                     }
                     Item { Layout.fillHeight: true }
-                    Label { text: "TYPED WORKSPACE"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
-                    Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nMicrophone stays closed."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
+                    Label { text: "LOCAL WORKSPACE"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
+                    Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nVoice starts switched off."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "Phase 3 · 0.3.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "Phase 4 · 0.4.0"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
             }
             ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: 28; spacing: 16
                 RowLayout {
                     Layout.fillWidth: true
-                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
+                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets", "Make Autumn hear you"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
                     Label { text: vm.taskStatus + (vm.queuedCount ? " · " + vm.queuedCount + " queued" : ""); color: "#a4d8bd"; Accessible.name: "Task status: " + text }
                 }
                 Label { Layout.fillWidth: true; text: vm.captureStatus; color: "#a0b5b6"; Accessible.name: text }
@@ -123,6 +125,16 @@ ApplicationWindow {
                         RowLayout {
                             Button { text: "What can you do?"; Accessible.name: text; enabled: vm.canSend; onClicked: vm.submit(text) }
                             Button { text: "Review apps"; Accessible.name: text; onClicked: window.page = 4 }
+                            Button {
+                                objectName: "talkButton"
+                                text: voice.mode === "hold" ? "Hold to talk" : (voice.isRecording ? "Finish recording" : "Record command")
+                                enabled: vm.canSend && voice.enabledVoice && (!voice.isBusy || voice.isRecording)
+                                Accessible.name: text
+                                onPressed: voice.beginHold()
+                                onReleased: voice.endHold()
+                                onCanceled: voice.endHold()
+                                onClicked: { if (voice.mode === "toggle") voice.toggleRecording() }
+                            }
                             Item { Layout.fillWidth: true }
                         }
                         RowLayout {
@@ -164,7 +176,7 @@ ApplicationWindow {
                             width: parent.width - 22; spacing: 16
                             Label { text: "Voice & privacy"; font.pixelSize: 18; color: "#ddb78a" }
                             Label { Layout.fillWidth: true; text: "English · Female voice: Lessac\nBuilt-in microphone preferred · System default speakers\nMicrophone is off at every launch. Wake mode and conversation saving are off."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
-                            Label { Layout.fillWidth: true; text: "Device selection and live voice controls arrive with speech integration. Typed commands use the capabilities enabled below."; wrapMode: Text.WordWrap; color: "#a0b5b6" }
+                            Button { text: "Open voice setup"; onClicked: window.page = 5 }
                             Label { text: "Controls"; font.pixelSize: 18; color: "#ddb78a" }
                             Label { text: "Local brain · qwen3:1.7b · CPU"; color: "#ddb78a"; font.pixelSize: 18 }
                             Label { Layout.fillWidth: true; text: vm.modelStatus; wrapMode: Text.WordWrap; color: "#a7b9ba"; Accessible.name: text }
@@ -173,7 +185,7 @@ ApplicationWindow {
                             Button { text: "Check local brain"; Accessible.name: text; onClicked: vm.checkLocalBrain() }
                             Label { text: "Stop shortcut" }
                             ComboBox { id: stopChoice; objectName: "stopChoice"; Layout.preferredWidth: 280; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.stopShortcut); Accessible.name: "Stop shortcut" }
-                            Label { text: "Voice readiness shortcut" }
+                            Label { text: "Talk shortcut" }
                             ComboBox { id: voiceChoice; Layout.preferredWidth: 280; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.voiceShortcut); Accessible.name: "Voice readiness shortcut" }
                             Label { text: "Keep activity for this many days (1–90)" }
                             SpinBox { id: days; from: 1; to: 90; value: vm.retentionDays; editable: true; Accessible.name: "History retention days" }
@@ -260,6 +272,56 @@ ApplicationWindow {
                                 Label { text: modelData.name + " · " + modelData.detail; Layout.fillWidth: true; elide: Text.ElideMiddle; color: "#a7b9ba"; textFormat: Text.PlainText }
                                 Button { text: "Remove"; Accessible.name: "Remove " + modelData.name; onClicked: vm.removeLocation(modelData.id, modelData.kind) }
                             }
+                        }
+                    }
+                    ScrollView {
+                        clip: true
+                        ColumnLayout {
+                            width: parent.width - 22; spacing: 14
+                            Label { Layout.fillWidth: true; text: voice.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7"; Accessible.name: text }
+                            ProgressBar { Layout.fillWidth: true; from: 0; to: 1; value: voice.inputLevel; Accessible.name: "Microphone level" }
+                            Label { Layout.fillWidth: true; text: "Enable voice, then hold the talk button or shortcut while speaking. Toggle mode ends after a pause. Recordings stop at 20 seconds. Audio stays in memory."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                            Label { Layout.fillWidth: true; text: "Shortcuts may not reach administrator windows. Use Autumn's on-screen talk and Stop controls; Autumn runs with ordinary user access."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                            RowLayout {
+                                Button { text: "Refresh devices"; enabled: !voice.isBusy; onClicked: voice.refreshDevices() }
+                                Button { text: "Check speech files"; enabled: !voice.isBusy; onClicked: voice.checkModels() }
+                            }
+                            Label { Layout.fillWidth: true; text: voice.assetsStatus; wrapMode: Text.WordWrap; color: "#c1d0ce" }
+                            Label { Layout.fillWidth: true; text: vm.modelStatus; wrapMode: Text.WordWrap; color: "#c1d0ce" }
+                            Button { text: "Check local brain"; enabled: vm.canSend; onClicked: vm.checkLocalBrain() }
+                            Label { text: "Microphone" }
+                            ComboBox { id: inputDevice; Layout.fillWidth: true; model: voice.inputDevices; textRole: "label"; valueRole: "id"; currentIndex: indexOfValue(voice.inputId); enabled: !voice.isBusy; Accessible.name: "Microphone selection" }
+                            Label { text: "Speakers" }
+                            ComboBox { id: outputDevice; Layout.fillWidth: true; model: voice.outputDevices; textRole: "label"; valueRole: "id"; currentIndex: indexOfValue(voice.outputId); enabled: !voice.isBusy; Accessible.name: "Speaker selection" }
+                            RowLayout {
+                                Label { text: "Talk mode" }
+                                ComboBox { id: talkMode; model: ["hold", "toggle"]; currentIndex: model.indexOf(voice.mode); enabled: !voice.isBusy; Accessible.name: "Talk mode" }
+                                Label { text: "English recognition" }
+                                ComboBox { id: speechModel; model: ["small.en", "base.en"]; currentIndex: model.indexOf(voice.recognitionModel); enabled: !voice.isBusy; Accessible.name: "English recognition model" }
+                            }
+                            CheckBox { id: replies; text: "Speak short replies to voice commands"; checked: voice.spokenReplies; enabled: !voice.isBusy }
+                            Label { text: "Female voice volume" }
+                            Slider { id: voiceVolume; Layout.fillWidth: true; from: 0; to: 1; value: voice.volume; enabled: !voice.isBusy; Accessible.name: "Female voice volume" }
+                            Label { text: "Voice speed" }
+                            Slider { id: voiceRate; Layout.fillWidth: true; from: 0.6; to: 1.6; value: voice.rate; enabled: !voice.isBusy; Accessible.name: "Voice speed" }
+                            Button { text: "Save voice settings"; enabled: vm.canConfigure; onClicked: voice.saveOptions(inputDevice.currentValue || "", outputDevice.currentValue || "", talkMode.currentText, speechModel.currentText, voiceVolume.value, voiceRate.value, replies.checked) }
+                            RowLayout {
+                                Button { text: "Test microphone (4 seconds)"; enabled: vm.canSend && !voice.isBusy; onClicked: voice.testMicrophone() }
+                                Button { text: "Play my test recording"; enabled: voice.hasTestRecording && !voice.isBusy; onClicked: voice.playTestRecording() }
+                                Button { text: "Test female voice"; enabled: vm.canSend && !voice.isBusy; onClicked: voice.testVoice() }
+                            }
+                            Label { text: "Recognized words — edit if needed" }
+                            TextArea { id: transcriptEditor; objectName: "transcriptEditor"; Layout.fillWidth: true; text: voice.lastTranscript; wrapMode: TextEdit.Wrap; selectByMouse: true; Accessible.name: "Recognized words" }
+                            Button { text: "Send edited as text"; enabled: vm.canSend && transcriptEditor.text.trim().length > 0; onClicked: vm.submit(transcriptEditor.text) }
+                            Label { Layout.fillWidth: true; text: "Sending edited text creates a new typed command. A microphone test never runs a command. Stop or microphone-off discards pending voice work."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                            Button { text: "Choose local speech models folder…"; enabled: vm.canConfigure; onClicked: voice.chooseModels() }
+                            Label { Layout.fillWidth: true; text: "First-run checklist: review your apps and folders; check the local brain in Settings; check speech files; select microphone and speakers; run the recording and female voice tests. If capture is silent, allow desktop microphone access in Windows Settings → Privacy & security → Microphone."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
+                            Label { Layout.fillWidth: true; text: "Your 100-utterance speech test is pending. Bluetooth testing is unavailable without a headset. Current accuracy and GPU acceptance checks remain incomplete."; wrapMode: Text.WordWrap; color: "#ddb78a" }
+                            RowLayout {
+                                Button { text: "Preview diagnostics export"; onClicked: voice.previewDiagnostics() }
+                                Button { text: "Export preview…"; enabled: voice.diagnosticsPreview.length > 0; onClicked: voice.exportDiagnostics() }
+                            }
+                            TextArea { Layout.fillWidth: true; text: voice.diagnosticsPreview; readOnly: true; wrapMode: TextEdit.Wrap; selectByMouse: true; visible: text.length > 0; Accessible.name: "Diagnostics export preview" }
                         }
                     }
                 }

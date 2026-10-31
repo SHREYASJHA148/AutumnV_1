@@ -1,0 +1,7 @@
+{
+  "name": "ggml-small.en.bin",
+  "revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+  "bytes": 487614201,
+  "sha256": "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d",
+  "method": "resumable exact HTTP byte ranges; final upstream LFS SHA256 verified"
+}

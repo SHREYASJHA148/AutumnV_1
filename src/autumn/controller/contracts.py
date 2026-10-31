@@ -37,6 +37,7 @@ class Request(Contract):
     request_id: UUID = Field(default_factory=uuid4)
     origin: Literal["typed", "button", "ptt_voice", "wake_voice", "routine"] = "typed"
     generation: int = Field(ge=0)
+    voice_generation: int = Field(default=0,ge=0)
     # Text stays in the UI's bounded, memory-only conversation, never in this queue.
 
 

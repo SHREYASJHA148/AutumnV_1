@@ -1,0 +1,9 @@
+-r requirements-phase2.lock
+-c requirements-phase0-compat.lock
+sounddevice
+numpy
+scipy
+pywhispercpp
+piper-tts
+# Local 30 ms speech/non-speech gating with Windows wheels; no model download.
+webrtcvad-wheels

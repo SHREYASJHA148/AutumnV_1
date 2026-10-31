@@ -20,7 +20,8 @@ from autumn.actions.schemas import FolderArgs, OpenFolder, Plan
 from autumn.controller.contracts import CaptureState, Event, HistoryEvent, TaskState
 from autumn.controller.state import Session
 from autumn.controller.worker import Job, Supervisor
-from autumn.storage.settings import Hotkeys, Settings
+from autumn.storage.settings import Hotkeys, Settings, app_directory
+from autumn.ui.voice import VoiceViewModel
 
 
 class ViewModel(QObject):
@@ -36,6 +37,7 @@ class ViewModel(QObject):
         self.settings = Settings()
         self.preview_mode = preview_mode
         self.ready = False
+        self.first_run = False
         self.settings_pending = False
         self.notice = "Starting the local workspace…"
         self.conversation = [{"role": "Autumn", "text": "Welcome. Type ‘what can you do?’ for available commands. Add or import and review apps in Settings before opening them."}]
@@ -52,6 +54,8 @@ class ViewModel(QObject):
         self.clarification_expires = 0.0
         self.clarification_origin = "typed"
         self.clarification_generation = 0
+        self.voice = VoiceViewModel(self,getattr(supervisor,'root',app_directory()))
+        self.settingsChanged.connect(self.voice.changed)
         self.timer = QTimer(self)
         self.timer.setInterval(16)
         self.timer.timeout.connect(self.poll)
@@ -63,11 +67,17 @@ class ViewModel(QObject):
 
     @Property(str, notify=changed)
     def captureStatus(self):
-        return "Voice ready · microphone closed (preview)" if self.session.capture == CaptureState.PTT_READY else "Microphone off"
+        return {CaptureState.DISABLED:'Microphone off',CaptureState.PTT_READY:'Voice ready · microphone closed',
+            CaptureState.RECORDING:'Recording microphone',CaptureState.SUSPENDED_PLAYBACK:'Recording suspended during playback / acoustic tail',
+            CaptureState.DEVICE_ERROR:'Audio device error · microphone closed',CaptureState.ARMED_WAKE:'Wake listening'}[self.session.capture]
 
     @Property(bool, notify=changed)
     def voiceReady(self):
         return self.session.capture == CaptureState.PTT_READY
+
+    @Property(bool, notify=changed)
+    def firstRun(self):
+        return self.first_run
 
     @Property(bool, notify=changed)
     def canSend(self):
@@ -75,7 +85,7 @@ class ViewModel(QObject):
 
     @Property(bool, notify=changed)
     def canConfigure(self):
-        return self.canSend and not self.settings_pending
+        return self.canSend and not self.settings_pending and not self.voice.isBusy
 
     @Property(str, notify=changed)
     def statusMessage(self):
@@ -176,6 +186,7 @@ class ViewModel(QObject):
         text = text.strip()
         if not text:
             return
+        self.voice.on_typed_input()
         if len(text) > 2000:
             self.notice = "Please use at most 2,000 characters."
             self.changed.emit()
@@ -202,6 +213,7 @@ class ViewModel(QObject):
         uncertain = not self.preview_mode and self.session.task == TaskState.EXECUTING
         cancelled = self.session.stop()
         self.supervisor.cancel(self.session.generation)
+        self.voice.cancel()
         self.pending_inputs.clear()
         self.clarification_choices.clear()
         records = tuple(self.record(request, "partial" if uncertain and request == active else (
@@ -257,7 +269,9 @@ class ViewModel(QObject):
         if not self.canSend or choice not in self.clarificationChoices or self.clarification_generation != self.session.generation:
             return
         previous = self.session.active
-        request = self.session.enqueue(origin=self.clarification_origin)
+        counter = getattr(self.supervisor, "voice_generation", None)
+        request = self.session.enqueue(origin=self.clarification_origin,
+                                       voice_generation=counter.value if counter is not None else 0)
         if request is None:
             return
         self.clarification_choices.clear()
@@ -388,15 +402,7 @@ class ViewModel(QObject):
 
     @Slot()
     def toggleVoice(self) -> None:
-        if self.session.suspended:
-            return
-        if self.session.capture == CaptureState.PTT_READY:
-            self.session.set_capture(CaptureState.DISABLED)
-            self.notice = "Microphone off. This phase never opens an audio stream."
-        else:
-            self.session.set_capture(CaptureState.PTT_READY)
-            self.notice = "Voice readiness preview enabled. Live recording arrives in Phase 4."
-        self.changed.emit()
+        self.voice.toggleEnabled()
 
     @Slot(int, str, str)
     def saveSettings(self, days: int, stop: str, voice: str) -> None:
@@ -427,6 +433,7 @@ class ViewModel(QObject):
     def suspend(self) -> None:
         self.cancel_all("Paused for lock or sleep. Microphone remains off on return.")
         self.session.suspend()
+        self.voice.cancel(disable=True)
         self.supervisor.cancel(self.session.generation)
         self.changed.emit()
 
@@ -436,6 +443,7 @@ class ViewModel(QObject):
         self.changed.emit()
 
     def poll(self) -> None:
+        self.voice.poll()
         if self.clarification_choices and time.monotonic() >= self.clarification_expires:
             self.clarification_choices.clear()
             self.changed.emit()
@@ -445,6 +453,8 @@ class ViewModel(QObject):
                 self.settings_pending = False
                 self.settings = Settings.model_validate(message["settings"])
                 self.ready = True
+                if kind == "ready":
+                    self.first_run = message.get("code") == "DEFAULTS_CREATED"
                 self.notice = "Recovered settings safely; microphone off." if message.get("code") == "RECOVERED_DEFAULTS" else "Workspace ready. Typed commands are available; microphone off."
                 if message.get("code") == "STORAGE_UNAVAILABLE":
                     self.notice = "Storage unavailable. Using safe settings in memory; activity may not be saved."
@@ -488,11 +498,13 @@ class ViewModel(QObject):
                 if kind == "action_result":
                     outcome = message["outcome"]
                     self.append("Autumn", outcome["message"])
+                    self.voice.action_result(outcome['message'])
                     self.notice = outcome["status"].title() + ": " + outcome["message"]
                     if message.get("skill") == "files.search" or outcome.get("matches") or outcome.get("artifacts"):
                         self.result_cards = [*outcome.get("matches", []), *outcome.get("artifacts", [])][-20:]
                 if kind == "action_finished" or message.get("finished"):
                     self.finish_request()
+                    self.voice.action_finished()
             elif kind == "worker_failed":
                 self.settings_pending = False
                 self.ready = False
@@ -507,4 +519,5 @@ class ViewModel(QObject):
         self.timer.stop()
         self.session.stop()
         self.supervisor.cancel(self.session.generation)
-        return self.supervisor.shutdown()
+        speech_closed=self.voice.shutdown()
+        return self.supervisor.shutdown() and speech_closed
