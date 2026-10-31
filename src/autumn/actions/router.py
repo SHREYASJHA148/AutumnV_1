@@ -31,6 +31,7 @@ class Routing:
     plan: Plan | None = None
     message: str = "I don't recognize that command. Ask ‘what can you do?’ for supported commands."
     choices: tuple[str, ...] = ()
+    allow_model: bool = False
 
 
 def normalize(text: str) -> str:
@@ -42,6 +43,9 @@ def route(text: str, settings) -> Routing:
     if not value or len(value) > 2000 or re.search(r"\b(don't|do not|not|never|cancel|instead|then|and|but|except|without)\b|[;|`<>\r\n]", value):
         return Routing(message="Please give one supported command, without extra instructions.")
     action = None
+    # Normalize only bounded positive launch phrases, then resolve the entire remaining alias.
+    if launch := re.fullmatch(r"(?:(?:please|could you|can you) )?(?:bring up|launch|take me to|show(?: me)?) (?:(?:the|my) )?(.+?)(?: (?:folder|directory|website|site|app|application))?",value):
+        value = "open " + launch[1]
     if value in {"help", "what can you do", "show capabilities", "capabilities"}:
         action = Capabilities()
     elif value in {"take a screenshot", "take screenshot", "screenshot", "capture screen"}:
@@ -54,11 +58,20 @@ def route(text: str, settings) -> Routing:
         action = SetVolume(arguments=VolumeArgs(percent=int(match[1])))
     elif value in {"mute", "mute speakers", "unmute", "unmute speakers"}:
         action = SetMute(arguments=MuteArgs(muted=value.startswith("mute")))
-    elif value in {"play pause", "play/pause", "pause music", "play music", "next track", "previous track"}:
+    elif value in {"play pause", "play/pause", "pause music", "play music", "next track", "previous track", "skip this track", "skip this song"}:
         # Only a toggle is exposed; explicit play/pause ambiguity must not pretend to set a state.
         if value in {"pause music", "play music"}:
             return Routing(message="Use ‘play pause’ to toggle the current media session.")
-        action = MediaControl(arguments=MediaArgs(command={"next track": "next", "previous track": "previous"}.get(value, "play_pause")))
+        action = MediaControl(arguments=MediaArgs(command={"next track": "next", "skip this track":"next", "skip this song":"next", "previous track": "previous"}.get(value, "play_pause")))
+    elif match := re.fullmatch(r"search (.+?) for (spreadsheets|pdfs|photos|documents|text files)(?: named| called)? (.+)",value):
+        roots = [f for f in settings.folders if f.search and normalize(f.name)==match[1]]
+        if not roots:
+            return Routing(message="Choose an existing search root in Settings.")
+        hint={"spreadsheets":"spreadsheet","pdfs":"pdf","photos":"photo","documents":"document","text files":"text"}[match[2]]
+        try:
+            action=SearchFiles(arguments=SearchArgs(query=match[3],type_hint=hint,root_ids=tuple(f.id for f in roots)))
+        except ValueError:
+            return Routing(message="Use a filename fragment without paths or wildcards.")
     elif match := re.fullmatch(r"(?:find|search for) (.+?)(?: in (.+))?", value):
         query, root_name = match[1], match[2]
         roots = [f for f in settings.folders if f.search and (root_name is None or normalize(f.name) == root_name)]
@@ -98,7 +111,7 @@ def route(text: str, settings) -> Routing:
                       "folder": lambda: OpenFolder(arguments=FolderArgs(folder_id=identifier)),
                       "site": lambda: OpenWebsite(arguments=WebsiteArgs(site_id=identifier))}[kind]()
     if action is None:
-        return Routing()
+        return Routing(allow_model=True)
     if action.skill not in settings.enabled_skills:
         return Routing(message="That capability is disabled in Settings.")
     return Routing(plan=Plan(steps=(action,)), message="")

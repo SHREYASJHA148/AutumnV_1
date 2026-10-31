@@ -26,7 +26,7 @@ def test_real_worker_routes_help_search_and_rejects_stale_request(tmp_path):
     supervisor = Supervisor(root)
     try:
         collect_until(supervisor, "ready")
-        supervisor.submit(Job(kind="save_settings", generation=0, settings=Settings(
+        supervisor.submit(Job(kind="save_settings", generation=0, settings=Settings(model_enabled=False,
             folders=(FolderEntry(id="fixtures", name="Fixtures", path=str(files)),))))
         collect_until(supervisor, "settings_saved")
         for text, expected in (("help", "OK"), ("find spreadsheet budget in fixtures", "OK"), ("unsupported fixed privacy marker", "CLARIFICATION")):

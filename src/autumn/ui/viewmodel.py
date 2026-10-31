@@ -46,6 +46,12 @@ class ViewModel(QObject):
         self.deferred_records: list[HistoryEvent] = []
         self.pending_inputs: dict[str, str | Plan] = {}
         self.result_cards: list[dict] = []
+        self.model_status = "Local brain: not checked; exact commands stay available."
+        self.model_metrics: dict = {}
+        self.clarification_choices: list[str] = []
+        self.clarification_expires = 0.0
+        self.clarification_origin = "typed"
+        self.clarification_generation = 0
         self.timer = QTimer(self)
         self.timer.setInterval(16)
         self.timer.timeout.connect(self.poll)
@@ -94,6 +100,22 @@ class ViewModel(QObject):
     @Property("QVariantList", notify=changed)
     def resultCards(self):
         return self.result_cards
+
+    @Property(str, notify=changed)
+    def modelStatus(self):
+        return self.model_status
+
+    @Property(bool, notify=settingsChanged)
+    def modelEnabled(self):
+        return self.settings.model_enabled
+
+    @Property(bool, notify=settingsChanged)
+    def modelMemorySaver(self):
+        return self.settings.model_memory_saver
+
+    @Property("QVariantList", notify=changed)
+    def clarificationChoices(self):
+        return self.clarification_choices if time.monotonic() < self.clarification_expires else []
 
     @Property("QVariantList", notify=settingsChanged)
     def appCatalog(self):
@@ -166,6 +188,7 @@ class ViewModel(QObject):
             self.acknowledged.emit("input")
             return
         self.append("You", text)
+        self.clarification_choices.clear()
         self.started_requests[str(request.request_id)] = time.monotonic()
         self.pending_inputs[str(request.request_id)] = text
         self.notice = "Checking the command and registered target…"
@@ -180,6 +203,7 @@ class ViewModel(QObject):
         cancelled = self.session.stop()
         self.supervisor.cancel(self.session.generation)
         self.pending_inputs.clear()
+        self.clarification_choices.clear()
         records = tuple(self.record(request, "partial" if uncertain and request == active else (
             "cancelled" if code == "CANCELLED" else "failed"), code) for request in cancelled)
         self.persist(records)
@@ -227,6 +251,35 @@ class ViewModel(QObject):
         if previous is None:
             self.dispatch_request(request)
         self.changed.emit()
+
+    @Slot(str)
+    def chooseClarification(self, choice: str) -> None:
+        if not self.canSend or choice not in self.clarificationChoices or self.clarification_generation != self.session.generation:
+            return
+        previous = self.session.active
+        request = self.session.enqueue(origin=self.clarification_origin)
+        if request is None:
+            return
+        self.clarification_choices.clear()
+        self.append("You",choice)
+        self.pending_inputs[str(request.request_id)] = choice
+        self.started_requests[str(request.request_id)] = time.monotonic()
+        if previous is None:
+            self.dispatch_request(request)
+        self.changed.emit()
+
+    @Slot()
+    def checkLocalBrain(self) -> None:
+        if self.canSend and self.schedule("activate_model"):
+            self.model_status = "Checking the pinned local model and warming it in the background…"
+            self.changed.emit()
+
+    @Slot(bool, bool)
+    def setModelOptions(self, enabled: bool, memory_saver: bool) -> None:
+        if self.canConfigure:
+            if not enabled and self.session.active is not None:
+                self.stop()
+            self.update_settings(model_enabled=enabled,model_memory_saver=memory_saver)
 
     def update_settings(self, **changes) -> None:
         try:
@@ -383,6 +436,9 @@ class ViewModel(QObject):
         self.changed.emit()
 
     def poll(self) -> None:
+        if self.clarification_choices and time.monotonic() >= self.clarification_expires:
+            self.clarification_choices.clear()
+            self.changed.emit()
         for message in self.supervisor.poll():
             kind = message["kind"]
             if kind in {"ready", "settings_saved"}:
@@ -404,6 +460,16 @@ class ViewModel(QObject):
                 self.history = message["rows"]
             elif kind == "diagnostics":
                 self.diagnostics = message["rows"]
+            elif kind == "model_status":
+                self.model_status = message["message"]
+                self.model_metrics = message.get("metrics",{})
+            elif kind == "clarification":
+                if self.session.active is None or str(self.session.active.request_id) != message["request_id"] or self.session.generation != message["generation"]:
+                    continue
+                self.clarification_choices = message["choices"]
+                self.clarification_origin = message["origin"]
+                self.clarification_generation = message["generation"]
+                self.clarification_expires = time.monotonic() + min(30,message["expires_seconds"])
             elif kind == "event":
                 event = Event.model_validate(message["event"])
                 if not self.session.accepts(event):

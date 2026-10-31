@@ -12,9 +12,11 @@ from typing import Literal
 from pydantic import Field
 
 from autumn.actions.engine import Engine, Outcome
-from autumn.actions.registry import REGISTRY
+from autumn.actions.registry import REGISTRY, capabilities
 from autumn.actions.router import route
 from autumn.actions.schemas import Plan
+from autumn.brain.contracts import Answer, BrainError, Clarification
+from autumn.brain.planner import Planner, recovery_message
 from autumn.controller.contracts import Contract, Event, HistoryEvent, Request, TaskState
 from autumn.diagnostics.health import snapshot
 from autumn.storage.history import HistoryStore
@@ -24,7 +26,7 @@ from autumn.winworker.windows import WindowsAdapter, import_apps
 
 
 class Job(Contract):
-    kind: Literal["bootstrap", "simulate", "execute", "import_catalog", "save_settings", "history", "clear_history", "record", "diagnostics", "hang", "crash"]
+    kind: Literal["bootstrap", "simulate", "execute", "activate_model", "import_catalog", "save_settings", "history", "clear_history", "record", "diagnostics", "hang", "crash"]
     generation: int = Field(ge=0)
     request: Request | None = None
     settings: Settings | None = None
@@ -40,6 +42,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
     settings = Settings()
     adapter = WindowsAdapter(data_dir=Path(root))
     engine = Engine(adapter, settings)
+    brain = Planner()
     adapter.engine = engine
     last_beat = 0.0
 
@@ -87,13 +90,44 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     # IPC carries input in memory only. Never add it to history or diagnostics.
                     routing = route(job.text or "", settings) if job.plan is None else None
                     plan = job.plan or (routing.plan if routing else None)
+                    model_reply = None
+                    model_error = None
+                    if plan is None and routing and routing.allow_model and settings.model_enabled:
+                        send("busy", timeout=15.3)
+                        try:
+                            candidate_ids = tuple(k for k,v in engine.candidates.items() if v.expires >= time.monotonic())
+                            model_reply = brain.plan(job.text or "",settings,req,checkpoint,candidate_ids)
+                            if isinstance(model_reply,Plan):
+                                plan = model_reply
+                        except BrainError as error:
+                            model_error = error.code
+                        send("model_status",message=brain.last_health,metrics=brain.last_metrics)
+                        send("idle")
+                        if not checkpoint():
+                            continue
+                    elif plan is not None:
+                        brain.clear_context()
                     if plan is None:
                         send("event", event=Event(kind="TaskStateChanged", request_id=req.request_id,
                              generation=req.generation, state=TaskState.AWAITING_CLARIFICATION).model_dump(mode="json"))
-                        outcome = Outcome(status="failed", code="CLARIFICATION", message=routing.message + (
-                            " Suggestions: " + ", ".join(routing.choices) if routing.choices else ""), verification="deterministic grammar")
-                        record = HistoryEvent(request_id=req.request_id, origin=req.origin, status="failed",
-                            code="CLARIFICATION", duration_ms=0, skill_id="controller.request")
+                        message = routing.message + (" Suggestions: " + ", ".join(routing.choices) if routing.choices else "")
+                        code = "CLARIFICATION"
+                        status = "failed"
+                        if model_error:
+                            message = recovery_message(model_error)
+                            code = "TIMEOUT" if model_error == "TIMEOUT" else "COMPONENT_UNAVAILABLE"
+                        elif isinstance(model_reply,Answer):
+                            # Generated answer text is discarded; only registry-defined capabilities are displayed.
+                            message,code,status = capabilities(settings.enabled_skills),"OK","succeeded"
+                        elif isinstance(model_reply,Clarification):
+                            message = "No action taken. " + model_reply.message
+                            send("clarification",request_id=str(req.request_id),generation=req.generation,
+                                 choices=list(model_reply.choices),origin=req.origin,expires_seconds=30)
+                        elif model_reply is not None:
+                            code,message = "UNSUPPORTED","No action taken. That request is outside the currently enabled capabilities. Ask ‘what can you do?’ for available actions."
+                        outcome = Outcome(status=status, code=code, message=message, verification="local planner validation" if model_reply or model_error else "deterministic grammar")
+                        record = HistoryEvent(request_id=req.request_id, origin=req.origin, status=status,
+                            code=code, duration_ms=0, skill_id="controller.request")
                         if history is not None:
                             history.add(record)
                         send("action_result", request_id=str(req.request_id), generation=req.generation,
@@ -114,6 +148,15 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     if history is not None:
                         history.prune(settings.history_days)
                         send("history", rows=history.list_recent())
+                    send("idle")
+                elif job.kind == "activate_model":
+                    expected = job.generation
+                    send("busy", timeout=15.3)
+                    try:
+                        brain.activate(settings,lambda: alive() and generation.value == expected)
+                    except BrainError:
+                        pass
+                    send("model_status",message=brain.last_health,metrics={})
                     send("idle")
                 elif job.kind == "import_catalog":
                     from autumn.winworker.cache import configure
@@ -150,6 +193,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                 elif job.kind == "save_settings" and job.settings is not None:
                     atomic_save(Path(root) / "config/settings.json", job.settings)
                     settings = job.settings
+                    brain.clear_context()
                     engine.settings = settings
                     if history is not None:
                         history.prune(settings.history_days)

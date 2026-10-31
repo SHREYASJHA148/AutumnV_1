@@ -1,3 +1,5 @@
+import time
+
 from PySide6.QtCore import QCoreApplication
 
 from autumn.controller.contracts import Event
@@ -45,5 +47,28 @@ def test_stale_reply_does_not_complete_new_request_or_write_success():
         # Phase 2 routing needs transient input in IPC; persistence jobs must remain redacted.
         assert all("Fixed" not in job.model_dump_json() and "Another" not in job.model_dump_json()
                    for job in supervisor.jobs if job.kind in {"record", "save_settings"})
+    finally:
+        vm.shutdown()
+
+
+def test_clarification_buttons_preserve_wake_origin_and_expiry():
+    app=QCoreApplication.instance() or QCoreApplication([])
+    assert app
+    supervisor=FakeSupervisor()
+    vm=ViewModel(supervisor)
+    vm.ready=True
+    try:
+        vm.clarification_choices=["Editor"]
+        vm.clarification_origin="wake_voice"
+        vm.clarification_generation=0
+        vm.clarification_expires=time.monotonic()+30
+        vm.chooseClarification("Editor")
+        assert supervisor.jobs[-1].request.origin=="wake_voice"
+        vm.stop()
+        vm.clarification_choices=["Editor"]
+        vm.clarification_expires=time.monotonic()-1
+        count=len(supervisor.jobs)
+        vm.chooseClarification("Editor")
+        assert len(supervisor.jobs)==count
     finally:
         vm.shutdown()

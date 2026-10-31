@@ -1,0 +1,53 @@
+{
+  "actions_dispatched": 0,
+  "rows": [
+    {
+      "case": 1,
+      "kind": "action_plan",
+      "skill": "audio.set_volume",
+      "metrics": {
+        "path": "model",
+        "repairs": 0,
+        "thinking_disabled": true,
+        "elapsed_ms": 3296.0,
+        "profile": "cpu"
+      }
+    },
+    {
+      "case": 2,
+      "kind": "clarification",
+      "skill": null,
+      "metrics": {
+        "path": "model",
+        "repairs": 0,
+        "thinking_disabled": true,
+        "elapsed_ms": 2750.0,
+        "profile": "cpu"
+      }
+    },
+    {
+      "case": 3,
+      "kind": "answer",
+      "skill": null,
+      "metrics": {
+        "path": "model",
+        "repairs": 0,
+        "thinking_disabled": true,
+        "elapsed_ms": 3797.0,
+        "profile": "cpu"
+      }
+    },
+    {
+      "case": 4,
+      "kind": "action_plan",
+      "skill": "app.open",
+      "metrics": {
+        "path": "model",
+        "repairs": 0,
+        "thinking_disabled": true,
+        "elapsed_ms": 3250.0,
+        "profile": "cpu"
+      }
+    }
+  ]
+}

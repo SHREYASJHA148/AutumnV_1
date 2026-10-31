@@ -1,4 +1,4 @@
-"""Entry point. No inference, capture, shell actions or network in Phase 1."""
+"""Desktop entry point. Live capture stays off; planning uses pinned loopback inference."""
 from __future__ import annotations
 
 import argparse
@@ -15,8 +15,9 @@ def main() -> int:
     parser.add_argument("--data-dir", type=Path, help="Explicit isolated settings directory for testing")
     parser.add_argument("--smoke-report", type=Path, help="Run a self-closing, metadata-only build test")
     parser.add_argument("--phase2-smoke-report", type=Path, help="Self-closing typed-action UI test using only capabilities help")
+    parser.add_argument("--phase3-smoke-report", type=Path, help="Self-closing UI and pinned-model capabilities test")
     args = parser.parse_args()
-    if (args.smoke_report or args.phase2_smoke_report) and args.data_dir is None:
+    if (args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report) and args.data_dir is None:
         parser.error("Smoke trials require an explicit isolated --data-dir")
     os.environ.setdefault("QT_QUICK_BACKEND", "software")
     os.environ.setdefault("QML_DISABLE_DISK_CACHE", "1")
@@ -34,14 +35,14 @@ def main() -> int:
 
     app = QApplication(sys.argv[:1])
     qt_issues = []
-    if args.smoke_report or args.phase2_smoke_report:
+    if args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report:
         def qt_message(kind, context, message):
             if kind in {QtMsgType.QtWarningMsg, QtMsgType.QtCriticalMsg, QtMsgType.QtFatalMsg}:
                 qt_issues.append(int(kind.value))
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.2.0")
+    app.setApplicationVersion("0.3.0")
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -60,6 +61,11 @@ def main() -> int:
     engine.rootContext().setContextProperty("vm", vm)
     engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "ui/Main.qml")))
     if not engine.rootObjects():
+        failure_report = args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report
+        if failure_report:
+            import json
+            failure_report.parent.mkdir(parents=True,exist_ok=True)
+            failure_report.write_text(json.dumps({"passed":False,"stage":"qml_load","qt_warning_count":len(qt_issues)}),encoding="utf-8")
         vm.shutdown()
         native.close()
         instance.close()
@@ -100,9 +106,10 @@ def main() -> int:
 
     app.aboutToQuit.connect(shutdown)
     smoke = None
-    if args.smoke_report or args.phase2_smoke_report:
+    if args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report:
         from autumn.diagnostics.smoke import SmokeTrial
-        smoke = SmokeTrial(app, window, vm, native, args.smoke_report or args.phase2_smoke_report)
+        smoke = SmokeTrial(app, window, vm, native, args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report)
+        smoke.phase3 = bool(args.phase3_smoke_report)
         smoke.qt_issues = qt_issues
         smoke.start()
     result = app.exec()

@@ -26,6 +26,7 @@ class SmokeTrial(QObject):
         self.pending: list[tuple[str, float]] = []
         self.measure_start = 0.0
         self.child = None
+        self.phase3 = False
         self.focus_target = None
         self.checks: dict[str, bool] = {}
         self.error = False
@@ -77,6 +78,10 @@ class SmokeTrial(QObject):
         if self.stage == "startup":
             if not self.vm.canSend:
                 return
+            if not self.vm.preview_mode and self.vm.settings.model_enabled:
+                self.vm.setModelOptions(False,False)
+                self.stage="disable_model_for_load"
+                return
             self.input = self.window.findChild(QObject, "commandInput")
             self.stop_button = self.window.findChild(QObject, "stopButton")
             self.checks.update(qml_loaded=True, microphone_disabled=not self.vm.voiceReady,
@@ -100,6 +105,8 @@ class SmokeTrial(QObject):
             self.vm.resume()
             self.checks["resume_microphone_disabled"] = not self.vm.voiceReady
             self.stage = "load"
+        elif self.stage == "disable_model_for_load" and not self.vm.settings_pending:
+            self.stage="startup"
         elif self.stage == "load":
             self.measure_start = time.monotonic()
             if self.index % 2 == 0:
@@ -140,8 +147,20 @@ class SmokeTrial(QObject):
             self.stage = "search_complete"
         elif self.stage == "search_complete" and self.vm.session.active is None:
             self.checks["real_filename_search_worker"] = len(self.vm.result_cards) == 1 and self.vm.result_cards[0]["name"] == "gate-check.xlsx"
+            if self.phase3:
+                self.vm.setModelOptions(True,False)
+                self.stage="model_settings"
+                return
             self.vm.clearHistory()
             self.stage = "clear"
+        elif self.stage=="model_settings" and not self.vm.settings_pending:
+            self.vm.submit("Tell me which actions you can perform.")
+            self.stage="model_complete"
+        elif self.stage=="model_complete" and self.vm.session.active is None:
+            self.checks["pinned_model_reply_validated"]=self.vm.model_metrics.get("thinking_disabled",False) and "error" not in self.vm.model_metrics
+            self.checks["model_answer_registry_rendered"]=any(m["role"]=="Autumn" and m["text"].startswith("I can:") for m in self.vm.conversation[-2:])
+            self.vm.clearHistory()
+            self.stage="clear"
         elif self.stage == "clear" and not self.vm.history:
             self.checks["history_cleared"] = True
             self.snapshot_page = 0

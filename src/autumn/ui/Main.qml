@@ -67,7 +67,7 @@ ApplicationWindow {
                     Label { text: "TYPED WORKSPACE"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
                     Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nMicrophone stays closed."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "Phase 2 · 0.2.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "Phase 3 · 0.3.0"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
             }
             ColumnLayout {
@@ -113,6 +113,13 @@ ApplicationWindow {
                             }
                         }
                         Label { text: "TRY A COMMAND"; color: "#9cb0b1"; font.pixelSize: 10; font.letterSpacing: 1.5 }
+                        Flow {
+                            Layout.fillWidth: true; spacing: 6
+                            Repeater {
+                                model: vm.clarificationChoices
+                                Button { required property string modelData; text: modelData; Accessible.name: "Clarification choice " + modelData; onClicked: vm.chooseClarification(modelData) }
+                            }
+                        }
                         RowLayout {
                             Button { text: "What can you do?"; Accessible.name: text; enabled: vm.canSend; onClicked: vm.submit(text) }
                             Button { text: "Review apps"; Accessible.name: text; onClicked: window.page = 4 }
@@ -159,6 +166,11 @@ ApplicationWindow {
                             Label { Layout.fillWidth: true; text: "English · Female voice: Lessac\nBuilt-in microphone preferred · System default speakers\nMicrophone is off at every launch. Wake mode and conversation saving are off."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
                             Label { Layout.fillWidth: true; text: "Device selection and live voice controls arrive with speech integration. Typed commands use the capabilities enabled below."; wrapMode: Text.WordWrap; color: "#a0b5b6" }
                             Label { text: "Controls"; font.pixelSize: 18; color: "#ddb78a" }
+                            Label { text: "Local brain · qwen3:1.7b · CPU"; color: "#ddb78a"; font.pixelSize: 18 }
+                            Label { Layout.fillWidth: true; text: vm.modelStatus; wrapMode: Text.WordWrap; color: "#a7b9ba"; Accessible.name: text }
+                            CheckBox { id: modelEnabled; text: "Flexible English commands"; checked: vm.modelEnabled; Accessible.name: text; onClicked: vm.setModelOptions(checked, memorySaver.checked) }
+                            CheckBox { id: memorySaver; text: "Save memory: release the model after each request"; checked: vm.modelMemorySaver; Accessible.name: text; onClicked: vm.setModelOptions(modelEnabled.checked, checked) }
+                            Button { text: "Check local brain"; Accessible.name: text; onClicked: vm.checkLocalBrain() }
                             Label { text: "Stop shortcut" }
                             ComboBox { id: stopChoice; objectName: "stopChoice"; Layout.preferredWidth: 280; model: window.shortcuts; currentIndex: window.shortcuts.indexOf(vm.stopShortcut); Accessible.name: "Stop shortcut" }
                             Label { text: "Voice readiness shortcut" }

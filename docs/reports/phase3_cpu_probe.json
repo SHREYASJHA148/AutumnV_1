@@ -1,0 +1,15 @@
+{
+  "actions_dispatched": 0,
+  "profile": "cpu",
+  "kind": "action_plan",
+  "skill": "app.open",
+  "metrics": {
+    "path": "model",
+    "repairs": 0,
+    "thinking_disabled": true,
+    "elapsed_ms": 9641.0,
+    "profile": "cpu"
+  },
+  "passed": true,
+  "elapsed_seconds": 9.641
+}

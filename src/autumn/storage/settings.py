@@ -38,7 +38,7 @@ class Hotkeys(Contract):
 
 
 class Settings(Contract):
-    schema_version: Literal[1, 2] = 2
+    schema_version: Literal[1, 2, 3] = 3
     microphone_enabled_at_start: Literal[False] = False
     wake_enabled: Literal[False] = False
     conversation_persistence: Literal[False] = False
@@ -50,6 +50,8 @@ class Settings(Contract):
     history_days: int = Field(default=7, ge=1, le=90)
     model_tag: Literal["qwen3:1.7b"] = "qwen3:1.7b"
     model_digest: Literal[MODEL_DIGEST] = MODEL_DIGEST
+    model_enabled: bool = True
+    model_memory_saver: bool = False
     enabled_skills: tuple[str, ...] = DEFAULT_ENABLED
     apps: tuple[AppEntry, ...] = Field(default=(), max_length=500)
     folders: tuple[FolderEntry, ...] = Field(default_factory=lambda: (
@@ -99,8 +101,11 @@ def load_settings(path: Path) -> tuple[Settings, str]:
         if path.stat().st_size > 2_000_000:
             raise ValueError("Settings too large")
         settings = Settings.model_validate_json(path.read_text(encoding="utf-8"))
-        if settings.schema_version == 1:
-            settings = settings.model_copy(update={"schema_version": 2, "enabled_skills": DEFAULT_ENABLED})
+        if settings.schema_version in {1,2}:
+            changes = {"schema_version":3}
+            if settings.schema_version == 1:
+                changes["enabled_skills"] = DEFAULT_ENABLED
+            settings = settings.model_copy(update=changes)
             atomic_save(path, settings)
             return settings, "MIGRATED"
         return settings, "LOADED"
