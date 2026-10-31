@@ -68,7 +68,7 @@ CHORDS = {
 
 
 class NativeEvents(QAbstractNativeEventFilter):
-    def __init__(self, on_stop, on_voice, on_suspend, on_resume, *, on_hold_start=None,on_hold_end=None) -> None:
+    def __init__(self, on_stop, on_voice, on_suspend, on_resume, *, on_hold_start=None,on_hold_end=None,on_confirm=None,on_cancel=None) -> None:
         super().__init__()
         self.user = ctypes.WinDLL("user32", use_last_error=True)
         self.user.RegisterHotKey.argtypes = [wintypes.HWND, ctypes.c_int, wintypes.UINT, wintypes.UINT]
@@ -77,6 +77,8 @@ class NativeEvents(QAbstractNativeEventFilter):
         self.wts.WTSRegisterSessionNotification.argtypes = [wintypes.HWND, wintypes.DWORD]
         self.wts.WTSUnRegisterSessionNotification.argtypes = [wintypes.HWND]
         self.callbacks = {0xA101: on_stop, 0xA102: on_voice}
+        if on_confirm is not None:
+            self.callbacks.update({0xA103:on_confirm,0xA104:on_cancel})
         self.on_suspend = on_suspend
         self.on_resume = on_resume
         self.registered: list[int] = []
@@ -104,6 +106,12 @@ class NativeEvents(QAbstractNativeEventFilter):
                 else:
                     self.registered.append(identifier)
             rows.append({"name": name, "detail": f"{chord}: {'registered' if ok else 'unavailable — use the on-screen button'}"})
+        if 0xA103 in self.callbacks:
+            for identifier,name,key in ((0xA103,"Confirm exact action",0x59),(0xA104,"Cancel confirmation",0x4E)):
+                ok = bool(self.user.RegisterHotKey(None,identifier,0x4003,key))
+                if ok:
+                    self.registered.append(identifier)
+                rows.append({"name":name,"detail":f"Ctrl+Alt+{chr(key)}: {'registered' if ok else 'unavailable — use overlay buttons'}"})
         return rows
 
     def unregister(self) -> None:

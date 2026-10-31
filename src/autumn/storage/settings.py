@@ -12,6 +12,7 @@ from pydantic import Field, ValidationError, field_validator, model_validator
 
 from autumn.actions.catalog import AppEntry, FolderEntry, SiteEntry
 from autumn.actions.registry import DEFAULT_ENABLED, REGISTRY
+from autumn.actions.routines import Routine
 from autumn.controller.contracts import Contract
 
 MODEL_DIGEST = "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7"
@@ -38,7 +39,8 @@ class Hotkeys(Contract):
 
 
 class Settings(Contract):
-    schema_version: Literal[1, 2, 3, 4] = 4
+    schema_version: Literal[1, 2, 3, 4, 5] = 5
+    routines: tuple[Routine, ...] = Field(default=(), max_length=100)
     microphone_enabled_at_start: Literal[False] = False
     wake_enabled: Literal[False] = False
     conversation_persistence: Literal[False] = False
@@ -73,6 +75,8 @@ class Settings(Contract):
 
     @model_validator(mode="after")
     def registries_valid(self):
+        if len({r.id for r in self.routines}) != len(self.routines) or len({r.name.casefold() for r in self.routines}) != len(self.routines):
+            raise ValueError("Routine names and IDs must be unique")
         if any(skill not in REGISTRY or not REGISTRY[skill].available for skill in self.enabled_skills):
             raise ValueError("Unsupported skill enabled")
         for rows in (self.apps, self.folders, self.sites):
@@ -110,10 +114,12 @@ def load_settings(path: Path) -> tuple[Settings, str]:
         if path.stat().st_size > 2_000_000:
             raise ValueError("Settings too large")
         settings = Settings.model_validate_json(path.read_text(encoding="utf-8"))
-        if settings.schema_version in {1,2,3}:
-            changes = {"schema_version":4}
+        if settings.schema_version in {1,2,3,4}:
+            changes = {"schema_version":5}
             if settings.schema_version == 1:
                 changes["enabled_skills"] = DEFAULT_ENABLED
+            else:
+                changes["enabled_skills"] = tuple(dict.fromkeys((*settings.enabled_skills,"text.type","routine.run")))
             settings = settings.model_copy(update=changes)
             atomic_save(path, settings)
             return settings, "MIGRATED"

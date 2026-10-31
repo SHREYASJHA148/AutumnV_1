@@ -20,6 +20,8 @@ def test_entire_policy_matrix(skill, origin, registered):
     result = decide(skill, origin, registered_site=registered)
     if not REGISTRY[skill].available or origin == "routine":
         assert result.outcome == "deny"
+    elif skill == "text.type":
+        assert result.outcome == ("deny" if origin == "wake_voice" else "confirm")
     elif skill == "website.open" and not registered and origin in {"ptt_voice", "wake_voice"}:
         assert result.outcome == ("deny" if origin == "wake_voice" else "confirm")
     else:

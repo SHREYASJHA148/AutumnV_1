@@ -1,13 +1,13 @@
 # STATE
-Phase: 4 — implementation COMPLETE; acceptance NOT PASSED (owner/hardware/network tests pending, prior Phase 3 failed gate retained); STOP at checkpoint before Phase 5.
-Hardware facts: Windows 11 Home Single Language build 26200; i5-13420H; 15.7 GiB RAM; RTX 5050 Laptop 8151 MiB/driver 621.01; ~56 GiB C: free; built-in microphone array/speakers; no Bluetooth headset.
-Runtime facts: .venv-qt-compat uses project-local Python 3.12.10, Qt/shiboken 6.8.3, PyInstaller 6.22.3; clean 0.4.0 standalone in dist/Autumn preview é/Autumn/Autumn.exe; original environments preserved.
-Done: FR-03/13/14/19/26 voice UI, hold/toggle, bounded memory PCM, VAD/resampling, persistent CPU small.en and female Piper/Windows fallback, half duplex, independent Stop/microphone lease, first-run checks/export; 350 tests + lint pass, source/standalone UI pass.
-Done: standalone synthetic speech 10 processed / 9 normalized exact matches; silence/noise rejected; CPU recognition p50 2.907 s/p95 3.010 s only, no owner audio/actions; visible standalone input/Stop render p95 16 ms; all speech artifacts SHA verified.
-Next: Await owner's return for the 100-utterance and built-in capture/listening trial; complete actual endpoint-change/GPU/network acceptance or obtain explicit owner advancement; never tune from Phase 3 RC1 or start Phase 5 automatically.
-Blockers: NFR-03 pending by owner choice; NFR-04 GPU/end-to-end unverified; NFR-13 disconnected tasks and ten-minute capture pending; Phase 3 NFR-01 81% and NFR-02 80% remain below 95%; Phase 0/2 exceptions retained.
-Stubs: Actual microphone/voice intelligibility/default-device trials pending; Bluetooth unavailable; wake, text.type and routine.run remain unavailable/reserved for later phases.
-Decisions: D0014 authorized Phase 4 with preserved shortfalls and owner test deferred; D0015 native ASCII aliases, windowless null streams/native log discard, shared hold gate and bounded telemetry; prior D0011–13 remain.
-Dependencies: requirements-phase4.lock hash-pins project-local audio/STT/TTS/VAD stack; VAD MIT/BSD, Piper GPL and voice-specific license inventory in THIRD_PARTY_NOTICES.md; no automatic downloads/cloud/telemetry.
-Open questions for owner: none; user chose build now and leave speech test pending. All agent tests used synthetic/injected audio; no real microphone capture or audible playback; no Phase 5 authorization.
-Evidence: docs/reports/PHASE_4_GATE.md, phase4_gate.json, phase4_tests.xml, phase4_source/frozen.json, phase4_synthetic_source/frozen.json, phase4_packaging_failures.json; docs/validation/PHASE_4_OWNER_TEST.md; Phase 3 lockbox remains private/read-only/unchanged.
+Phase: 5 — implementation COMPLETE; acceptance NOT PASSED (native foreground verification pending); moving to Phase 6 under explicit D0016 authorization.
+Hardware: Windows 11 build 26200, i5-13420H, 15.7 GiB RAM, RTX 5050 Laptop 8 GiB, built-in mic/speakers, no Bluetooth headset.
+Runtime: project Python 3.12.10 / Qt 6.8.3; clean 0.5.0 standalone builds/launches; requirements-phase4.lock unchanged.
+Done: FR-11/12/23 confirmations, native Edit/RichEdit dictation guards, routine editor and max-five-step serial engine; schema-5 settings; live routine enums; no model-created targets or approvals.
+Validation: 370-test full suite plus 2 new cases (372 unique) pass; source/standalone UI pass; volatile confirmation cancel/restart tests dispatch no URL and replay no input.
+Next: Implement Phase 6 wake calibration/ONNX and opt-in runtime, tray/close/startup, accessibility; validate and stop before Phase 7.
+Blockers: Windows refused native foreground switch in 3 controlled attempts (D0017); actual typing/overlay focus/focus-stealing trials unverified, strict refusal retained. No further unattended focus forcing.
+Carry-forward: Phase 3 81%/80% accuracy failed; owner 100 utterances, GPU/end-to-end, disconnected network/10-minute trace and hardware trials unverified.
+Decisions: D0016 authorizes 5+6 without questions/checkpoint wait, preserving failures; D0017 native focus fallback; wake stays default off and uncalibrated.
+Dependencies: Phase 5 no new dependency; existing openwakeword 0.6.0/ONNX assets available for Phase 6; hash-lock remaining wake dependencies locally.
+Questions: none. No real mic capture/audible playback tests while owner away; no Phase 7 authorization.
+Evidence: docs/reports/PHASE_5_GATE.md, phase5_tests.xml, phase5_regressions.xml, phase5_source/frozen.json, phase5_native.json; earlier gates and RC1 lockbox unchanged.

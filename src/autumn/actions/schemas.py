@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Annotated, Literal
 
 from pydantic import Field, StrictBool, StrictInt, StrictStr, TypeAdapter, field_validator
@@ -68,7 +69,7 @@ class TextArgs(Contract):
     @field_validator("text")
     @classmethod
     def no_controls(cls, value: str) -> str:
-        if any(ord(c) < 32 or ord(c) == 127 for c in value):
+        if any(unicodedata.category(c) in {"Cc", "Cf", "Cs", "Zl", "Zp"} for c in value):
             raise ValueError("Control characters not supported")
         return value
 

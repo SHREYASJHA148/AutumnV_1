@@ -27,8 +27,8 @@ REGISTRY = {s.name: s for s in (
     Skill("screen.capture", "Save a screenshot of the primary or all monitors", 15, "nonzero PNG dimensions and file", "save an image"),
     Skill("files.search", "Find filenames inside configured roots", 12, "root and reparse checks; limits disclosed", "read filename metadata"),
     Skill("help.capabilities", "Show this capabilities list", 5, "registry generated", "none"),
-    Skill("text.type", "Confirmed dictation (Phase 5)", 10, "foreground target between chunks", "type text", available=False),
-    Skill("routine.run", "Named routines (Phase 5)", 15, "per-step outcomes", "per-step effects", available=False),
+    Skill("text.type", "Type a confirmed single line into a chosen supported app", 10, "foreground/control identity before every character; input acceptance only", "type text"),
+    Skill("routine.run", "Run a saved routine of up to five reviewed actions", 46, "per-step outcomes, halt on first failure", "per-step effects"),
 )}
 DEFAULT_ENABLED = tuple(s.name for s in REGISTRY.values() if s.available)
 

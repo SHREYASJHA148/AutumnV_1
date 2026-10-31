@@ -21,6 +21,7 @@ from autumn.controller.contracts import CaptureState, Event, HistoryEvent, TaskS
 from autumn.controller.state import Session
 from autumn.controller.worker import Job, Supervisor
 from autumn.storage.settings import Hotkeys, Settings, app_directory
+from autumn.ui.advanced import Advanced
 from autumn.ui.voice import VoiceViewModel
 
 
@@ -55,6 +56,7 @@ class ViewModel(QObject):
         self.clarification_origin = "typed"
         self.clarification_generation = 0
         self.voice = VoiceViewModel(self,getattr(supervisor,'root',app_directory()))
+        self.advanced = Advanced(self)
         self.settingsChanged.connect(self.voice.changed)
         self.timer = QTimer(self)
         self.timer.setInterval(16)
@@ -85,7 +87,7 @@ class ViewModel(QObject):
 
     @Property(bool, notify=changed)
     def canConfigure(self):
-        return self.canSend and not self.settings_pending and not self.voice.isBusy
+        return self.canSend and not self.settings_pending and not self.voice.isBusy and not self.advanced.pending
 
     @Property(str, notify=changed)
     def statusMessage(self):
@@ -209,6 +211,8 @@ class ViewModel(QObject):
         self.acknowledged.emit("input")
 
     def cancel_all(self, message: str, code: str = "CANCELLED") -> None:
+        self.advanced.dismiss()
+        self.advanced.armDictation(False)
         active = self.session.active
         uncertain = not self.preview_mode and self.session.task == TaskState.EXECUTING
         cancelled = self.session.stop()
@@ -449,6 +453,9 @@ class ViewModel(QObject):
             self.changed.emit()
         for message in self.supervisor.poll():
             kind = message["kind"]
+            if kind in {"confirmation", "confirmation_closed", "dictation_targets"}:
+                self.advanced.event(message)
+                continue
             if kind in {"ready", "settings_saved"}:
                 self.settings_pending = False
                 self.settings = Settings.model_validate(message["settings"])
@@ -516,6 +523,7 @@ class ViewModel(QObject):
             self.changed.emit()
 
     def shutdown(self) -> bool:
+        self.advanced.dismiss()
         self.timer.stop()
         self.session.stop()
         self.supervisor.cancel(self.session.generation)

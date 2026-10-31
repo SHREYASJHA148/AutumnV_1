@@ -5,6 +5,7 @@ import os
 import queue
 import sqlite3
 import time
+from collections import deque
 from multiprocessing import get_context
 from pathlib import Path
 from typing import Literal
@@ -19,6 +20,7 @@ from autumn.brain.contracts import Answer, BrainError, Clarification
 from autumn.brain.planner import Planner, recovery_message
 from autumn.controller.contracts import Contract, Event, HistoryEvent, Request, TaskState
 from autumn.diagnostics.health import snapshot
+from autumn.policy.confirmation import Confirmations
 from autumn.storage.history import HistoryStore
 from autumn.storage.settings import Settings, atomic_save, load_settings
 from autumn.winworker.capture import initialize_dpi
@@ -26,13 +28,15 @@ from autumn.winworker.windows import WindowsAdapter, import_apps
 
 
 class Job(Contract):
-    kind: Literal["bootstrap", "simulate", "execute", "activate_model", "import_catalog", "save_settings", "history", "clear_history", "record", "diagnostics", "hang", "crash"]
+    kind: Literal["bootstrap", "simulate", "execute", "activate_model", "import_catalog", "save_settings", "history", "clear_history", "record", "diagnostics", "hang", "crash", "dictation_targets", "confirm"]
     generation: int = Field(ge=0)
     request: Request | None = None
     settings: Settings | None = None
     records: tuple[HistoryEvent, ...] = ()
     text: str | None = Field(default=None, max_length=2000)
     plan: Plan | None = None
+    confirmation_id: str | None = Field(default=None, max_length=64)
+    approved: bool = False
 
 
 def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool, *, voice_generation=None) -> None:
@@ -46,6 +50,8 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
     adapter.engine = engine
     last_beat = 0.0
     last_voice_generation = voice_generation.value if voice_generation is not None else 0
+    deferred = deque()
+    approvals = Confirmations()
 
     def send(kind: str, **data) -> None:
         # Bounded IPC; a non-reading parent eventually causes a supervised restart.
@@ -63,7 +69,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
     try:
         while alive():
             try:
-                job = Job.model_validate(commands.get(timeout=0.05))
+                job = deferred.popleft() if deferred else Job.model_validate(commands.get(timeout=0.05))
             except queue.Empty:
                 continue
             if voice_generation is not None and voice_generation.value!=last_voice_generation:
@@ -151,7 +157,48 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                         send("action_result", request_id=str(req.request_id), generation=req.generation,
                              skill=record.skill_id, outcome=outcome.model_dump(mode="json"), finished=False)
 
-                    engine.execute(plan, req, checkpoint, completed, on_dispatch=lambda timeout: send("busy", timeout=timeout + 0.2))
+                    def confirm(resolved, request, step, valid):
+                        def target_data():
+                            if resolved.action.skill == "text.type":
+                                return adapter.dictation.snapshot_data(resolved.target)
+                            return {"address": engine.resolve(resolved.action).target}
+                        target = target_data()
+                        approval = approvals.issue(request, step, resolved.action, target)
+                        send("event", event=Event(kind="TaskStateChanged", request_id=request.request_id,
+                            generation=request.generation, state=TaskState.AWAITING_CONFIRMATION).model_dump(mode="json"))
+                        send("busy", timeout=32)
+                        send("confirmation", request_id=str(request.request_id), generation=request.generation,
+                            token=approval.token, skill=resolved.action.skill,
+                            text=resolved.action.arguments.text if resolved.action.skill=="text.type" else resolved.target,
+                            destination=resolved.target.title if resolved.action.skill=="text.type" else "Your default browser")
+                        accepted = False
+                        try:
+                            while valid() and time.monotonic() < approval.expires:
+                                try:
+                                    answer = Job.model_validate(commands.get(timeout=0.02))
+                                except queue.Empty:
+                                    continue
+                                if answer.kind == "confirm":
+                                    if answer.generation == request.generation and answer.confirmation_id == approval.token:
+                                        accepted = answer.approved and approvals.consume(answer.confirmation_id, request, step, resolved.action, target_data())
+                                        break
+                                elif len(deferred) < 16:
+                                    deferred.append(answer)
+                        finally:
+                            approvals.clear()
+                            send("confirmation_closed", token=approval.token)
+                        if valid():
+                            send("event", event=Event(kind="TaskStateChanged", request_id=request.request_id,
+                                generation=request.generation, state=TaskState.EXECUTING).model_dump(mode="json"))
+                        return accepted and valid()
+
+                    results = engine.execute(plan, req, checkpoint, completed, on_dispatch=lambda timeout: send("busy", timeout=timeout + 0.2), confirm=confirm)
+                    if len(plan.steps)==1 and plan.steps[0].skill=="routine.run" and checkpoint():
+                        count = sum(r.status in {"succeeded","unverified"} for r in results)
+                        failed = any(r.status not in {"succeeded","unverified"} for r in results)
+                        summary = Outcome(status="partial" if failed and count else ("failed" if failed else "succeeded"),
+                            code="PARTIAL" if failed else "OK", message=f"Routine finished: {count} steps completed or handed off; {len(results)} attempted. Completed effects remain; failed steps were not retried.",verification="serial per-step results")
+                        send("action_result",request_id=str(req.request_id),generation=req.generation,skill="routine.run",outcome=summary.model_dump(mode="json"),finished=False)
                     send("action_finished", request_id=str(req.request_id), generation=req.generation)
                     if history is not None:
                         history.prune(settings.history_days)
@@ -217,6 +264,8 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     send("history", rows=history.list_recent())
                 elif job.kind == "diagnostics":
                     send("diagnostics", rows=snapshot())
+                elif job.kind == "dictation_targets":
+                    send("dictation_targets", rows=adapter.dictation.enumerate())
                 elif allow_faults and job.kind == "crash":
                     os._exit(23)
                 elif allow_faults and job.kind == "hang":

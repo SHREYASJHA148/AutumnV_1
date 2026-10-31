@@ -35,10 +35,14 @@ class LiveSchema:
                 raise ValueError()
             reply = REPLY.validate_python(raw)
             if isinstance(reply, Plan):
+                if any(a.skill == "routine.run" for a in reply.steps) and len(reply.steps) != 1:
+                    raise ValueError()
                 for action in reply.steps:
                     if action.skill not in self.ids["skills"]:
                         raise ValueError()
                     args = action.arguments
+                    if action.skill == "routine.run" and args.routine_id not in self.ids["routines"]:
+                        raise ValueError()
                     if action.skill == "app.open" and args.app_id not in self.ids["apps"]:
                         raise ValueError()
                     if action.skill == "folder.open":
@@ -70,7 +74,7 @@ def build_schema(settings, text: str, candidate_ids=()) -> LiveSchema:
     words = set(re.findall(r"\w+", text.casefold()))
     apps = [a for a in settings.apps if a.reviewed and a.enabled]
     apps.sort(key=lambda a: (-len(words & set(re.findall(r"\w+", " ".join((a.name,*a.aliases)).casefold()))), a.id))
-    catalog = {"apps":[], "folders":[], "sites":[]}
+    catalog = {"apps":[], "folders":[], "sites":[], "routines":[]}
     for category, entries in (("apps",apps[:16]), ("folders",settings.folders), ("sites",settings.sites[:8])):
         budget = {"apps":600,"folders":350,"sites":250}[category]
         for entry in entries:
@@ -81,6 +85,9 @@ def build_schema(settings, text: str, candidate_ids=()) -> LiveSchema:
             if cost <= budget:
                 catalog[category].append(row)
                 budget -= cost
+    for routine in settings.routines[:8]:
+        if sum(len(json.dumps(row)) for row in catalog["routines"]) + len(routine.name) < 250:
+            catalog["routines"].append({"id":routine.id,"name":routine.name})
     ids = {key:{row["id"] for row in catalog[key]} for key in catalog}
     ids["roots"] = {f.id for f in settings.folders if f.search and f.id in ids["folders"]}
     ids["candidates"] = set(candidate_ids[:20])
@@ -90,13 +97,17 @@ def build_schema(settings, text: str, candidate_ids=()) -> LiveSchema:
     action_variants = ACTION.json_schema()["$defs"]
     argument_names = {"app.open":"AppArgs", "folder.open":"FolderArgs", "website.open":"WebsiteArgs",
         "audio.set_volume":"VolumeArgs", "audio.set_mute":"MuteArgs", "media.control":"MediaArgs",
-        "screen.capture":"CaptureArgs", "files.search":"SearchArgs", "help.capabilities":"Empty"}
+        "screen.capture":"CaptureArgs", "files.search":"SearchArgs", "help.capabilities":"Empty", "routine.run":"RoutineArgs"}
     skills = set()
     for skill in settings.enabled_skills:
         if skill not in argument_names or not REGISTRY[skill].available:
             continue
         arguments = json.loads(json.dumps(action_variants[argument_names[skill]]))
-        if skill == "app.open":
+        if skill == "routine.run":
+            if not ids["routines"]:
+                continue
+            arguments = obj({"routine_id":enum(sorted(ids["routines"]))})
+        elif skill == "app.open":
             if not ids["apps"]:
                 continue
             arguments = obj({"app_id":enum(sorted(ids["apps"]))})

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from autumn.actions.catalog import local_path, no_reparse, safe_url, validate_app, within
 from autumn.actions.registry import REGISTRY, capabilities
+from autumn.actions.routines import RoutinePlan
 from autumn.actions.schemas import Action, Plan
 from autumn.controller.contracts import Contract, HistoryEvent, Request
 from autumn.policy.matrix import Decision, decide
@@ -48,6 +49,13 @@ class Engine:
 
     def resolve(self, action: Action) -> Resolved:
         args = action.arguments
+        if action.skill == "text.type":
+            return Resolved(action, self.adapter.dictation.resolve(args.target_id))
+        if action.skill == "routine.run":
+            routine = next((r for r in self.settings.routines if r.id == args.routine_id), None)
+            if routine is None:
+                raise LookupError("Routine not found")
+            return Resolved(action, routine)
         if action.skill == "app.open":
             entry = next((a for a in self.settings.apps if a.id == args.app_id and a.enabled and a.reviewed), None)
             if entry is None:
@@ -101,9 +109,12 @@ class Engine:
 
     def execute(self, plan: Plan, request: Request, checkpoint: Callable[[], bool],
                 on_step: Callable[[HistoryEvent, Outcome], None], inherited_origin=None,
-                on_dispatch: Callable[[float], None] = lambda _: None) -> list[Outcome]:
+                on_dispatch: Callable[[float], None] = lambda _: None,
+                confirm=lambda *args: False) -> list[Outcome]:
         # Validate again at the process boundary, even for application-created plans.
-        plan = Plan.model_validate(plan.model_dump(mode="json"))
+        plan = (RoutinePlan if isinstance(plan, RoutinePlan) else Plan).model_validate(plan.model_dump(mode="json"))
+        if any(a.skill == "routine.run" for a in plan.steps) and (isinstance(plan, RoutinePlan) or len(plan.steps) != 1):
+            raise ValueError("Routine must be the only action and cannot nest")
         results = []
         for step_id, action in enumerate(plan.steps, 1):
             started = self.clock()
@@ -121,12 +132,23 @@ class Engine:
                     resolved = self.resolve(action)
                     permission = decide(action.skill, request.origin, registered_site=resolved.registered_site,
                                         inherited_origin=inherited_origin)
+                    if permission.outcome == "confirm":
+                        # Confirmation time is excluded from the action deadline; all other guards remain.
+                        approved = confirm(resolved, request, step_id, checkpoint)
+                        deadline = self.clock() + REGISTRY[action.skill].timeout
+                        if approved and valid():
+                            permission = Decision("allow", "Bound single-use confirmation")
+                        else:
+                            permission = Decision("deny", "Confirmation cancelled, expired, or target changed")
                     if permission.outcome != "allow":
                         outcome = Outcome(status="failed", code="DENIED", message=permission.reason + ". This request was not dispatched.", verification="policy")
                     elif not valid():
                         break
                     elif action.skill == "help.capabilities":
                         outcome = Outcome(status="succeeded", code="OK", message=capabilities(self.settings.enabled_skills), verification="registry")
+                    elif action.skill == "routine.run":
+                        return self.execute(RoutinePlan(steps=resolved.target.steps), request, checkpoint, on_step,
+                            inherited_origin=inherited_origin, on_dispatch=on_dispatch, confirm=confirm)
                     else:
                         on_dispatch(REGISTRY[action.skill].timeout)
                         outcome = self.adapter.perform(resolved, permission, valid)

@@ -492,6 +492,9 @@ class VoiceViewModel(QObject):
                             and active.origin == "ptt_voice"
                             and active.generation == self.capture_global
                         ):
+                            if self.host.advanced.arm_dictation:
+                                self.host.advanced.route_voice(active, self.transcript)
+                                continue
                             self.host.session.set_task(T.ROUTING)
                             self.host.append("You (voice)", self.transcript)
                             self.host.pending_inputs[str(active.request_id)] = self.transcript

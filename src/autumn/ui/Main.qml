@@ -55,7 +55,7 @@ ApplicationWindow {
                     anchors.fill: parent; anchors.margins: 18; spacing: 10
                     Label { text: "WORKSPACE"; color: "#9cb0b1"; font.pixelSize: 11; font.letterSpacing: 1.8; Layout.topMargin: 8; Layout.bottomMargin: 12 }
                     Repeater {
-                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders", "Voice setup"]
+                        model: ["Conversation", "Activity", "Settings", "Diagnostics", "Apps and folders", "Voice setup", "Dictation", "Routines"]
                         Button {
                             required property int index
                             required property string modelData
@@ -69,14 +69,14 @@ ApplicationWindow {
                     Label { text: "LOCAL WORKSPACE"; color: "#ddb78a"; font.pixelSize: 10; font.letterSpacing: 1.2 }
                     Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nVoice starts switched off."; wrapMode: Text.WordWrap; color: "#a7b9ba"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "Phase 4 · 0.4.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "Phase 5 · 0.5.0"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
             }
             ColumnLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: 28; spacing: 16
                 RowLayout {
                     Layout.fillWidth: true
-                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets", "Make Autumn hear you"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
+                    Label { text: ["A little help, close by.", "Your recent activity", "Make yourself at home", "Workspace health", "Choose your targets", "Make Autumn hear you", "Say it, review it, confirm it", "Your everyday sequences"][window.page]; font.pixelSize: 26; font.weight: Font.DemiBold; Layout.fillWidth: true }
                     Label { text: vm.taskStatus + (vm.queuedCount ? " · " + vm.queuedCount + " queued" : ""); color: "#a4d8bd"; Accessible.name: "Task status: " + text }
                 }
                 Label { Layout.fillWidth: true; text: vm.captureStatus; color: "#a0b5b6"; Accessible.name: text }
@@ -323,6 +323,60 @@ ApplicationWindow {
                             }
                             TextArea { Layout.fillWidth: true; text: voice.diagnosticsPreview; readOnly: true; wrapMode: TextEdit.Wrap; selectByMouse: true; visible: text.length > 0; Accessible.name: "Diagnostics export preview" }
                         }
+                    }
+                    ScrollView {
+                        clip: true
+                        ColumnLayout {
+                            width: parent.width - 22; spacing: 14
+                            Label { Layout.fillWidth: true; text: advanced.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7" }
+                            Button { text: "Refresh supported windows"; enabled: vm.canConfigure; onClicked: advanced.refreshTargets() }
+                            ComboBox { id: dictationTarget; objectName: "dictationTarget"; Layout.fillWidth: true; model: advanced.targetRows; textRole: "label"; valueRole: "id"; currentIndex: -1; enabled: vm.canConfigure; Accessible.name: "Dictation destination"; onActivated: advanced.chooseTarget(currentValue) }
+                            Label { Layout.fillWidth: true; text: "Single line, up to 1,000 characters. Standard Windows Edit/RichEdit fields only; passwords, read-only controls and administrator windows are refused. Clipboard paste is off."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                            TextArea { id: dictationText; objectName: "dictationText"; Layout.fillWidth: true; Layout.preferredHeight: 150; placeholderText: "Exact text to type…"; wrapMode: TextEdit.Wrap; selectByMouse: true; Accessible.name: "Exact dictation text" }
+                            RowLayout {
+                                Button { text: "Use recognized words"; enabled: !advanced.pending; onClicked: dictationText.text = voice.lastTranscript }
+                                Button { text: "Preview and request confirmation"; enabled: vm.canConfigure && dictationText.text.length > 0; onClicked: advanced.dictate(dictationText.text) }
+                            }
+                            CheckBox { text: "Use my next hold-to-talk recording as dictation"; checked: advanced.dictationArmed; enabled: vm.canConfigure; onClicked: advanced.armDictation(checked); Accessible.name: text }
+                            Label { Layout.fillWidth: true; text: "After requesting: return to the chosen app and focus its edit field. Confirm the overlay with Ctrl+Alt+Y; cancel with Ctrl+Alt+N. Confirmation expires in 30 seconds. Any target change stops typing. Partial or uncertain input is never retried. Wake input cannot dictate."; wrapMode: Text.WordWrap; color: "#c1d0ce" }
+                        }
+                    }
+                    ColumnLayout {
+                        enabled: vm.canConfigure; spacing: 10
+                        Label { Layout.fillWidth: true; text: advanced.statusText; wrapMode: Text.WordWrap; color: "#b8d5c7" }
+                        ListView {
+                            Layout.fillWidth: true; Layout.preferredHeight: 140; clip: true; model: advanced.routineRows
+                            ScrollBar.vertical: ScrollBar {}
+                            delegate: RowLayout {
+                                required property var modelData
+                                width: ListView.view.width
+                                Label { text: modelData.name + " · " + modelData.steps + " steps"; Layout.fillWidth: true; textFormat: Text.PlainText }
+                                Button { text: "Edit"; onClicked: { advanced.editRoutine(modelData.id); routineName.text = modelData.name } }
+                                Button { text: "Run"; onClicked: advanced.runRoutine(modelData.id) }
+                                Button { text: "Delete"; onClicked: advanced.deleteRoutine(modelData.id) }
+                            }
+                        }
+                        RowLayout {
+                            TextField { id: routineName; objectName: "routineName"; Layout.fillWidth: true; placeholderText: "Unique routine name"; maximumLength: 60; Accessible.name: "Routine name" }
+                            Button { text: "New routine"; onClicked: { advanced.newRoutine(); routineName.text = "" } }
+                        }
+                        RowLayout {
+                            TextField { id: routineStep; Layout.fillWidth: true; maximumLength: 2000; placeholderText: "One command, e.g. open Calculator or set volume to 35 percent"; Accessible.name: "Add routine command" }
+                            Button { text: "Add step"; onClicked: { advanced.addStep(routineStep.text); routineStep.text = "" } }
+                        }
+                        ListView {
+                            Layout.fillWidth: true; Layout.fillHeight: true; clip: true; model: advanced.draftRows
+                            delegate: RowLayout {
+                                required property var modelData
+                                width: ListView.view.width
+                                Label { text: (modelData.index+1) + ". " + modelData.label; Layout.fillWidth: true; textFormat: Text.PlainText }
+                                Button { text: "Up"; onClicked: advanced.moveStep(modelData.index,-1) }
+                                Button { text: "Down"; onClicked: advanced.moveStep(modelData.index,1) }
+                                Button { text: "Remove"; onClicked: advanced.removeStep(modelData.index) }
+                            }
+                        }
+                        Label { Layout.fillWidth: true; text: "Review this preview before saving. Up to five steps, run in order and stop on the first failure. Each step inherits the request's permissions. No nesting, dictation or unregistered websites."; wrapMode: Text.WordWrap; color: "#a7b9ba" }
+                        Button { text: "Save reviewed routine"; onClicked: advanced.saveRoutine(routineName.text) }
                     }
                 }
                 Rectangle {

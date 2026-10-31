@@ -22,6 +22,8 @@ def decide(skill: str, origin: Origin, *, registered_site: bool = False,
         return Decision("deny", "Capability unavailable")
     if origin not in {"typed", "button", "ptt_voice", "wake_voice"}:
         return Decision("deny", "Unknown origin")
+    if skill == "text.type":
+        return Decision("deny", "Wake requests cannot dictate") if origin == "wake_voice" else Decision("confirm", "Exact text and target require confirmation")
     if skill == "website.open" and not registered_site:
         if origin == "wake_voice":
             return Decision("deny", "Wake requests require a registered website")

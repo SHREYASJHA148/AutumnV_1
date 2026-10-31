@@ -140,6 +140,8 @@ def import_apps(checkpoint, *, menu_roots=None, include_packages=True) -> tuple[
 
 class WindowsAdapter:
     def __init__(self, *, capture=screenshot, data_dir=None):
+        from autumn.winworker.dictation import Dictation
+        self.dictation = Dictation()
         self.engine = None
         self.capture = capture
         self.data_dir = data_dir
@@ -155,6 +157,8 @@ class WindowsAdapter:
             configure(self.data_dir or app_directory())
             self.cache_configured = True
         skill, args = resolved.action.skill, resolved.action.arguments
+        if skill == "text.type":
+            return self.dictation.type_text(resolved.target, args.text, checkpoint)
         if skill == "app.open":
             return self.launch_app(resolved.target, checkpoint)
         if skill == "folder.open":

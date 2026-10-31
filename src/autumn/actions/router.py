@@ -18,6 +18,8 @@ from autumn.actions.schemas import (
     OpenFolder,
     OpenWebsite,
     Plan,
+    RoutineArgs,
+    RunRoutine,
     SearchArgs,
     SearchFiles,
     SetMute,
@@ -49,6 +51,13 @@ def route(text: str, settings) -> Routing:
         value = "open " + launch[1]
     if value in {"help", "what can you do", "show capabilities", "capabilities"}:
         action = Capabilities()
+    elif match := re.fullmatch(r"run (?:routine )?(.+)", value):
+        matches = [r for r in settings.routines if normalize(r.name) == match[1]]
+        if len(matches) != 1:
+            return Routing(message="Choose an exact saved routine name in Routines.")
+        action = RunRoutine(arguments=RoutineArgs(routine_id=matches[0].id))
+    elif value.startswith(("dictate", "type text")):
+        return Routing(message="Open Dictation, choose a supported target and preview the exact text. Wake requests cannot dictate.")
     elif value in {"take a screenshot", "take screenshot", "screenshot", "capture screen"}:
         action = CaptureScreen()
     elif value == "screenshot all monitors":

@@ -17,7 +17,17 @@ def main() -> int:
     parser.add_argument("--phase2-smoke-report", type=Path, help="Self-closing typed-action UI test using only capabilities help")
     parser.add_argument("--phase3-smoke-report", type=Path, help="Self-closing UI and pinned-model capabilities test")
     parser.add_argument("--speech-probe-report", type=Path, help="Synthetic in-memory speech test; no microphone or playback")
+    parser.add_argument("--phase5-probe-report",type=Path,help="Disposable native dictation/overlay test")
+    parser.add_argument("--dictation-fixture-ready",type=Path,help="Spawn the disposable diagnostic Edit target")
     args = parser.parse_args()
+    if args.phase5_probe_report or args.dictation_fixture_ready:
+        if args.data_dir is None:
+            parser.error("An isolated --data-dir is required")
+        if args.dictation_fixture_ready:
+            from autumn.diagnostics.dictation_target import run
+            return run(args.dictation_fixture_ready)
+        from autumn.diagnostics.phase5_probe import run
+        return run(args.phase5_probe_report,args.data_dir.resolve())
     if (args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report or args.speech_probe_report) and args.data_dir is None:
         parser.error("Smoke trials require an explicit isolated --data-dir")
     if args.speech_probe_report:
@@ -57,7 +67,7 @@ def main() -> int:
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.4.0")
+    app.setApplicationVersion("0.5.0")
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -70,12 +80,16 @@ def main() -> int:
         return 0
     supervisor = Supervisor(root)
     vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report))
+    from autumn.ui.confirmation import ConfirmationOverlay
+    overlay = ConfirmationOverlay(vm.advanced)
     native = NativeEvents(vm.stop, vm.voice.toggleRecording, vm.suspend, vm.resume,
-                         on_hold_start=vm.voice.beginHold,on_hold_end=vm.voice.endHold)
+                         on_hold_start=vm.voice.beginHold,on_hold_end=vm.voice.endHold,
+                         on_confirm=vm.advanced.confirm,on_cancel=vm.advanced.cancelApproval)
     app.installNativeEventFilter(native)
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("vm", vm)
     engine.rootContext().setContextProperty('voice',vm.voice)
+    engine.rootContext().setContextProperty('advanced',vm.advanced)
     engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "ui/Main.qml")))
     if not engine.rootObjects():
         failure_report = args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report
@@ -116,6 +130,7 @@ def main() -> int:
     clean = []
 
     def shutdown() -> None:
+        overlay.hide()
         focus_timer.stop()
         native.close()
         clean.append(vm.shutdown())

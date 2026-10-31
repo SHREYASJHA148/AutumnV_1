@@ -1,0 +1,10 @@
+{
+  "frozen": false,
+  "scope": "disposable native Edit only; no microphone/speakers/personal targets",
+  "checks": {
+    "password_control_refused": true
+  },
+  "passed": false,
+  "error_type": "error",
+  "elapsed_seconds": 0.219
+}

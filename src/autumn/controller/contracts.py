@@ -64,4 +64,4 @@ class HistoryEvent(Contract):
     skill_id: Literal["foundation.preview", "controller.request", "app.open", "folder.open", "website.open",
                       "audio.set_volume", "audio.set_mute", "media.control", "screen.capture", "files.search",
                       "help.capabilities", "text.type", "routine.run"] = "foundation.preview"
-    step_id: int = Field(default=0, ge=0, le=3)
+    step_id: int = Field(default=0, ge=0, le=5)
