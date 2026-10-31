@@ -1,0 +1,4 @@
+-r requirements-phase4.lock
+-c requirements-phase0-compat.lock
+# Existing local ONNX wake adapter; explicit paths prevent automatic model downloads.
+openwakeword==0.6.0

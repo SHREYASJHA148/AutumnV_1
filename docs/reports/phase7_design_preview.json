@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "microphone_opened": false,
+  "public_demo_only": true,
+  "motion_enabled": true,
+  "frames": 157,
+  "frame_interval_p95_ms": 31.9999999992433,
+  "window": [
+    1240,
+    800
+  ],
+  "clean_shutdown": true,
+  "qt_warning_count": 0
+}

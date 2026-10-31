@@ -1,0 +1,5 @@
+# D0020 — Phase 7 authorization and visual direction
+Question: Can packaging and a motion-rich UI proceed with earlier acceptance gaps?
+Options: Wait for all human trials; implement Phase 7 and the owner's requested futuristic interactive UI while preserving failed/unverified gates.
+Choice: On 31 October 2026 the owner requested Phase 7 plus a futuristic animated UI, then chose build now and leave hands-on checks pending. Use a cyan/amber local-console design, bounded decorative motion, stable Stop/confirmation controls and a reduced-motion option. Build a per-user engineering-preview installer with verified setup/recovery and no automatic microphone, cloud or startup activation.
+Reason: This authorizes advancement and routine design choices, not fabricated acceptance, an upgraded brain or changed safety rules. Existing download approvals apply to pinned setup artifacts; downloads require explicit user actions. Preserve RC1 and all earlier failures; clean-account, physical audio/power, Narrator and other hands-on trials remain unverified.

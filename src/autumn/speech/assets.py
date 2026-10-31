@@ -9,6 +9,7 @@ from pathlib import Path
 from autumn.actions.catalog import local_path, no_reparse
 
 ARTIFACTS = {
+    "voice_license": ("tts/MODEL_CARD",351,"ce49eb457742208166d399a40cdec2c7fa9db77960930031564ab56f12882645"),
     "wake": ("wake/hey_jarvis_v0.1.onnx",1271370,"94a13cfe60075b132f6a472e7e462e8123ee70861bc3fb58434a73712ee0d2cb"),
     "wake_mel": ("wake/melspectrogram.onnx",1087958,"ba2b0e0f8b7b875369a2c89cb13360ff53bac436f2895cced9f479fa65eb176f"),
     "wake_embedding": ("wake/embedding_model.onnx",1326578,"70d164290c1d095d1d4ee149bc5e00543250a7316b59f31d056cff7bd3075c1f"),
@@ -55,7 +56,9 @@ def default_models():
         return Path(__file__).resolve().parents[3] / "models"
     manifest = Path(__file__).with_name("external_assets.json")
     if manifest.is_file():
-        return Path(json.loads(manifest.read_text(encoding="utf-8-sig"))["development_models"])
+        development = json.loads(manifest.read_text(encoding="utf-8-sig")).get("development_models")
+        if isinstance(development,str) and development:
+            return local_path(development)
     return Path(os.environ["LOCALAPPDATA"]) / "Autumn/models"
 
 

@@ -23,6 +23,7 @@ class SpeechJob(Contract):
         "speak",
         "play_pcm",
         "health",
+        "synthesize",
     ]
     generation: int = Field(ge=0)
     operation_id: UUID | None = None
@@ -51,7 +52,9 @@ def playback_worker(*args, **kwargs):
     speech_main(*args, role="playback", **kwargs)
 
 
-def speech_main(commands, replies, generation, stopping, root, allow_faults, *, role, capture_gate=None):
+def speech_main(
+    commands, replies, generation, stopping, root, allow_faults, *, role, capture_gate=None
+):
     import numpy as np
 
     from autumn.audio.buffer import CaptureBuffer, normalize, resample, speech_stats
@@ -131,7 +134,7 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
         while alive():
             if current is None and generation.value != acknowledged_generation:
                 acknowledged_generation = generation.value
-                send('idle')
+                send("idle")
             if current is not None:
                 if not checkpoint(current):
                     finish(True, "CANCELLED")
@@ -208,7 +211,12 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
                     if current is not None:
                         continue
                     if capture_gate is not None and not capture_gate.value:
-                        send("capture_error", operation_id=str(job.operation_id), generation=job.generation, code="EMPTY_AUDIO")
+                        send(
+                            "capture_error",
+                            operation_id=str(job.operation_id),
+                            generation=job.generation,
+                            code="EMPTY_AUDIO",
+                        )
                         continue
                     send("busy", timeout=job.seconds + 2)
                     import sounddevice as sd
@@ -264,6 +272,20 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
                         result=result,
                     )
                     send("idle")
+                elif job.kind == "synthesize" and role == "playback":
+                    send("busy", timeout=32)
+                    data, rate = synthesizer.render(
+                        job.text, job.assets_root, job.volume, job.rate, lambda: checkpoint(job)
+                    )
+                    if checkpoint(job):
+                        send(
+                            "synthesized",
+                            generation=job.generation,
+                            pcm=data.astype("<f4").tobytes(),
+                            sample_rate=rate,
+                        )
+                    data.fill(0)
+                    send("idle")
                 elif job.kind in {"speak", "play_pcm"} and role == "playback":
                     send("busy", timeout=32)
                     if job.kind == "speak":
@@ -304,6 +326,7 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
                     from pathlib import Path
 
                     from autumn.winworker.cache import configure
+
                     configure(Path(root))
                     default_output = default_endpoint("output") if not job.device_id else None
                     last_output_check = time.monotonic()
@@ -334,7 +357,10 @@ def speech_main(commands, replies, generation, stopping, root, allow_faults, *, 
                     ) as playing:
                         until = time.monotonic() + 15.5
                         while playing.active and checkpoint(job) and time.monotonic() < until:
-                            if default_output is not None and time.monotonic() - last_output_check > 0.5:
+                            if (
+                                default_output is not None
+                                and time.monotonic() - last_output_check > 0.5
+                            ):
                                 last_output_check = time.monotonic()
                                 if default_endpoint("output") != default_output:
                                     raise RuntimeError("Output changed; refresh devices")

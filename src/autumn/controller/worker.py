@@ -19,6 +19,7 @@ from autumn.actions.schemas import Plan
 from autumn.brain.contracts import Answer, BrainError, Clarification
 from autumn.brain.planner import Planner, recovery_message
 from autumn.controller.contracts import Contract, Event, HistoryEvent, Request, TaskState
+from autumn.controller.lifetime import ParentLease
 from autumn.diagnostics.health import snapshot
 from autumn.policy.confirmation import Confirmations
 from autumn.storage.history import HistoryStore
@@ -41,7 +42,8 @@ class Job(Contract):
 
 def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool, *, voice_generation=None) -> None:
     initialize_dpi()
-    parent = os.getppid()
+    parent = ParentLease()
+    replies.cancel_join_thread()
     history: HistoryStore | None = None
     settings = Settings()
     adapter = WindowsAdapter(data_dir=Path(root))
@@ -59,7 +61,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
 
     def alive() -> bool:
         nonlocal last_beat
-        if stopping.is_set() or os.getppid() != parent:
+        if stopping.is_set() or not parent.alive():
             return False
         if time.monotonic() - last_beat > 0.25:
             send("heartbeat")
@@ -279,6 +281,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     send("action_finished", request_id=str(job.request.request_id), generation=job.generation)
                 send("idle")
     finally:
+        parent.close()
         if history is not None:
             history.close()
 
@@ -398,7 +401,7 @@ class Supervisor:
             except queue.Empty:
                 break
             self.last_seen = now
-            if message['kind'] in {'ready','speech_ready','wake_ready'}:
+            if message['kind'] in {'ready','speech_ready','wake_ready','setup_ready'}:
                 self.worker_ready = True
             if message["kind"] == "busy":
                 self.busy_until = now + min(message["timeout"], 46)

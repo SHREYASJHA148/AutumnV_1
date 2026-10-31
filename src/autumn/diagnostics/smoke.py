@@ -114,7 +114,7 @@ class SmokeTrial(QObject):
             self.vm.resume()
             self.checks["resume_microphone_disabled"] = not self.vm.voiceReady
             self.stage = "new_pages"
-            self.pages_remaining = [(6,"dictationTarget"),(7,"routineName"),(8,"wakeCheckButton")]
+            self.pages_remaining = [(6,"dictationTarget"),(7,"routineName"),(8,"wakeCheckButton"),(9,"setupCheckButton")]
             self.page_control = None
         elif self.stage == "disable_model_for_load" and not self.vm.settings_pending:
             self.stage="startup"

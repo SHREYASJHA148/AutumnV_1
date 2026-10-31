@@ -1,13 +1,14 @@
 # STATE
-Phase: 6 — implementation COMPLETE; acceptance NOT PASSED; STOP at checkpoint before Phase 7. Owner's D0016 request for unattended Phases 5+6 is implemented.
-Hardware: Windows 11 build 26200, i5-13420H, 15.7 GiB RAM, RTX 5050 Laptop 8 GiB, built-in mic/speakers; no Bluetooth headset.
-Runtime: project Python 3.12.10 / Qt 6.8.3; clean 0.6.0 standalone in dist/Autumn preview é/Autumn/Autumn.exe; requirements-phase6.lock installed from local cache offline; prior environments/models retained.
-Done Phase 5: 38bcd8c; confirmations, guarded native dictation/picker/overlay/hotkeys, routine editor and serial per-origin engine; 372 unique software tests/source+standalone UI pass; native foreground/delivery acceptance pending (D0017).
-Done Phase 6: opt-in pinned ONNX wake, measured calibration/CPU gate, device/model/threshold binding, strict wake permissions, cooldown/endpointing, closed-listener playback and cancellation/session handling; no default listening.
-Done Desktop: tray state/Stop/off/Quit, remembered close choice, explicit default-off login startup, reduced motion, accessible labels and responsive scrollable pages; Qt scale-2 layout fix verified.
-Validation: 391-test full suite + 2 added regressions (393 unique) pass; lint, clean standalone UI and scaled layout pass; real ONNX synthetic silence/noise pass; final standalone speech 10 processed/9 normalized exact matches, no audio hardware/actions.
-Blockers: native dictation focus/overlay/delivery unverified after 3 controlled Windows activation failures; no focus forcing. Wake calibration, household/speaker/mains CPU/battery, Narrator, actual Windows scaling and physical sleep/Modern Standby trials not run.
-Carry-forward: Phase 3 81%/80% accuracy failed; owner 100 utterances, GPU/end-to-end, disconnected local tasks/10-minute trace, hardware/default-change tests still pending. No MVP/complete-v1 declaration.
-Next: Await owner interactive validation or a new instruction; keep wake off until measured profile passes; never start Phase 7 automatically or tune/rerun Phase 3 RC1.
-Decisions: D0016 unattended 5+6, D0017 native focus fallback, D0018 wake/desktop defaults; existing local/female voice/privacy/safety decisions remain. No real mic capture, audible playback or registry startup writes in tests.
-Evidence: docs/reports/PHASE_5_GATE.md, PHASE_6_GATE.md, phase6_gate.json, phase6_tests.xml, phase6_regressions.xml, phase6_source/frozen/scale2/frozen_scale2.json, phase6_wake_source/frozen.json, phase6_speech_frozen.json; docs/validation/PHASE_5_6_OWNER_TEST.md. Questions: none.
+Phase: 7 — engineering implementation COMPLETE, acceptance NOT PASSED; owner chose build now, hands-on checks pending. No later phase authorized.
+Hardware: Windows 11 build 26200, i5-13420H, 15.7 GiB RAM, RTX 5050 Laptop 8 GiB; built-in mic/speakers, no Bluetooth headset.
+Build: Autumn 0.7.0, Python 3.12.10/Qt 6.8.3; requirements-phase7.lock freezes unchanged Phase 6 dependencies. Pinned qwen3:1.7b CPU; no cloud/telemetry/admin/global install.
+Done FR-01/NFR-05/12: cyan/amber animated command deck, orbit/hover/press/page motion, preserved reduced motion and stable Stop; source/frozen/installed/Qt scale-2 UI pass.
+Done FR-19/26/NFR-09: pinned explicit download/import/resume setup, safe corrupt-file preservation, per-user verified installer and ownership-aware removal retaining user data; 98 license files/source/provenance included.
+Done FR-14/19/28: pinned parent-process death fence, worker crash/cancel/no-replay regressions; second-instance and clean shutdown pass. No forced focus or real dictation replay.
+Evidence: 426 unique tests pass (422 full + 4 additional); standalone 10 synthetic speech cases processed, 9 exact; 125.19-second software mixed-use trial pass, NOT two-hour stability/hardware acceptance.
+Package: dist/Autumn-0.7.0-preview/AutumnSetup.exe (216.3 MiB); SHA256SUMS.txt; validated scrubbed-environment install/launch/remove with spaces/é, NO registry writes; not a clean Windows account.
+Blockers: NFR-01/02 FAILED at 81%/80%; owner speech/device/wake/Narrator/power/native dictation deferred; GPU, aggregate memory, clean account/uninstall registration, offline trace, two-hour stability pending.
+Timing: installed UI input/Stop p95 <200 ms; first-install readiness upper bound 6.83 s, later ~1.2 s; direct cold <=5-second readiness not demonstrated. Defender realtime on; no signature/reputation or targeted-scan acceptance claim.
+Decisions: D0020 authorizes Phase 7/motion, preserves earlier failures and no MVP/complete-v1 declaration; D0016–19 retained. RC1 contracts/datasets not changed or re-evaluated. No new dependencies.
+Next: deferred owner/clean-account/network/stability/performance validation and earlier accuracy gaps at next authorized checkpoint. Wake remains calibration-locked; voice/startup never enabled automatically.
+Evidence/docs: docs/reports/PHASE_7_GATE.md, phase7_gate.json and individual reports; docs/USER_GUIDE.md, TROUBLESHOOTING.md, KNOWN_ISSUES.md; docs/media/autumn-phase7.png. Questions: none.

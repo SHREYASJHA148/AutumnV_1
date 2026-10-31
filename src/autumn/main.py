@@ -20,7 +20,17 @@ def main() -> int:
     parser.add_argument("--phase5-probe-report",type=Path,help="Disposable native dictation/overlay test")
     parser.add_argument("--dictation-fixture-ready",type=Path,help="Spawn the disposable diagnostic Edit target")
     parser.add_argument("--wake-probe-report",type=Path,help="Synthetic ONNX wake test; never opens microphone")
+    parser.add_argument('--ui-preview-report',type=Path,help='Render a public demonstration of the UI in isolation')
+    parser.add_argument('--ui-preview-image',type=Path,help='Image of only the isolated Autumn window')
+    parser.add_argument('--soak-report',type=Path,help='Isolated real-time software stability trial; no audio hardware')
+    parser.add_argument('--soak-seconds',type=int,default=7200)
     args = parser.parse_args()
+    if args.soak_report and (args.data_dir is None or not 30 <= args.soak_seconds <= 86400):
+        parser.error('Software soak requires isolated --data-dir and 30–86400 seconds')
+    if args.soak_report and (args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report or args.ui_preview_report):
+        parser.error('Run each diagnostic separately')
+    if args.ui_preview_report and (args.data_dir is None or args.ui_preview_image is None):
+        parser.error('UI preview requires isolated --data-dir and --ui-preview-image')
     if args.wake_probe_report:
         from autumn.diagnostics.wake_probe import run
         return run(args.wake_probe_report)
@@ -65,14 +75,14 @@ def main() -> int:
     app = QApplication(sys.argv[:1])
     app.setQuitOnLastWindowClosed(False)
     qt_issues = []
-    if args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report:
+    if args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report or args.ui_preview_report or args.soak_report:
         def qt_message(kind, context, message):
             if kind in {QtMsgType.QtWarningMsg, QtMsgType.QtCriticalMsg, QtMsgType.QtFatalMsg}:
                 qt_issues.append(int(kind.value))
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.6.0")
+    app.setApplicationVersion("0.7.0")
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -83,8 +93,8 @@ def main() -> int:
         instance.request_focus()
         instance.close()
         return 0
-    supervisor = Supervisor(root)
-    vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report))
+    supervisor = Supervisor(root, allow_faults=bool(args.soak_report))
+    vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report or args.ui_preview_report))
     from autumn.ui.desktop import Desktop
     desktop = Desktop(vm,app)
     from autumn.ui.confirmation import ConfirmationOverlay
@@ -99,9 +109,10 @@ def main() -> int:
     engine.rootContext().setContextProperty('advanced',vm.advanced)
     engine.rootContext().setContextProperty('wake',vm.wake)
     engine.rootContext().setContextProperty('desktop',desktop)
+    engine.rootContext().setContextProperty('setup',vm.setup)
     engine.load(QUrl.fromLocalFile(str(Path(__file__).parent / "ui/Main.qml")))
     if not engine.rootObjects():
-        failure_report = args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report
+        failure_report = args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report or args.ui_preview_report or args.soak_report
         if failure_report:
             import json
             failure_report.parent.mkdir(parents=True,exist_ok=True)
@@ -121,6 +132,8 @@ def main() -> int:
     native.bind_window(int(window.winId()))
 
     def shortcuts() -> None:
+        if args.soak_report:
+            return
         vm.shortcut_rows = native.register(vm.settings.hotkeys,vm.settings.capture_mode)
         vm.shortcut_rows.append({"name": "Session notifications", "detail": "Registered" if native.session_registered else "Unavailable; close the app before lock or sleep"})
         vm.changed.emit()
@@ -148,6 +161,14 @@ def main() -> int:
         instance.close()
 
     app.aboutToQuit.connect(shutdown)
+    _preview = None
+    if args.ui_preview_report:
+        from autumn.diagnostics.preview import Preview
+        _preview = Preview(app,window,vm,args.ui_preview_report,args.ui_preview_image)
+    _soak = None
+    if args.soak_report:
+        from autumn.diagnostics.soak import Soak
+        _soak = Soak(app,window,vm,args.soak_report,args.soak_seconds)
     smoke = None
     if args.smoke_report or args.phase2_smoke_report or args.phase3_smoke_report:
         from autumn.diagnostics.smoke import SmokeTrial
@@ -156,6 +177,13 @@ def main() -> int:
         smoke.qt_issues = qt_issues
         smoke.start()
     result = app.exec()
+    if args.soak_report or args.ui_preview_report:
+        import json
+        report = args.soak_report or args.ui_preview_report
+        if report.exists():
+            details = json.loads(report.read_text(encoding='utf-8'))
+            details.update(clean_shutdown=bool(clean and clean[0]),qt_warning_count=len(qt_issues))
+            report.write_text(json.dumps(details,indent=2),encoding='utf-8')
     if smoke is not None:
         return smoke.finish(bool(clean and clean[0]))
     return result if clean and clean[0] else 1

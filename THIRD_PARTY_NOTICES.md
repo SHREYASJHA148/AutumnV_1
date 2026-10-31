@@ -1,6 +1,6 @@
-# Phase 3 dependency inventory
+# Autumn preview dependency and model notices
 
-The exact distributions and wheel hashes are in `requirements-phase2.lock`. This personal preview bundles Windows action bindings; model weights, a voice and speech recognition remain separate.
+The current exact distributions and wheel hashes are in `requirements-phase7.lock` (identical dependencies to Phase 6). This personal preview bundles Windows action and speech engines; all language, speech, voice and wake model weights remain separate. The package includes installed license/notice texts under `licenses`, dependency/model provenance in `provenance.json` and the application's source snapshot in `autumn-source.zip`. This is the owner's engineering evaluation package, not a completed public redistribution review.
 
 Phase 3 adds no Python dependency: its bounded loopback client uses the standard library. Ollama is separately installed; qwen3:1.7b remains in Ollama's cache with its pinned digest and existing Phase 0 license inventory. Neither runtime nor model weights are bundled in the executable. Redistribution review remains outstanding.
 

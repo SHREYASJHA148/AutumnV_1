@@ -1,0 +1,11 @@
+# Autumn 0.7.0 — engineering preview limitations
+
+- Release acceptance is NOT PASSED. Phase 3 held-out routing was 162/200 (81%) and ambiguous/unsupported handling was 40/50 (80%), below their 95% targets. The frozen evaluation is not reused for tuning. Prefer exact supported phrases and reviewed aliases.
+- CPU is the measured inference profile. GPU latency/aggregate RAM+VRAM acceptance is unverified; a model fitting in VRAM alone is not a passing performance gate.
+- The owner's 100-utterance speech test, microphone/speaker end-to-end behavior, real device loss, dictation focus/delivery, wake calibration, physical sleep/Modern Standby, battery, Narrator and actual Windows 200%/multi-monitor acceptance are pending by owner choice. Software scale-2 checks are narrower.
+- The short software mixed-use trial uses synthetic speech without audio hardware. The required two-hour mixed-use stability gate remains pending; no duration is inferred from accelerated loops.
+- A scrubbed per-user installer test is narrower than a clean Windows account. Clean-account install, Windows security reputation and a ten-minute network trace with the network disabled remain unverified. No cloud fallback is implemented; explicit model downloads and opening websites require internet.
+- The first installed launch had a 6.83-second upper bound on typed readiness (including process-exit overhead); subsequent bounds were about 1.23 and 1.20 seconds. Cold readiness within the 5-second target is not demonstrated by this indirect measurement.
+- Wake remains disabled until calibration. Its pretrained phrase is hey jarvis. Routines cannot nest, dictate or open unregistered URLs. Dictation supports standard Edit/RichEdit fields only and never automatically retries uncertain input.
+- Unsigned personal-preview packaging contains no model weights or Ollama runtime. Complete public redistribution/license review remains outstanding; bundled source, lock, provenance and installed notices support that review. This installer is intended for the owner's local engineering evaluation.
+- Uninstall intentionally retains settings, history, models, modified/unknown files and the maintenance executable. A separate shared Ollama service/cache and files exported by actions stay in place.

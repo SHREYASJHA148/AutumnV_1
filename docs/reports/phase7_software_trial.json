@@ -1,0 +1,28 @@
+{
+  "scope": "software mixed-use: typed help, disposable filenames, routines, Stop/queue, controlled crash, local model checks, synthetic speech; hidden UI; NO microphone/speaker trial",
+  "requested_seconds": 125,
+  "elapsed_seconds": 125.19,
+  "complete": true,
+  "two_hour_duration_met": false,
+  "passed": true,
+  "launch_to_typed_ready_seconds": 0.33,
+  "cycles": 9,
+  "counts": {
+    "help": 2,
+    "file_search": 1,
+    "routine": 1,
+    "stop_queue": 1,
+    "expected_worker_crash": 1,
+    "speech_synthetic": 1,
+    "local_model_checks": 1
+  },
+  "failures": [],
+  "resource_samples": 25,
+  "peak_aggregate_owned_working_mb": 1096.8,
+  "model_runtime_memory_included": false,
+  "gpu_profile_measured": false,
+  "audio_hardware_opened": false,
+  "raw_audio_or_transcripts_saved": false,
+  "clean_shutdown": true,
+  "qt_warning_count": 0
+}

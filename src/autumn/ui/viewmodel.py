@@ -22,6 +22,7 @@ from autumn.controller.state import Session
 from autumn.controller.worker import Job, Supervisor
 from autumn.storage.settings import Hotkeys, Settings, app_directory
 from autumn.ui.advanced import Advanced
+from autumn.ui.setup import SetupViewModel
 from autumn.ui.voice import VoiceViewModel
 from autumn.ui.wake import WakeViewModel
 
@@ -59,6 +60,7 @@ class ViewModel(QObject):
         self.voice = VoiceViewModel(self,getattr(supervisor,'root',app_directory()))
         self.advanced = Advanced(self)
         self.wake = WakeViewModel(self,getattr(supervisor,'root',app_directory()))
+        self.setup = SetupViewModel(self,getattr(supervisor,'root',app_directory()))
         self.settingsChanged.connect(self.voice.changed)
         self.timer = QTimer(self)
         self.timer.setInterval(16)
@@ -89,7 +91,7 @@ class ViewModel(QObject):
 
     @Property(bool, notify=changed)
     def canConfigure(self):
-        return self.canSend and not self.settings_pending and not self.voice.isBusy and not self.advanced.pending and not self.wake.busy
+        return self.canSend and not self.settings_pending and not self.voice.isBusy and not self.advanced.pending and not self.wake.busy and not self.setup.busy
 
     @Property(str, notify=changed)
     def statusMessage(self):
@@ -213,6 +215,7 @@ class ViewModel(QObject):
         self.acknowledged.emit("input")
 
     def cancel_all(self, message: str, code: str = "CANCELLED") -> None:
+        self.setup.cancel()
         self.advanced.dismiss()
         self.advanced.armDictation(False)
         active = self.session.active
@@ -450,6 +453,7 @@ class ViewModel(QObject):
         self.changed.emit()
 
     def poll(self) -> None:
+        self.setup.poll()
         self.wake.poll()
         self.voice.poll()
         if self.clarification_choices and time.monotonic() >= self.clarification_expires:
@@ -533,4 +537,5 @@ class ViewModel(QObject):
         self.supervisor.cancel(self.session.generation)
         speech_closed=self.voice.shutdown()
         wake_closed=self.wake.shutdown()
-        return self.supervisor.shutdown() and speech_closed and wake_closed
+        setup_closed=self.setup.shutdown()
+        return self.supervisor.shutdown() and speech_closed and wake_closed and setup_closed
