@@ -14,13 +14,14 @@ from autumn.actions.router import route
 from autumn.actions.schemas import CaptureScreen, Plan
 from autumn.controller.contracts import Request
 from autumn.storage.settings import Settings
-from autumn.winworker.capture import screenshot
+from autumn.winworker.capture import initialize_dpi, screenshot
 from autumn.winworker.windows import WindowsAdapter, import_apps
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def run():
+    assert initialize_dpi()
     import comtypes
     from pycaw.pycaw import AudioUtilities
     comtypes.CoInitialize()

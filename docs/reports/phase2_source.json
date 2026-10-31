@@ -16,6 +16,7 @@
     "stop_rendered_samples": true,
     "command_completed": true,
     "history_has_no_text": true,
+    "real_filename_search_worker": true,
     "history_cleared": true,
     "separate_target_had_focus": true,
     "second_instance_exit_zero": true,
@@ -24,6 +25,7 @@
     "finished_before_timeout": true,
     "workers_closed": true,
     "no_test_exception": true,
+    "no_qt_warnings": true,
     "input_p95_below_200ms": true,
     "stop_p95_below_200ms": true
   },
@@ -31,14 +33,14 @@
   "input_to_render": {
     "input": {
       "samples": 40,
-      "p95_ms": 31.0
+      "p95_ms": 16.0
     },
     "stop": {
       "samples": 40,
-      "p95_ms": 16.0
+      "p95_ms": 0.0
     }
   },
   "load": "80 alternating typed-input/Stop events, 100-row conversation cap, six-request overflow trial; worker active",
-  "ui_ready_after_qml_ms": 781.0,
-  "elapsed_seconds": 9.781
+  "ui_ready_after_qml_ms": 469.0,
+  "elapsed_seconds": 10.406
 }

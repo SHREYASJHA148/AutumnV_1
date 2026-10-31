@@ -125,6 +125,21 @@ class SmokeTrial(QObject):
             if not self.checks["command_completed"]:
                 return
             self.checks["history_has_no_text"] = all(set(row) <= {"created", "skill_id", "origin", "status", "code", "duration_ms"} for row in self.vm.history)
+            if not self.vm.preview_mode:
+                from autumn.actions.catalog import FolderEntry
+                files = self.vm.supervisor.root / "disposable search files"
+                files.mkdir(exist_ok=True)
+                (files / "gate-check.xlsx").write_bytes(b"Fixed disposable filename fixture")
+                self.vm.update_settings(folders=[FolderEntry(id="gate", name="Gate files", path=str(files)).model_dump()])
+                self.stage = "search_settings"
+                return
+            self.vm.clearHistory()
+            self.stage = "clear"
+        elif self.stage == "search_settings" and not self.vm.settings_pending:
+            self.vm.submit("find spreadsheet gate-check in gate files")
+            self.stage = "search_complete"
+        elif self.stage == "search_complete" and self.vm.session.active is None:
+            self.checks["real_filename_search_worker"] = len(self.vm.result_cards) == 1 and self.vm.result_cards[0]["name"] == "gate-check.xlsx"
             self.vm.clearHistory()
             self.stage = "clear"
         elif self.stage == "clear" and not self.vm.history:

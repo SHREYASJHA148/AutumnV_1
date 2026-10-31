@@ -18,10 +18,19 @@ class BitmapInfoHeader(ctypes.Structure):
                 ("used", wintypes.DWORD), ("important", wintypes.DWORD)]
 
 
-def screenshot(folder: Path, monitor: str, checkpoint, *, bounds=None, source_window=None) -> dict:
-    user, gdi = ctypes.WinDLL("user32", use_last_error=True), ctypes.WinDLL("gdi32", use_last_error=True)
+def initialize_dpi() -> bool:
+    user = ctypes.WinDLL("user32", use_last_error=True)
     user.SetProcessDpiAwarenessContext.argtypes = [ctypes.c_void_p]
     user.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+    user.GetThreadDpiAwarenessContext.restype = ctypes.c_void_p
+    user.GetAwarenessFromDpiAwarenessContext.argtypes = [ctypes.c_void_p]
+    return user.GetAwarenessFromDpiAwarenessContext(user.GetThreadDpiAwarenessContext()) == 2
+
+
+def screenshot(folder: Path, monitor: str, checkpoint, *, bounds=None, source_window=None) -> dict:
+    user, gdi = ctypes.WinDLL("user32", use_last_error=True), ctypes.WinDLL("gdi32", use_last_error=True)
+    if not initialize_dpi():
+        raise OSError("Per-monitor DPI awareness unavailable")
     user.GetDC.argtypes = [wintypes.HWND]
     user.GetDC.restype = wintypes.HDC
     user.ReleaseDC.argtypes = [wintypes.HWND, wintypes.HDC]

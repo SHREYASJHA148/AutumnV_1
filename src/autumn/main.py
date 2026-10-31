@@ -16,6 +16,8 @@ def main() -> int:
     parser.add_argument("--smoke-report", type=Path, help="Run a self-closing, metadata-only build test")
     parser.add_argument("--phase2-smoke-report", type=Path, help="Self-closing typed-action UI test using only capabilities help")
     args = parser.parse_args()
+    if (args.smoke_report or args.phase2_smoke_report) and args.data_dir is None:
+        parser.error("Smoke trials require an explicit isolated --data-dir")
     os.environ.setdefault("QT_QUICK_BACKEND", "software")
     os.environ.setdefault("QML_DISABLE_DISK_CACHE", "1")
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Fusion")

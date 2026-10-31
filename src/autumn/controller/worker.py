@@ -19,6 +19,7 @@ from autumn.controller.contracts import Contract, Event, HistoryEvent, Request, 
 from autumn.diagnostics.health import snapshot
 from autumn.storage.history import HistoryStore
 from autumn.storage.settings import Settings, atomic_save, load_settings
+from autumn.winworker.capture import initialize_dpi
 from autumn.winworker.windows import WindowsAdapter, import_apps
 
 
@@ -33,6 +34,7 @@ class Job(Contract):
 
 
 def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool) -> None:
+    initialize_dpi()
     parent = os.getppid()
     history: HistoryStore | None = None
     settings = Settings()
