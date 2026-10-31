@@ -1,0 +1,11 @@
+{
+  "personal_apps_controlled": false,
+  "actions_dispatched": 1,
+  "passed": true,
+  "model_thinking_disabled": true,
+  "model_routed": true,
+  "result_status": "succeeded",
+  "skill": "app.open",
+  "disposable_window_observed": true,
+  "worker_shutdown": true
+}

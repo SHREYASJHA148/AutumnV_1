@@ -1,0 +1,34 @@
+{
+  "rc_id": "phase3-rc1-7dfd5d7853d5",
+  "source_sha256": "7dfd5d7853d5e00da7f725b8143ecbda065cb0a8288d0bd13ebc187eae33550e",
+  "prompt_sha256": "8111de7053ae4cd4fd39b9086f95f2a16b6013169a9bb84658ddc9296ac2b2bf",
+  "model": "qwen3:1.7b",
+  "digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "profile": "cpu",
+  "schema_sha256": "cca490434919b5bb0faa3a0aabbac3a2b381b6978e2b67a87837bbe04fb137a5",
+  "development_complete": true,
+  "tuning_after_heldout_forbidden": true,
+  "shards": [
+    {
+      "file": ".cache/evaluation-lockbox/starter-heldout.json",
+      "sha256": "0ea541777353f5938a047c260bdc5533a58c585832f0f8cbd522aaba02b62054",
+      "supported": 15,
+      "ambiguous_unsupported": 5,
+      "provenance": "Phase 2 starter; not opened during development"
+    },
+    {
+      "file": ".cache/evaluation-lockbox/phase3-independent.json",
+      "sha256": "a7fd44c9a7bfe1e8b9ea339df0b570c60b2ccafca847333791109a68ec60662d",
+      "supported": 184,
+      "ambiguous_unsupported": 43,
+      "provenance": "Independently authored after release source lock; English wording/templates; not used for tuning"
+    },
+    {
+      "file": ".cache/evaluation-lockbox/phase3-owner.json",
+      "sha256": "bd666cf663e9215c169bbdccf09f020727b09512946cd9586afe7e1e492c8c0b",
+      "supported": 1,
+      "ambiguous_unsupported": 2,
+      "provenance": "Three owner examples supplied in this chat; not used for tuning"
+    }
+  ]
+}

@@ -1,0 +1,507 @@
+{
+  "dataset": "development only",
+  "model": "qwen3:1.7b",
+  "digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "profile": "cpu; GPU gate unverified",
+  "actions_dispatched": 0,
+  "input_text_logged": false,
+  "settings": {
+    "num_ctx": 4096,
+    "num_predict": 256,
+    "think": false,
+    "temperature": 0,
+    "num_gpu": 0,
+    "num_thread": 4
+  },
+  "combined": {
+    "total": 37,
+    "correct": 37,
+    "accuracy": 1.0,
+    "p50_seconds": 0.0002,
+    "p95_seconds": 3.6704,
+    "wilson_95": [
+      0.9059,
+      1.0
+    ],
+    "skill_accuracy": 1.0,
+    "skill_and_argument_accuracy": 1.0
+  },
+  "supported": {
+    "total": 25,
+    "correct": 25,
+    "accuracy": 1.0,
+    "p50_seconds": 0.0001,
+    "p95_seconds": 3.6704,
+    "wilson_95": [
+      0.8668,
+      1.0
+    ],
+    "skill_accuracy": 1.0,
+    "skill_and_argument_accuracy": 1.0
+  },
+  "ambiguous_unsupported": {
+    "total": 12,
+    "correct": 12,
+    "accuracy": 1.0,
+    "p50_seconds": 0.0003,
+    "p95_seconds": 0.0012,
+    "wilson_95": [
+      0.7575,
+      1.0
+    ]
+  },
+  "deterministic": {
+    "total": 28,
+    "correct": 28,
+    "accuracy": 1.0,
+    "p50_seconds": 0.0001,
+    "p95_seconds": 0.0011,
+    "wilson_95": [
+      0.8794,
+      1.0
+    ],
+    "skill_accuracy": 1.0,
+    "skill_and_argument_accuracy": 1.0
+  },
+  "intent_guard": {
+    "total": 5,
+    "correct": 5,
+    "accuracy": 1.0,
+    "p50_seconds": 0.001,
+    "p95_seconds": 0.0012,
+    "wilson_95": [
+      0.5655,
+      1.0
+    ]
+  },
+  "deterministic_share": 0.7568,
+  "model_warm": {
+    "total": 8,
+    "correct": 8,
+    "accuracy": 1.0,
+    "p50_seconds": 3.2151,
+    "p95_seconds": 4.244,
+    "wilson_95": [
+      0.6756,
+      1.0
+    ],
+    "skill_accuracy": 1.0,
+    "skill_and_argument_accuracy": 1.0
+  },
+  "rows": [
+    {
+      "id": "dev-01",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "app.open",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0006,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-02",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "app.open",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.6605,
+      "cold_model_case": true
+    },
+    {
+      "id": "dev-03",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "app.open",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-04",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "folder.open",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-05",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "folder.open",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-06",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "website.open",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-07",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "website.open",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-08",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_volume",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-09",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_volume",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 4.244,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-10",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_volume",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.6704,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-11",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_mute",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-12",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_mute",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.3145,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-13",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_mute",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.3874,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-14",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "audio.set_mute",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-15",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "media.control",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-16",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "media.control",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-17",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "media.control",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.1158,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-18",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "media.control",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-19",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "screen.capture",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-20",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "screen.capture",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.0327,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-21",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "screen.capture",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 3.0043,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-22",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "files.search",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0002,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-23",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "files.search",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-24",
+      "supported": true,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "help.capabilities",
+      "skill_correct": true,
+      "elapsed_seconds": 0.0,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-25",
+      "supported": true,
+      "path": "model",
+      "correct": true,
+      "kind": "action_plan",
+      "skill": "help.capabilities",
+      "skill_correct": true,
+      "thinking_disabled": true,
+      "repairs": 0,
+      "elapsed_seconds": 2.5571,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-01",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-02",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0002,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-03",
+      "supported": false,
+      "path": "guard",
+      "correct": true,
+      "kind": "unsupported",
+      "skill": null,
+      "elapsed_seconds": 0.001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-04",
+      "supported": false,
+      "path": "guard",
+      "correct": true,
+      "kind": "unsupported",
+      "skill": null,
+      "elapsed_seconds": 0.0012,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-05",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0003,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-06",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-07",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-08",
+      "supported": false,
+      "path": "guard",
+      "correct": true,
+      "kind": "unsupported",
+      "skill": null,
+      "elapsed_seconds": 0.0011,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-09",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0001,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-10",
+      "supported": false,
+      "path": "guard",
+      "correct": true,
+      "kind": "unsupported",
+      "skill": null,
+      "elapsed_seconds": 0.0008,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-11",
+      "supported": false,
+      "path": "deterministic",
+      "correct": true,
+      "kind": "clarification",
+      "skill": null,
+      "elapsed_seconds": 0.0002,
+      "cold_model_case": false
+    },
+    {
+      "id": "dev-neg-12",
+      "supported": false,
+      "path": "guard",
+      "correct": true,
+      "kind": "unsupported",
+      "skill": null,
+      "elapsed_seconds": 0.001,
+      "cold_model_case": false
+    }
+  ],
+  "three_failure_stop": false
+}

@@ -1,0 +1,117 @@
+{
+  "phase": 3,
+  "implementation": "complete",
+  "acceptance_gate": "failed",
+  "phase4_authorized": false,
+  "functional_checks": {
+    "tests_passed": 324,
+    "test_elapsed_seconds": 31.27,
+    "lint_exit": 0,
+    "source_ui": true,
+    "standalone_ui": true,
+    "disposable_model_action": true
+  },
+  "acceptance": {
+    "NFR-01": {
+      "passed": false,
+      "total": 200,
+      "correct": 162,
+      "accuracy": 0.81,
+      "p50_seconds": 3.1153,
+      "p95_seconds": 4.8718,
+      "wilson_95": [
+        0.75,
+        0.8583
+      ],
+      "skill_accuracy": 0.845,
+      "skill_and_argument_accuracy": 0.81,
+      "target_accuracy": 0.95
+    },
+    "NFR-02": {
+      "passed": false,
+      "total": 50,
+      "correct": 40,
+      "accuracy": 0.8,
+      "p50_seconds": 0.0006,
+      "p95_seconds": 3.2656,
+      "wilson_95": [
+        0.6696,
+        0.8876
+      ],
+      "target_accuracy": 0.95
+    },
+    "NFR-04": {
+      "passed": false,
+      "gpu_profile": "unverified; Phase 0 timeouts retained",
+      "cpu_warm_model": {
+        "total": 135,
+        "correct": 99,
+        "accuracy": 0.7333,
+        "p50_seconds": 3.1806,
+        "p95_seconds": 4.9735,
+        "wilson_95": [
+          0.653,
+          0.8007
+        ],
+        "skill_accuracy": 0.8281,
+        "skill_and_argument_accuracy": 0.7734
+      },
+      "p50_target_seconds": 3,
+      "p95_target_seconds": 6
+    },
+    "NFR-05": {
+      "passed": true,
+      "standalone_input_to_render": {
+        "input": {
+          "samples": 40,
+          "p95_ms": 16.0
+        },
+        "stop": {
+          "samples": 40,
+          "p95_ms": 16.0
+        }
+      }
+    }
+  },
+  "error_breakdown": {
+    "conservative_deterministic_or_guard_declines": 9,
+    "model_skill_or_kind_mismatch": 22,
+    "model_argument_mismatch": 7,
+    "ambiguous_unsupported_misclassified": 10
+  },
+  "deterministic_share": 0.456,
+  "model": {
+    "runtime_version": "0.33.2",
+    "model": "qwen3:1.7b",
+    "digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+    "size_vram": 0,
+    "context_length": 4096
+  },
+  "lock": {
+    "rc_id": "phase3-rc1-7dfd5d7853d5",
+    "source_sha256": "7dfd5d7853d5e00da7f725b8143ecbda065cb0a8288d0bd13ebc187eae33550e",
+    "prompt_sha256": "8111de7053ae4cd4fd39b9086f95f2a16b6013169a9bb84658ddc9296ac2b2bf"
+  },
+  "privacy_and_policy": {
+    "heldout_actions_dispatched": 0,
+    "native_e2e_actions": 1,
+    "native_target": "owned disposable executable only",
+    "input_or_model_text_logged": false,
+    "origin_policy_property_tests": "passed; no policy bypass in tested combinations",
+    "thinking_disabled_verified_for_all_completed_model_rows": true
+  },
+  "build": {
+    "executable_sha256": "c2a8a6957f94eb81fc7cf4a30c9a94fed6af90a449c61676f9920c52edef4998",
+    "directory_bytes": 198359702,
+    "elapsed_seconds": 64.528,
+    "python_source_commit": "bdbd451"
+  },
+  "evaluation_limits": [
+    "Template-heavy synthetic text; only three owner cases; no speech-accuracy claim",
+    "Held-out run was pre-warmed after standalone trial; first model case excluded conservatively from warm statistics",
+    "Latency is text-planning only, ordinary desktop CPU run; GPU gate remains unverified",
+    "No tuning or rerun after held-out inspection; future improvements require retiring this dataset and fresh independent data"
+  ],
+  "post_gate_owned_workers": 0,
+  "ollama_lifecycle": "Separate loopback runtime left running for Autumn; shared model/service never stopped; five-minute keep-alive expires"
+}
