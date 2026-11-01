@@ -355,3 +355,11 @@ Upstream references (checked at the time of the v1.0 draft; re-verify when pinni
 ## 16. Changes from version 1.0
 
 Added the decision log and open decisions, threat model, origin-aware policy, non-activating confirmation, hold-to-talk mechanism and its limits, `PTT_READY` state, newline and focus rules, supervised Windows worker, app catalog, Windows Search index backend, dynamic planner schema, model allowlist, silent-capture detection, test infrastructure, supply-chain and license controls, and staged packaging. See [ADVERSARIAL_REVIEW.md](ADVERSARIAL_REVIEW.md).
+
+## 17. Personal launch implementation — D0021
+
+Schema 8 stores `start_brain_on_launch`, `broad_open_access` and `hands_free_on_launch`. Normal launch warms the pinned brain first, then discovers Start Menu, packaged and App Paths apps, then enables the saved hands-free preference. Activation alone gets a 40-second warm-up budget (plus up to five seconds for installed-server startup); ordinary planning retains its 15-second deadline. A three-minute refresh preserves the five-minute model lease when memory saver is off. Shared Ollama remains separate from owned audio workers.
+
+Broad opening enables validated newly discovered entries, refreshes metadata at the same installed target while retaining aliases, preserves explicit disables, and compiles complete user-entered local paths into ephemeral IDs. Supported document associations reuse `app.open`; paths never enter planner arguments and ephemeral entries are not persisted. Ordinary Windows permissions, shell/shortcut validation and generation checkpoints still apply.
+
+Hands-free reuses bounded capture/VAD and local STT, discards unaddressed speech, and routes “Autumn, …” with restricted `wake_voice` origin. Playback/acoustic tail pauses capture; Stop, microphone-off, device failure, lock/sleep and Quit prevent rearming. Minimize hides to the visible tray without changing the current microphone setting. `--login` suppresses launch listening; explicit isolated `--data-dir` trials suppress all automatic services. Source-level startup tests use fake audio with a real local model/catalog; no physical-audio acceptance is inferred. The native launcher and icon use a no-argument Windows shortcut and dynamically linked Qt resources.

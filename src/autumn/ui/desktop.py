@@ -5,7 +5,7 @@ import sys
 import winreg
 
 from PySide6.QtCore import Property, QObject, Qt, QTimer, Signal, Slot
-from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap, QWindow
 from PySide6.QtWidgets import QMenu, QMessageBox, QSystemTrayIcon
 
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -14,7 +14,7 @@ RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 def startup_command():
     if not getattr(sys, "frozen", False):
         raise ValueError("Startup is available in the standalone app only")
-    return subprocess.list2cmdline([sys.executable])
+    return subprocess.list2cmdline([sys.executable,'--login'])
 
 
 def set_startup(enabled):
@@ -27,12 +27,12 @@ def set_startup(enabled):
                 existing = winreg.QueryValueEx(key, "AutumnLocal")[0]
             except FileNotFoundError:
                 existing = None
-            if existing is not None and existing != command:
+            if existing is not None and existing not in {command,subprocess.list2cmdline([sys.executable])}:
                 raise ValueError("A different startup entry owns this name")
             winreg.SetValueEx(key, "AutumnLocal", 0, winreg.REG_SZ, command)
         else:
             try:
-                if winreg.QueryValueEx(key, "AutumnLocal")[0] != startup_command():
+                if winreg.QueryValueEx(key, "AutumnLocal")[0] not in {startup_command(),subprocess.list2cmdline([sys.executable])}:
                     raise ValueError("A different startup entry owns this name")
                 winreg.DeleteValue(key, "AutumnLocal")
             except FileNotFoundError:
@@ -42,7 +42,7 @@ def set_startup(enabled):
 def startup_enabled():
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
-            return winreg.QueryValueEx(key, "AutumnLocal")[0] == startup_command()
+            return winreg.QueryValueEx(key, "AutumnLocal")[0] in {startup_command(),subprocess.list2cmdline([sys.executable])}
     except (OSError, ValueError):
         return False
 
@@ -54,7 +54,7 @@ class Desktop(QObject):
         super().__init__(host)
         self.host, self.app, self.window = host, app, window
         self.startup = startup_enabled()
-        self.status = "Login startup is off by default. Voice always starts disabled."
+        self.status = "Login startup is opt-in. Normal launches use your saved listening preference."
         self.close_dialog = False
         self.pending_quit = False
         self.tray = QSystemTrayIcon(self)
@@ -62,16 +62,20 @@ class Desktop(QObject):
         self.open_action = self.menu.addAction("Open Autumn", self.open)
         self.menu.addAction("Stop all work", host.stop)
         self.menu.addAction("Microphone off", self.microphoneOff)
+        self.listen_action = self.menu.addAction('Hands-free listening')
+        self.listen_action.setCheckable(True)
+        self.listen_action.triggered.connect(host.voice.setHandsFree)
         self.arm_action = self.menu.addAction("Arm calibrated wake", host.wake.arm)
         self.menu.addSeparator()
         self.menu.addAction("Quit Autumn", app.quit)
         self.tray.setContextMenu(self.menu)
         self.tray.activated.connect(
-            lambda reason: self.open() if reason == QSystemTrayIcon.DoubleClick else None
+            lambda reason: self.open() if reason in {QSystemTrayIcon.DoubleClick,QSystemTrayIcon.Trigger} else None
         )
         self.last_state = None
         host.changed.connect(self.refresh)
         host.wake.changed.connect(self.refresh)
+        host.voice.changed.connect(self.refresh)
         host.settingsChanged.connect(self.changed)
         host.settingsChanged.connect(self.settings_saved)
         self.refresh()
@@ -111,7 +115,7 @@ class Desktop(QObject):
         self.host.changed.emit()
 
     def refresh(self):
-        state = (self.host.captureStatus, self.host.taskStatus, self.host.wake.calibrated)
+        state = (self.host.captureStatus, self.host.taskStatus, self.host.wake.calibrated,self.host.voice.hands_free)
         if state == self.last_state:
             return
         self.last_state = state
@@ -128,8 +132,16 @@ class Desktop(QObject):
         painter.drawText(pixmap.rect(), Qt.AlignCenter, "A")
         painter.end()
         self.tray.setIcon(QIcon(pixmap))
+        self.listen_action.setChecked(self.host.voice.hands_free)
         self.tray.setToolTip("Autumn · " + self.host.captureStatus + " · " + self.host.taskStatus)
         self.arm_action.setEnabled(self.host.wake.calibrated and not self.host.wake.enabled)
+
+    @Slot()
+    def onMinimized(self):
+        if self.window is not None and self.window.visibility() == QWindow.Minimized and QSystemTrayIcon.isSystemTrayAvailable():
+            self.window.hide()
+            self.status = 'Autumn is in the tray. Listening keeps its current setting.'
+            self.changed.emit()
 
     @Slot()
     def requestClose(self):

@@ -1,0 +1,16 @@
+{
+  "brain_ready": true,
+  "brain_status": "Local brain ready \u2014 pinned qwen3:1.7b, CPU; no cloud calls.",
+  "enabled_apps": 154,
+  "folders": 8,
+  "brain_startup_and_discovery_seconds": 8.25,
+  "window_icon_present": true,
+  "microphone_opened": false,
+  "action_dispatches": 0,
+  "tray_visible": true,
+  "minimized_to_tray": true,
+  "hands_free_still_enabled": true,
+  "capture_request_still_active": true,
+  "passed": true,
+  "clean_shutdown": true
+}

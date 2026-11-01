@@ -84,6 +84,7 @@ def shortcut_target(path: Path) -> Path:
 
 def import_apps(checkpoint, *, menu_roots=None, include_packages=True) -> tuple[AppEntry, ...]:
     import hashlib
+    include_paths = menu_roots is None
     if menu_roots is None:
         menu_roots = [Path(os.environ["APPDATA"]) / "Microsoft/Windows/Start Menu/Programs",
                       Path(os.environ["PROGRAMDATA"]) / "Microsoft/Windows/Start Menu/Programs"]
@@ -114,6 +115,11 @@ def import_apps(checkpoint, *, menu_roots=None, include_packages=True) -> tuple[
                     continue
             if count > 3000 or len(apps) >= 400:
                 break
+    if include_paths and checkpoint():
+        from autumn.winworker.discovery import app_paths
+        for entry in app_paths(checkpoint):
+            if len(apps) < 500:
+                apps.setdefault(entry.id,entry)
     if include_packages and checkpoint():
         try:
             import win32com.client
@@ -216,8 +222,9 @@ class WindowsAdapter:
                 raise InterruptedError()
             process = subprocess.Popen([entry.target], shell=False, close_fds=True)
             pid = process.pid
-        elif entry.kind == "shortcut":
-            shortcut_target(Path(entry.target))
+        elif entry.kind in {"shortcut", "file"}:
+            if entry.kind == 'shortcut':
+                shortcut_target(Path(entry.target))
             if not checkpoint():
                 raise InterruptedError()
             import win32api

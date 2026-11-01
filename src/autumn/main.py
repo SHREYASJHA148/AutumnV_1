@@ -24,6 +24,7 @@ def main() -> int:
     parser.add_argument('--ui-preview-image',type=Path,help='Image of only the isolated Autumn window')
     parser.add_argument('--soak-report',type=Path,help='Isolated real-time software stability trial; no audio hardware')
     parser.add_argument('--soak-seconds',type=int,default=7200)
+    parser.add_argument('--login',action='store_true',help='Login startup keeps the microphone off')
     args = parser.parse_args()
     if args.soak_report and (args.data_dir is None or not 30 <= args.soak_seconds <= 86400):
         parser.error('Software soak requires isolated --data-dir and 30–86400 seconds')
@@ -63,6 +64,7 @@ def main() -> int:
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Fusion")
 
     from PySide6.QtCore import QTimer, QtMsgType, QUrl, qInstallMessageHandler
+    from PySide6.QtGui import QIcon
     from PySide6.QtQml import QQmlApplicationEngine
     from PySide6.QtQuick import QQuickWindow
     from PySide6.QtWidgets import QApplication, QMessageBox
@@ -82,7 +84,8 @@ def main() -> int:
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.7.0")
+    app.setApplicationVersion("0.7.1")
+    app.setWindowIcon(QIcon(str(Path(__file__).parent/'ui/Autumn.ico')))
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:
         instance = SingleInstance(root)
@@ -94,7 +97,7 @@ def main() -> int:
         instance.close()
         return 0
     supervisor = Supervisor(root, allow_faults=bool(args.soak_report))
-    vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report or args.ui_preview_report))
+    vm = ViewModel(supervisor, preview_mode=bool(args.smoke_report or args.ui_preview_report),launch_services=args.data_dir is None,launch_listening=not args.login)
     from autumn.ui.desktop import Desktop
     desktop = Desktop(vm,app)
     from autumn.ui.confirmation import ConfirmationOverlay
@@ -123,6 +126,7 @@ def main() -> int:
         return 1
     window = engine.rootObjects()[0]
     desktop.window = window
+    window.visibilityChanged.connect(desktop.onMinimized)
     if not isinstance(window, QQuickWindow):
         vm.shutdown()
         native.close()
@@ -147,6 +151,8 @@ def main() -> int:
             window.showNormal()
             window.raise_()
             window.requestActivate()
+            if vm.launch_services:
+                vm.checkLocalBrain()
 
     focus_timer.timeout.connect(focus_existing)
     focus_timer.start()

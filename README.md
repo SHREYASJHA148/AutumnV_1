@@ -1,8 +1,10 @@
 # Autumn
 
+Autumn 0.7.1 adds your requested personal launch profile: open `C:\adu\Autumn.lnk` to start the local brain, discover installed apps and begin hands-free listening. Say “Autumn, open Spotify”. Minimize to the tray to keep listening; Stop pauses it. See [Personal launch and listening](docs/PERSONAL_LAUNCH.md) for the current behavior and opening scope.
+
 A local Windows desktop assistant named Autumn: English push-to-talk, a female local voice and the pinned `qwen3:1.7b` planner. Phase 7 adds a futuristic animated command deck, verified model setup, per-user installer and crash recovery. This is an engineering preview: earlier accuracy targets failed and human/hardware acceptance remains incomplete.
 
-Use `dist/Autumn-0.7.0-preview/AutumnSetup.exe` for per-user installation, or `dist/Autumn preview é/Autumn/Autumn.exe` for the developer build. First close asks whether to quit or keep running in the tray. A second launch brings the existing window forward. A shared Ollama service is left running. See [User guide](docs/USER_GUIDE.md), [Troubleshooting](docs/TROUBLESHOOTING.md) and [Known issues](docs/KNOWN_ISSUES.md).
+Use `dist/Autumn-0.7.1-preview/AutumnSetup.exe` for per-user installation, or the Autumn shortcut in `C:\adu` for the configured developer build. First close asks whether to quit or keep running in the tray. A second launch brings the existing window forward and refreshes the local brain. A shared Ollama service is left running. See [User guide](docs/USER_GUIDE.md), [Troubleshooting](docs/TROUBLESHOOTING.md) and [Known issues](docs/KNOWN_ISSUES.md).
 
 For development, run these commands from this folder in PowerShell:
 
@@ -15,7 +17,7 @@ For development, run these commands from this folder in PowerShell:
 
 The measured environment is `.venv-qt-compat` with project-local CPython 3.12.10. Reproduce dependencies with the local `uv` tool and `requirements-phase7.lock` using `--require-hashes`; do not install from the unpinned input file. Phase 7 adds no dependencies. Older environments and locks are preserved. Build the app with `packaging/build.ps1`, then the installer with `packaging/build_setup.ps1`.
 
-Stop is **Ctrl+Alt+Backspace**. Enable voice, then hold **Ctrl+Alt+Space** or **Hold to talk** to record a command. Voice setup also offers toggle recording, which ends after a pause; every recording is bounded to 20 seconds. Stop and microphone-off discard unfinished voice work. Both work independently of recognition and the model. Every launch starts with the microphone off.
+Stop is **Ctrl+Alt+Backspace**. Hands-free mode accepts “Autumn, …” and continues in the tray. For manual capture, enable voice, then hold **Ctrl+Alt+Space** or **Hold to talk**. Voice setup also offers toggle recording; every recording is bounded to 20 seconds. Stop and microphone-off discard unfinished voice work independently of recognition and the model. Normal launches use the saved hands-free preference; login startup and isolated diagnostics keep the microphone off.
 
 **Voice setup** provides local file checks, microphone/speaker selection, a four-second recording test, editable recognized text, female voice volume/speed and explicit playback tests. Audio stays in memory; microphone tests never run commands. Sending edited text creates a new typed request. Playback suspends recording and adds a 300 ms acoustic tail. Lessac/Piper is primary; Windows Zira is the default-speaker fallback, with text available if neither voice works. Wake listening remains calibration-locked until its measured checks pass.
 
@@ -25,9 +27,9 @@ Settings and redacted activity are stored under `%LOCALAPPDATA%\Autumn\`. Activi
 
 To get started, open **Apps and folders**, import installed apps or choose an executable/shortcut, inspect its target, add aliases and enable it with **Review & save**. Imports skip shell launchers and shortcuts with arguments. Register extra folders and websites explicitly on the same page. Default search roots are Documents and Downloads; Settings controls each capability and the screenshot destination.
 
-Open the separately installed Ollama runtime for flexible commands. **Settings → Check local brain** verifies and warms the existing pinned model. The adapter contacts only literal `127.0.0.1:11434`, ignores proxy/redirect settings, rejects remote models and checks the digest before and after generation. It never downloads or updates a model automatically. The measured default is CPU; GPU acceleration remains unverified. The baseline digest is recorded in Settings/contracts and reports.
+Autumn starts the installed local Ollama server if needed and warms the pinned model when opened. **Settings → Check local brain** retries verification and warm-up. The adapter contacts only literal `127.0.0.1:11434`, ignores proxy/redirect settings, rejects remote models and checks the digest before and after generation. It never downloads or updates a model automatically. The measured default is CPU; GPU acceleration remains unverified. The baseline digest is recorded in Settings/contracts and reports.
 
-Exact commands run before model routing and keep working if Ollama is unavailable. Turn off **Flexible English commands** to use them exclusively. **Save memory** releases the model after each request; otherwise it may stay warm for five minutes. Starting Autumn does not warm the model until a flexible request or explicit check. Quit never stops the separate Ollama runtime.
+Exact commands run before model routing and keep working if Ollama is unavailable. Turn off **Flexible English commands** to use them exclusively. **Save memory** releases the model after each request; otherwise Autumn refreshes its five-minute warm lease while running. Startup warming is asynchronous and can take up to 40 seconds after server startup. Quit never stops the separate Ollama runtime.
 
 Model replies pass strict argument, live-registry and origin-policy checks. They never contain executable authority or launch paths. A request has a 15-second planning deadline and at most one repair. Unsupported/unclear input can be declined conservatively; exact names and the supported command forms are the most dependable option. Clarification choices last 30 seconds, preserve the original input authority and disappear on Stop. General conversation remains unavailable.
 

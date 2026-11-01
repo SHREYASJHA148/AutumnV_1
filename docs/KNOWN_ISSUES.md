@@ -1,4 +1,6 @@
-# Autumn 0.7.0 — engineering preview limitations
+# Autumn 0.7.1 — engineering preview limitations
+
+- New hands-free mode uses local recognition for speech addressed to Autumn and can start from the explicitly configured personal launch preference. It continues in the tray; its real microphone/speaker and false-activation trials remain pending. The first real-server startup was unavailable, then succeeded on the next run; startup-only warm-up now has a 40-second budget. Ordinary action planning still has its existing 15-second deadline.
 
 - Release acceptance is NOT PASSED. Phase 3 held-out routing was 162/200 (81%) and ambiguous/unsupported handling was 40/50 (80%), below their 95% targets. The frozen evaluation is not reused for tuning. Prefer exact supported phrases and reviewed aliases.
 - CPU is the measured inference profile. GPU latency/aggregate RAM+VRAM acceptance is unverified; a model fitting in VRAM alone is not a passing performance gate.

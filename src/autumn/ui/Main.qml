@@ -55,6 +55,7 @@ ApplicationWindow {
                 Item { Layout.fillWidth: true }
                 Label { text: "●  ON DEVICE"; color: "#74deeb"; font.pixelSize: 11; font.letterSpacing: 1.3; Accessible.name: "Inference runs on your computer. Websites and explicit setup downloads use the internet."; visible: window.width > 1000 }
                 NeonButton { text: desktop.reducedMotion ? "Motion off" : "Motion on"; Accessible.name: "Toggle decorative motion"; onClicked: desktop.saveOptions(desktop.closeBehavior,!desktop.reducedMotion) }
+                NeonButton { text: "Hands-free"; visible: window.width > 1100; checkable: true; checked: voice.handsFree; Accessible.name: "Toggle hands-free listening for Autumn"; onClicked: voice.setHandsFree(!voice.handsFree) }
                 NeonButton { objectName: "voiceButton"; text: voice.enabledVoice || wake.enabledWake || wake.busy ? "Microphone off" : "Enable voice"; Accessible.name: text; onClicked: vm.toggleVoice() }
                 NeonButton { objectName: "stopButton"; text: "Stop"; Accessible.name: "Stop all work"; onClicked: vm.stop(); highlighted: true }
             }
@@ -81,9 +82,9 @@ ApplicationWindow {
                     }
                     Item { Layout.fillHeight: true }
                     Label { text: "LOCAL WORKSPACE"; color: "#ffc27e"; font.pixelSize: 10; font.letterSpacing: 1.2 }
-                    Label { Layout.fillWidth: true; text: "Commands use reviewed targets.\nVoice starts switched off."; wrapMode: Text.WordWrap; color: "#9bb0c9"; font.pixelSize: 12 }
+                    Label { Layout.fillWidth: true; text: vm.broadOpenAccess ? "Installed apps and local paths enabled.\nListening follows your launch preference." : "Commands use reviewed targets.\nVoice follows your launch preference."; wrapMode: Text.WordWrap; color: "#9bb0c9"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "PREVIEW 0.7.0"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "PREVIEW 0.7.1"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
                 }
             }
@@ -314,7 +315,7 @@ ApplicationWindow {
                         clip: true; contentWidth: availableWidth
                         ColumnLayout {
                             width: parent.width - 22; spacing: 14
-                            Label { Layout.fillWidth: true; text: voice.statusText; wrapMode: Text.WordWrap; color: "#b3d9ea"; Accessible.name: text }
+                            Label { Layout.fillWidth: true; text: voice.handsFree && voice.isRecording ? "Listening for ‘Autumn, …’. Pause to finish your command." : voice.statusText; wrapMode: Text.WordWrap; color: "#b3d9ea"; Accessible.name: text }
                             ProgressBar { Layout.fillWidth: true; from: 0; to: 1; value: voice.inputLevel; Accessible.name: "Microphone level" }
                             Label { Layout.fillWidth: true; text: "Enable voice, then hold the talk button or shortcut while speaking. Toggle mode ends after a pause. Recordings stop at 20 seconds. Audio stays in memory."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
                             Label { Layout.fillWidth: true; text: "Shortcuts may not reach administrator windows. Use Autumn's on-screen talk and Stop controls; Autumn runs with ordinary user access."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
@@ -442,6 +443,11 @@ ApplicationWindow {
                             NeonButton { text: "Save threshold"; enabled: vm.canConfigure; onClicked: wake.saveThreshold(wakeThreshold.value) }
                             Label { Layout.fillWidth: true; text: "Stop, microphone-off, lock, sleep and Quit disarm wake. Playback closes the listener before speaking and waits for its acoustic tail before rearming. Wake cannot dictate or open an unregistered URL. Real wake, room audio, battery, Narrator and power-transition acceptance trials are still pending."; wrapMode: Text.WordWrap; color: "#ffc27e" }
                             Label { text: "Desktop and accessibility"; font.pixelSize: 18; color: "#ffc27e" }
+                            NeonButton { text: voice.handsFree ? "Pause hands-free listening" : "Listen hands-free"; onClicked: voice.setHandsFree(!voice.handsFree) }
+                            Label { Layout.fillWidth: true; text: "Say ‘Autumn, open Spotify’ in one utterance. English speech is processed locally; unaddressed speech is discarded. Listening continues when minimized. Stop pauses it; lock, sleep and Quit close the microphone. This mode is experimental and has separate acceptance checks from calibrated hey-jarvis wake."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
+                            CheckBox { text: "Start the local brain when Autumn opens"; checked: vm.modelAutostart; enabled: vm.canConfigure; onClicked: vm.saveLaunchOptions(checked,vm.broadOpenAccess,vm.handsFreeAutostart); Accessible.name: text }
+                            CheckBox { text: "Allow discovered installed apps and explicit local paths"; checked: vm.broadOpenAccess; enabled: vm.canConfigure; onClicked: vm.saveLaunchOptions(vm.modelAutostart,checked,vm.handsFreeAutostart); Accessible.name: text }
+                            CheckBox { text: "Start hands-free listening when Autumn opens"; checked: vm.handsFreeAutostart; enabled: vm.canConfigure; onClicked: vm.saveLaunchOptions(vm.modelAutostart,vm.broadOpenAccess,checked); Accessible.name: text }
                             CheckBox { id: reducedMotion; text: "Reduced motion"; checked: desktop.reducedMotion; Accessible.name: text }
                             Label { Layout.fillWidth: true; text: "Reduced motion disables orbit, hover and page animations. Controls support Tab, Shift+Tab, Space and Enter; Stop and confirmation shortcuts remain global."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
                             ComboBox { id: closeBehavior; model: ["ask", "tray", "quit"]; currentIndex: model.indexOf(desktop.closeBehavior); Accessible.name: "Window close behavior" }
@@ -494,7 +500,7 @@ ApplicationWindow {
                 }
                 Rectangle {
                     Layout.fillWidth: true; implicitHeight: noticeText.implicitHeight + 24; radius: 8; color: "#0e2235"
-                    Label { id: noticeText; objectName: "notice"; anchors.fill: parent; anchors.margins: 12; text: vm.statusMessage; textFormat: Text.PlainText; wrapMode: Text.WordWrap; color: "#b3d9ea"; Accessible.name: "Status: " + text }
+                    Label { id: noticeText; objectName: "notice"; anchors.fill: parent; anchors.margins: 12; text: voice.handsFree ? vm.captureStatus + " · Say ‘Autumn, …’" : vm.statusMessage; textFormat: Text.PlainText; wrapMode: Text.WordWrap; color: "#b3d9ea"; Accessible.name: "Status: " + text }
                 }
             }
         }

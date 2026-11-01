@@ -23,7 +23,7 @@ def build(root):
         shutil.copy2(root / name, stage / name)
     docs = stage / 'guide'
     docs.mkdir()
-    for name in ('USER_GUIDE.md','TROUBLESHOOTING.md','KNOWN_ISSUES.md'):
+    for name in ('USER_GUIDE.md','TROUBLESHOOTING.md','KNOWN_ISSUES.md','PERSONAL_LAUNCH.md'):
         shutil.copy2(root / 'docs' / name, docs / name)
     notices = stage / 'licenses'
     notices.mkdir()
@@ -54,11 +54,11 @@ def build(root):
     with zipfile.ZipFile(stage / 'autumn-source.zip','w',compression=zipfile.ZIP_DEFLATED) as archive:
         for folder in ('src','packaging','tests'):
             for path in sorted((root / folder).rglob('*')):
-                if path.is_file() and '__pycache__' not in path.parts and path.suffix in {'.py','.qml','.ps1'}:
+                if path.is_file() and '__pycache__' not in path.parts and path.suffix in {'.py','.qml','.ps1','.ico'}:
                     archive.write(path,path.relative_to(root).as_posix())
         for name in ('pyproject.toml','README.md','THIRD_PARTY_NOTICES.md','requirements-phase7.lock','requirements-phase7.in'):
             archive.write(root / name,name)
-        for name in ('USER_GUIDE.md','TROUBLESHOOTING.md','KNOWN_ISSUES.md'):
+        for name in ('USER_GUIDE.md','TROUBLESHOOTING.md','KNOWN_ISSUES.md','PERSONAL_LAUNCH.md'):
             archive.write(root / 'docs' / name,'docs/' + name)
     files = {p.relative_to(stage).as_posix():{'bytes':p.stat().st_size,'sha256':sha256(p)} for p in sorted(stage.rglob('*')) if p.is_file()}
     manifest = {'product':PRODUCT,'version':__version__,'files':files}

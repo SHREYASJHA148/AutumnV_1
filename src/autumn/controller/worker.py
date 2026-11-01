@@ -38,6 +38,7 @@ class Job(Contract):
     plan: Plan | None = None
     confirmation_id: str | None = Field(default=None, max_length=64)
     approved: bool = False
+    start_runtime: bool = False
 
 
 def worker_main(commands, replies, generation, stopping, root: str, allow_faults: bool, *, voice_generation=None) -> None:
@@ -104,7 +105,10 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                         continue
 
                     # IPC carries input in memory only. Never add it to history or diagnostics.
-                    routing = route(job.text or "", settings) if job.plan is None else None
+                    from autumn.actions.broad_open import direct_open
+                    routing, command_settings = direct_open(job.text or '',settings) if job.plan is None else (None,settings)
+                    engine.settings = command_settings
+                    routing = routing or (route(job.text or "", command_settings) if job.plan is None else None)
                     plan = job.plan or (routing.plan if routing else None)
                     model_reply = None
                     model_error = None
@@ -112,7 +116,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                         send("busy", timeout=15.3)
                         try:
                             candidate_ids = tuple(k for k,v in engine.candidates.items() if v.expires >= time.monotonic())
-                            model_reply = brain.plan(job.text or "",settings,req,checkpoint,candidate_ids)
+                            model_reply = brain.plan(job.text or "",command_settings,req,checkpoint,candidate_ids)
                             if isinstance(model_reply,Plan):
                                 plan = model_reply
                         except BrainError as error:
@@ -208,8 +212,11 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     send("idle")
                 elif job.kind == "activate_model":
                     expected = job.generation
-                    send("busy", timeout=15.3)
+                    send("busy", timeout=46)
                     try:
+                        if job.start_runtime:
+                            from autumn.brain.runtime import ensure_local_runtime
+                            ensure_local_runtime(lambda: alive() and generation.value == expected)
                         brain.activate(settings,lambda: alive() and generation.value == expected)
                     except BrainError:
                         pass
@@ -222,11 +229,11 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     expected = job.generation
                     send("busy", timeout=16)
                     imported = import_apps(lambda: alive() and generation.value == expected and time.monotonic() < deadline)
-                    # Preserve owner-edited entries; newly discovered apps stay disabled/unreviewed.
-                    previous = {entry.id: entry for entry in settings.apps}
-                    for entry in imported:
-                        previous.setdefault(entry.id, entry)
-                    settings = settings.model_copy(update={"apps": tuple(previous.values())[:500]})
+                    from autumn.actions.broad_open import authorize_discovered
+                    from autumn.winworker.discovery import common_folders
+                    settings = settings.model_copy(update={
+                        'apps':authorize_discovered(settings.apps,imported,settings.broad_open_access),
+                        'folders':common_folders(settings.folders) if settings.broad_open_access else settings.folders})
                     atomic_save(Path(root) / "config/settings.json", settings)
                     engine.settings = settings
                     send("settings_saved", settings=settings.model_dump(mode="json"))
@@ -280,6 +287,9 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                          generation=job.generation, state=TaskState.ERROR).model_dump(mode="json"))
                     send("action_finished", request_id=str(job.request.request_id), generation=job.generation)
                 send("idle")
+            finally:
+                # Explicit-path targets exist only for their request, never persisted/discovered by the model.
+                engine.settings = settings
     finally:
         parent.close()
         if history is not None:

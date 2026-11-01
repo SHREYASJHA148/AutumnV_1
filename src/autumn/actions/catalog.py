@@ -62,7 +62,7 @@ class AppEntry(Contract):
     id: Identifier
     name: str = Field(min_length=1, max_length=80)
     aliases: tuple[str, ...] = Field(default=(), max_length=12)
-    kind: Literal["executable", "shortcut", "package"]
+    kind: Literal["executable", "shortcut", "package", "file"]
     target: str = Field(min_length=1, max_length=2048)
     fingerprint: str = ""
     enabled: bool = False
@@ -109,7 +109,12 @@ def validate_app(entry: AppEntry) -> AppEntry:
             raise ValueError("Invalid packaged app identity")
     else:
         path = no_reparse(local_path(entry.target))
-        if path.suffix.lower() != (".exe" if entry.kind == "executable" else ".lnk") or not path.is_file():
+        if entry.kind == 'file':
+            from autumn.actions.broad_open import DOCUMENT_EXTENSIONS
+            valid_extension = path.suffix.casefold() in DOCUMENT_EXTENSIONS
+        else:
+            valid_extension = path.suffix.lower() == (".exe" if entry.kind == "executable" else ".lnk")
+        if not valid_extension or not path.is_file():
             raise ValueError("Invalid launch target")
         if path.stem.casefold() in BLOCKED_EXECUTABLES:
             raise ValueError("Script and shell launchers are not supported")

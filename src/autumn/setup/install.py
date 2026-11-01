@@ -196,6 +196,15 @@ def install(payload, root, progress=lambda *args: None, maintenance=None, regist
                 raise ValueError("Unexpected maintenance file")
         if registry and maintenance_path:
             register_uninstall(root, manifest["version"], maintenance_path)
+            from autumn.setup.shortcut import create_shortcut
+            marker = root/'autumn-shortcut.json'
+            if marker.exists():
+                from autumn.actions.catalog import no_reparse
+                no_reparse(marker)
+                if marker.stat().st_size > 1024 or json.loads(marker.read_text(encoding='utf-8')).get('product')!=PRODUCT:
+                    raise ValueError('Unrelated shortcut record')
+            link = create_shortcut(target/'Autumn.exe',root/'Autumn.lnk')
+            marker.write_text(json.dumps({'product':PRODUCT,'sha256':sha256(link)}),encoding='utf-8')
         previous_kept = remove_owned(backup) if backup else 0
         return {
             "installed": True,
@@ -221,6 +230,19 @@ def uninstall(root, registry=False):
         target = checked_root(root / "application")
         owned_manifest(target)
         retained = remove_owned(target)
+        link = root/'Autumn.lnk'
+        marker = root/'autumn-shortcut.json'
+        if link.is_file() and marker.is_file():
+            from autumn.actions.catalog import no_reparse
+            no_reparse(link)
+            no_reparse(marker)
+            try:
+                record = json.loads(marker.read_text(encoding='utf-8')) if marker.stat().st_size<=1024 else {}
+            except (OSError,ValueError):
+                record = {}
+            if record.get('product')==PRODUCT and record.get('sha256')==sha256(link):
+                link.unlink()
+                marker.unlink()
         if registry:
             unregister_uninstall(root)
             unregister_startup(root)
@@ -286,7 +308,7 @@ def unregister_startup(root):
                             r'Software\Microsoft\Windows\CurrentVersion\Run',
                             0, winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
             expected = subprocess.list2cmdline([str(root / 'application' / 'Autumn.exe')])
-            if winreg.QueryValueEx(key,'AutumnLocal')[0] == expected:
+            if winreg.QueryValueEx(key,'AutumnLocal')[0] in {expected,subprocess.list2cmdline([str(root / 'application' / 'Autumn.exe'),'--login'])}:
                 winreg.DeleteValue(key,'AutumnLocal')
     except FileNotFoundError:
         pass

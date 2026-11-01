@@ -1,0 +1,11 @@
+{
+  "configured": true,
+  "brain_starts_on_open": true,
+  "broad_app_and_local_path_access": true,
+  "hands_free_on_open": true,
+  "activation_prefix": "Autumn",
+  "shortcut": "C:\\adu\\Autumn.lnk",
+  "real_microphone_opened_by_configuration": false,
+  "login_startup_enabled_by_configuration": false,
+  "owned_legacy_login_entry_migrated_to_mic_off": false
+}

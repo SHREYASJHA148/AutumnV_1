@@ -1,15 +1,21 @@
 """Isolated per-user setup/launch/removal with scrubbed environment, no registry writes."""
+import argparse
 import json
 import os
 import subprocess
 import time
+import tomllib
 from pathlib import Path
 from uuid import uuid4
 
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    release = root / 'dist/Autumn-0.7.0-preview'
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--prefix',default='phase7')
+    args=parser.parse_args()
+    version=tomllib.loads((root/'pyproject.toml').read_text(encoding='utf-8'))['project']['version']
+    release = root / ('dist/Autumn-'+version+'-preview')
     report_root = root / 'docs/reports'
     fixture = root / '.cache' / ('installed preview é-' + uuid4().hex[:8])
     fixture.mkdir()
@@ -41,11 +47,13 @@ def main():
         print(json.dumps({'step':report.stem,'passed':True,'wall_seconds':round(elapsed,3)}),flush=True)
         return data,elapsed
 
-    run([str(setup),'--root',str(installed),'--no-registry','--smoke-report',str(report_root/'phase7_installer_install.json')],report_root/'phase7_installer_install.json')
+    def named(name):
+        return report_root/(args.prefix+'_'+name+'.json')
+    run([str(setup),'--root',str(installed),'--no-registry','--smoke-report',str(named('installer_install'))],named('installer_install'))
     assert json.loads((installed/'application/_internal/autumn/speech/external_assets.json').read_text())=={}
     readiness=[]
     for name,scale in [('cold',None),('warm',None),('scale2',2)]:
-        report = report_root / ('phase7_installed_' + name + '.json')
+        report = named('installed_'+name)
         data,wall = run([str(installed/'application/Autumn.exe'),'--data-dir',str(installed/'isolated-ui'),'--smoke-report',str(report)],report,scale)
         # Includes process exit overhead, so an upper bound rather than a direct readiness timestamp.
         readiness.append({'run':name,'launch_to_typed_ready_upper_bound_seconds':round(wall-data['elapsed_seconds']+data['ui_ready_after_qml_ms']/1000,3),'direct_readiness_timestamp':False})
@@ -54,10 +62,10 @@ def main():
         path = installed/name
         path.parent.mkdir(parents=True,exist_ok=True)
         path.write_text(text,encoding='utf-8')
-    run([str(setup),'--uninstall','--root',str(installed),'--no-registry','--smoke-report',str(report_root/'phase7_installer_uninstall.json')],report_root/'phase7_installer_uninstall.json')
+    run([str(setup),'--uninstall','--root',str(installed),'--no-registry','--smoke-report',str(named('installer_uninstall'))],named('installer_uninstall'))
     assert all((installed/name).read_text(encoding='utf-8')==text for name,text in keep.items())
     assert not (installed/'application/Autumn.exe').exists()
-    report_root.joinpath('phase7_release_validation.json').write_text(json.dumps({'passed':True,'scope':'same Windows account, scrubbed environment, disposable per-user install, NO registry writes; not clean-account acceptance','readiness_upper_bounds':readiness,'developer_asset_path_removed':True,'owner_fixtures_retained':True,'models_downloaded':False,'audio_hardware_opened':False,'installed_application_removed':True,'fixture':fixture.name},indent=2),encoding='utf-8')
+    named('release_validation').write_text(json.dumps({'passed':True,'scope':'same Windows account, scrubbed environment, disposable per-user install, NO registry writes; not clean-account acceptance','readiness_upper_bounds':readiness,'developer_asset_path_removed':True,'owner_fixtures_retained':True,'models_downloaded':False,'audio_hardware_opened':False,'installed_application_removed':True,'fixture':fixture.name},indent=2),encoding='utf-8')
 
 
 if __name__ == '__main__':

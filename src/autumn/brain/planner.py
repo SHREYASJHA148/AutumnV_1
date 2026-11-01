@@ -100,7 +100,7 @@ class Planner:
 
     async def activate_async(self, settings, checkpoint):
         self.failures = 0
-        deadline = self.clock() + 15
+        deadline = self.clock() + 40
         await self.verify(deadline, checkpoint)
         if not settings.model_enabled:
             self.last_health = "Pinned local model verified; flexible commands are disabled."

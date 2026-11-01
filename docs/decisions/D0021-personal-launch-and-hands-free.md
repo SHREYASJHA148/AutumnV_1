@@ -1,0 +1,5 @@
+# D0021 — personal launch and broad opening
+Question: How should the owner's new request change launch, opening permissions and background listening?
+Options: Keep manual setup; implement automatic local-brain startup, account-level app discovery/local-path opening, a launch shortcut and visible hands-free tray listening.
+Choice: Implement the requested personal profile; ordinary Windows account permissions apply. Hands-free uses local English recognition with the addressed prefix “Autumn”; Stop/microphone-off/lock/quit stop it. Only the real normal launch can auto-start it; isolated diagnostics never open audio. Preserve the separate calibration-locked ONNX wake mode and mark this new mode experimental.
+Reason: The owner's 1 November request explicitly authorizes broader opening and listening while running/minimized, superseding the earlier manual-microphone/per-app-review defaults for this personal profile. No permission to bypass Windows protections, execute generated code, add cloud services or fabricate acceptance results is inferred.

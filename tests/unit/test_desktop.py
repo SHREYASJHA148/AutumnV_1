@@ -34,6 +34,14 @@ def test_tray_close_preserves_mic_and_quit_is_explicit(monkeypatch):
     assert calls[-1] == "quit"
 
 
+def test_minimize_hides_to_available_tray_without_cancelling_audio(monkeypatch):
+    obj,calls=controller()
+    obj.window.visibility=lambda:desktop.QWindow.Minimized
+    monkeypatch.setattr(desktop.QSystemTrayIcon,'isSystemTrayAvailable',lambda:True)
+    obj.onMinimized()
+    assert calls==['hide']
+
+
 def test_first_close_quit_waits_for_saved_choice_then_quits(monkeypatch):
     class Dialog:
         AcceptRole = 0

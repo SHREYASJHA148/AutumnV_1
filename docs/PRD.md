@@ -245,3 +245,7 @@ Free conversation, floating widget, light theme, additional skills.
 ## 13. Changes from version 1.0
 
 Added origin-aware policy, app catalog, first-run setup, single instance, capabilities help, numbered non-functional requirements and timing definitions. Split confirmation cards (P1) from policy enforcement (P0). Moved free conversation and the floating widget to P2. Clarified Stop, hold-to-talk limits, dictation line breaks, focus handling, file-search behavior, disk accounting and release labeling. Technology references moved to the TRD. See [ADVERSARIAL_REVIEW.md](ADVERSARIAL_REVIEW.md) for the reasoning.
+
+## 14. Owner-authorized personal launch extension — 1 November 2026
+
+D0021 adds automatic startup of the installed local brain, a native clickable Autumn launcher, broad installed-app discovery and explicit local-path opening under the current Windows account, and hands-free listening while minimized. The owner explicitly enabled the personal launch/listening preferences. This supersedes earlier per-app approval and microphone-off defaults for that configured normal launch; explicit per-app disables remain respected. New unconfigured profiles retain hands-free off, login startup stays opt-in/microphone-off, and Stop/lock/sleep/Quit pause listening. The new local-STT mode accepts “Autumn, …” in one utterance and is experimental; the separate ONNX wake calibration gate and all NFR acceptance targets remain unchanged. See PERSONAL_LAUNCH.md and D0021.

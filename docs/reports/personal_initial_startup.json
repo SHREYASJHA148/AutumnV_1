@@ -1,0 +1,10 @@
+{
+  "scope": "initial real-runtime and installed-catalog check with a fake microphone",
+  "brain_ready": false,
+  "enabled_apps": 154,
+  "elapsed_seconds": 21.734,
+  "minimized_to_tray": true,
+  "hands_free_still_enabled": true,
+  "clean_shutdown": true,
+  "followup": "Second run loaded the pinned brain successfully. Activation warm-up budget extended from 15 to 40 seconds; ordinary command planning keeps its existing 15-second deadline. A repeat cold-server trial is not claimed."
+}

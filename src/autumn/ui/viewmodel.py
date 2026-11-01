@@ -33,17 +33,22 @@ class ViewModel(QObject):
     shortcutsChanged = Signal()
     acknowledged = Signal(str)
 
-    def __init__(self, supervisor: Supervisor, *, preview_mode: bool = False) -> None:
+    def __init__(self, supervisor: Supervisor, *, preview_mode: bool = False, launch_services: bool = False, launch_listening: bool = True) -> None:
         super().__init__()
         self.supervisor = supervisor
         self.session = Session()
         self.settings = Settings()
         self.preview_mode = preview_mode
+        self.launch_services = launch_services
+        self.launch_listening = launch_listening
+        self.launch_stage = 'pending' if launch_services else 'done'
+        self.next_brain_refresh = 0.0
+        self.brain_warming = False
         self.ready = False
         self.first_run = False
         self.settings_pending = False
         self.notice = "Starting the local workspace…"
-        self.conversation = [{"role": "Autumn", "text": "Welcome. Type ‘what can you do?’ for available commands. Add or import and review apps in Settings before opening them."}]
+        self.conversation = [{"role": "Autumn", "text": "Welcome. Type ‘what can you do?’ for available commands, or say ‘Autumn, open Spotify’ when hands-free listening is enabled."}]
         self.history: list[dict] = []
         self.diagnostics: list[dict] = []
         self.shortcut_rows: list[dict] = []
@@ -73,6 +78,8 @@ class ViewModel(QObject):
 
     @Property(str, notify=changed)
     def captureStatus(self):
+        if self.voice.hands_free:
+            return 'Hands-free · listening' if self.voice.recording else 'Hands-free · processing / waiting'
         return {CaptureState.DISABLED:'Microphone off',CaptureState.PTT_READY:'Voice ready · microphone closed',
             CaptureState.RECORDING:'Recording microphone',CaptureState.SUSPENDED_PLAYBACK:'Recording suspended during playback / acoustic tail',
             CaptureState.DEVICE_ERROR:'Audio device error · microphone closed',CaptureState.ARMED_WAKE:'Wake listening'}[self.session.capture]
@@ -124,6 +131,23 @@ class ViewModel(QObject):
     @Property(bool, notify=settingsChanged)
     def modelEnabled(self):
         return self.settings.model_enabled
+
+    @Property(bool, notify=settingsChanged)
+    def modelAutostart(self):
+        return self.settings.start_brain_on_launch
+
+    @Property(bool, notify=settingsChanged)
+    def broadOpenAccess(self):
+        return self.settings.broad_open_access
+
+    @Property(bool, notify=settingsChanged)
+    def handsFreeAutostart(self):
+        return self.settings.hands_free_on_launch
+
+    @Slot(bool,bool,bool)
+    def saveLaunchOptions(self, brain, broad, listening):
+        if self.canConfigure:
+            self.update_settings(start_brain_on_launch=brain,broad_open_access=broad,hands_free_on_launch=listening)
 
     @Property(bool, notify=settingsChanged)
     def modelMemorySaver(self):
@@ -215,6 +239,8 @@ class ViewModel(QObject):
         self.acknowledged.emit("input")
 
     def cancel_all(self, message: str, code: str = "CANCELLED") -> None:
+        self.launch_stage = 'done'
+        self.next_brain_refresh = 0.0
         self.setup.cancel()
         self.advanced.dismiss()
         self.advanced.armDictation(False)
@@ -294,7 +320,8 @@ class ViewModel(QObject):
 
     @Slot()
     def checkLocalBrain(self) -> None:
-        if self.canSend and self.schedule("activate_model"):
+        if self.canSend and not self.brain_warming and self.schedule("activate_model",start_runtime=True):
+            self.brain_warming = True
             self.model_status = "Checking the pinned local model and warming it in the background…"
             self.changed.emit()
 
@@ -316,7 +343,7 @@ class ViewModel(QObject):
     @Slot()
     def importApps(self) -> None:
         if self.canSend and self.schedule("import_catalog"):
-            self.notice = "Importing app metadata. Review and enable each app before using it."
+            self.notice = 'Discovering installed apps with your opening permission.' if self.settings.broad_open_access else "Importing app metadata. Review and enable each app before using it."
             self.changed.emit()
 
     @Slot(str, str, str, bool)
@@ -486,6 +513,10 @@ class ViewModel(QObject):
             elif kind == "diagnostics":
                 self.diagnostics = message["rows"]
             elif kind == "model_status":
+                self.brain_warming = False
+                self.next_brain_refresh = time.monotonic()+180 if self.launch_services and self.settings.start_brain_on_launch else 0
+                if self.launch_stage == 'warming':
+                    self.launch_stage = 'discover'
                 self.model_status = message["message"]
                 self.model_metrics = message.get("metrics",{})
             elif kind == "clarification":
@@ -524,11 +555,40 @@ class ViewModel(QObject):
                 self.settings_pending = False
                 self.ready = False
                 self.cancel_all("Background worker stopped. Interrupted work will not be replayed.", "WORKER_UNAVAILABLE")
+                self.brain_warming = False
                 self.notice = "Worker disabled after three failures. Restart Autumn to recover." if message["disabled"] else "Recovering background worker; interrupted work will not be replayed."
             elif kind == "error":
                 self.settings_pending = False
                 self.notice = "Settings or activity could not be read or saved. Check free space and folder access."
             self.changed.emit()
+
+        self.launch_tick()
+
+    def launch_tick(self):
+        if not self.launch_services or not self.canSend or self.settings_pending or self.session.active is not None:
+            return
+        if self.launch_stage == 'pending':
+            self.launch_stage = 'discover'
+            if self.settings.start_brain_on_launch and self.settings.model_enabled:
+                self.checkLocalBrain()
+                if self.brain_warming:
+                    self.launch_stage = 'warming'
+                return
+        if self.launch_stage == 'discover':
+            self.launch_stage = 'catalog'
+            if self.settings.broad_open_access:
+                self.importApps()
+                return
+        if self.launch_stage == 'catalog':
+            self.launch_stage = 'listen'
+        if self.launch_stage == 'listen':
+            self.launch_stage = 'done'
+            if self.settings.hands_free_on_launch and self.launch_listening:
+                self.voice.setHandsFree(True)
+        if (self.next_brain_refresh and time.monotonic()>=self.next_brain_refresh
+                and not self.brain_warming and self.settings.start_brain_on_launch
+                and self.settings.model_enabled and not self.settings.model_memory_saver):
+            self.checkLocalBrain()
 
     def shutdown(self) -> bool:
         self.advanced.dismiss()

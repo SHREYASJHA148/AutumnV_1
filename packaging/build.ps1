@@ -8,6 +8,7 @@ $taskDist = Join-Path $taskRoot 'dist/Autumn preview é'
 $taskAssets = Join-Path $taskRoot '.cache/external_assets.json'
 @{ development_models = (Join-Path $taskRoot 'models') } | ConvertTo-Json | Set-Content -LiteralPath $taskAssets -Encoding utf8
 & $taskPython -m PyInstaller --clean --noconfirm --onedir --windowed --name Autumn `
+    --icon (Join-Path $taskRoot 'src/autumn/ui/Autumn.ico') `
     --paths (Join-Path $taskRoot 'src') --collect-data autumn `
     --additional-hooks-dir (Join-Path $taskRoot 'packaging/hooks') `
     --collect-all piper --collect-all pywhispercpp --collect-all _sounddevice_data `

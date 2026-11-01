@@ -1,0 +1,112 @@
+{
+  "version": "0.7.1",
+  "date": "2026-11-01",
+  "requested_extension": "implemented and configured",
+  "release_acceptance": "NOT PASSED; previous accuracy/hardware/performance acceptance remains open",
+  "unique_passing_software_tests": 442,
+  "full_suite_cases": 438,
+  "additional_unique_regressions": 4,
+  "startup": {
+    "brain_ready": true,
+    "brain_status": "Local brain ready \u2014 pinned qwen3:1.7b, CPU; no cloud calls.",
+    "enabled_apps": 154,
+    "folders": 8,
+    "brain_startup_and_discovery_seconds": 8.25,
+    "window_icon_present": true,
+    "microphone_opened": false,
+    "action_dispatches": 0,
+    "tray_visible": true,
+    "minimized_to_tray": true,
+    "hands_free_still_enabled": true,
+    "capture_request_still_active": true,
+    "passed": true,
+    "clean_shutdown": true
+  },
+  "personal_profile": {
+    "configured": true,
+    "brain_starts_on_open": true,
+    "broad_app_and_local_path_access": true,
+    "hands_free_on_open": true,
+    "activation_prefix": "Autumn",
+    "shortcut": "C:\\adu\\Autumn.lnk",
+    "real_microphone_opened_by_configuration": false,
+    "login_startup_enabled_by_configuration": false,
+    "owned_legacy_login_entry_migrated_to_mic_off": false
+  },
+  "scope": "normal Windows account permissions; installed apps/common folders and explicit supported local paths, with application validation; no generated command execution",
+  "real_microphone_or_speakers_used_in_tests": false,
+  "new_dependencies": false,
+  "brain_model_changed": false,
+  "source_fingerprint_sha256": "ea1695b0b0cd8261b26480f43b44e70b648e11443baf70df627fd5e0ec11cee4",
+  "freeze_integrity": {
+    "passed": true,
+    "modules_checked": 70,
+    "bytecode_mismatches": [],
+    "ui_mismatches": []
+  },
+  "standalone_ui": {
+    "passed": true,
+    "render_timings": {
+      "input": {
+        "samples": 40,
+        "p95_ms": 16.0
+      },
+      "stop": {
+        "samples": 40,
+        "p95_ms": 16.0
+      }
+    }
+  },
+  "isolated_installer": {
+    "passed": true,
+    "scope": "same Windows account, scrubbed environment, disposable per-user install, NO registry writes; not clean-account acceptance",
+    "readiness_upper_bounds": [
+      {
+        "run": "cold",
+        "launch_to_typed_ready_upper_bound_seconds": 4.401,
+        "direct_readiness_timestamp": false
+      },
+      {
+        "run": "warm",
+        "launch_to_typed_ready_upper_bound_seconds": 1.316,
+        "direct_readiness_timestamp": false
+      },
+      {
+        "run": "scale2",
+        "launch_to_typed_ready_upper_bound_seconds": 1.311,
+        "direct_readiness_timestamp": false
+      }
+    ],
+    "developer_asset_path_removed": true,
+    "owner_fixtures_retained": true,
+    "models_downloaded": false,
+    "audio_hardware_opened": false,
+    "installed_application_removed": true,
+    "fixture": "installed preview \u00e9-40f960f0"
+  },
+  "installer_bytes": 227886094,
+  "checksums": {
+    "AutumnSetup.exe": "b60a6f8766dc1fbad6fd5864d3f21bba8baec20fa75e446c2d51ea55c6b3649a",
+    "payload.zip": "7a560bbb06d3db1d74891ae6d952338678f19f6aeedb79bb9a0210493bb018dc",
+    "release-manifest.json": "c736b18dbd0c3e83d0ccd5376c4808673d3dfb042ff0d3699e34d9d29e9b840e"
+  },
+  "attempts_and_limits": [
+    "Initial real-server startup did not report brain readiness; subsequent real startup checks passed. Startup activation budget raised to 40 seconds without changing 15-second command planning. A fresh cold-server repeat is not claimed.",
+    "A hidden-window timing attempt did not meet visible-render timing; the sequential visible-window rerun passed at 16 ms p95 input/Stop. Failed attempt retained in personal_standalone_hidden_attempt.json.",
+    "The microphone was simulated during startup/tray testing. Owner speech, echo/false activation, real device/power/accessibility/offline/clean-account and two-hour stability acceptance remain pending.",
+    "The native workspace launcher exists; isolated installer validation deliberately avoids registry writes. Complete public distribution review and signing remain pending."
+  ],
+  "evidence": [
+    "personal_launch_tests.xml",
+    "personal_startup_regressions.xml",
+    "personal_final_regressions.xml",
+    "personal_shortcut_test.xml",
+    "personal_startup_probe.json",
+    "personal_initial_startup.json",
+    "personal_standalone_ui.json",
+    "personal_standalone_hidden_attempt.json",
+    "personal_freeze_integrity.json",
+    "personal_release_validation.json",
+    "personal_profile.json"
+  ]
+}
