@@ -1,4 +1,6 @@
-# Autumn 0.7.1 — engineering preview limitations
+# Autumn 0.7.2 — engineering preview limitations
+
+- Quick replies uses a shorter pause after speech; choose Natural pauses or Longer pauses in Voice setup if sentences end too early. The optimized small.en model/confidence gates and pinned brain are unchanged. Synthetic timing/word-preservation checks are narrower than the owner's microphone and room trials.
 
 - New hands-free mode uses local recognition for speech addressed to Autumn and can start from the explicitly configured personal launch preference. It continues in the tray; its real microphone/speaker and false-activation trials remain pending. The first real-server startup was unavailable, then succeeded on the next run; startup-only warm-up now has a 40-second budget. Ordinary action planning still has its existing 15-second deadline.
 

@@ -242,6 +242,9 @@ class WindowsAdapter:
             if not checkpoint():
                 raise InterruptedError()
             pid = activate_package(entry.target)
+        if not pid and process is None:
+            # Windows supplied no process identity, so waiting cannot verify a matching window.
+            return Outcome(status="unverified", code="HANDOFF", message="Launch handed to Windows; a new app window was not verified. It may have reused an existing instance.", verification="launch accepted; window unverified")
         until = time.monotonic() + 2
         running_since = time.monotonic()
         while checkpoint() and time.monotonic() < until:

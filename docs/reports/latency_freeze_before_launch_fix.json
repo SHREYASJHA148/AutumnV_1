@@ -1,0 +1,8 @@
+{
+  "passed": false,
+  "modules_checked": 71,
+  "bytecode_mismatches": [
+    "autumn.winworker.windows"
+  ],
+  "ui_mismatches": []
+}

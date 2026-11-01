@@ -1,0 +1,12 @@
+{
+  "audio_hardware_opened": false,
+  "audio_saved": false,
+  "actions": 0,
+  "recognition_ready_seconds": 1.557,
+  "playback_ready_seconds": 3.401,
+  "primed_synthesis_seconds": 0.075,
+  "primed_recognition_seconds": 2.405,
+  "accepted": true,
+  "passed": true,
+  "clean_shutdown": true
+}

@@ -1,5 +1,7 @@
 # Autumn — opening and hands-free listening
 
+Version 0.7.2 prepares recognition and the female voice during startup, keeps the same speech model, uses faster CPU decoding, and speaks shorter confirmations while retaining full verification details onscreen. The default **Quick replies** timing responds sooner after you stop speaking. If it ends a sentence too early, pause listening and choose **Voice setup → Response timing → Natural pauses** or **Longer pauses**, then save.
+
 Double-click **Autumn** in `C:\adu`. That shortcut opens the updated desktop app and starts the installed local Ollama server if needed. Autumn verifies and warms the pinned qwen3:1.7b brain automatically. The UI shows its progress; the first cold load can take longer than later launches. The app refreshes the warm model while running unless memory saver is selected.
 
 Your requested personal profile enables app discovery and hands-free listening on normal launches. Installed Start Menu apps, packaged Windows apps and App Paths entries become available without approving each newly found app. Previously imported unreviewed entries are enabled by the broad permission; an explicitly reviewed disabled app remains disabled. Common folders are added. Everything runs under your existing Windows account's permissions.

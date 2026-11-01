@@ -1,0 +1,29 @@
+{
+  "scope": "three public synthetic development commands; same small.en CPU model, no microphone/playback/actions",
+  "threads": 8,
+  "cases": [
+    {
+      "index": 0,
+      "synthesis_seconds": 2.7467,
+      "recognition_seconds": 3.3603,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "index": 1,
+      "synthesis_seconds": 0.052,
+      "recognition_seconds": 2.5662,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "index": 2,
+      "synthesis_seconds": 0.0569,
+      "recognition_seconds": 2.5436,
+      "accepted": true,
+      "exact": true
+    }
+  ],
+  "complete": true,
+  "warm_recognition_median_seconds": 2.5549
+}

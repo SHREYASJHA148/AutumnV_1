@@ -82,3 +82,57 @@ def test_injected_capture_closes_device_and_never_saves_audio(monkeypatch, tmp_p
     if outcome == "released_before_start":
         assert not MemoryInput.instances
     assert not list(tmp_path.iterdir())
+
+
+def test_endpoint_finishes_speech_and_removes_surrounding_silence(monkeypatch,tmp_path):
+    from autumn.audio import endpoint
+    original=endpoint.SpeechEndpoint
+    class Detector:
+        def is_speech(self,pcm,rate):
+            return bool(np.max(np.abs(np.frombuffer(pcm,dtype='<i2')))>300)
+    monkeypatch.setattr(endpoint,'SpeechEndpoint',lambda **kwargs:original(Detector(),**kwargs))
+    frames=np.concatenate((np.zeros(16000),np.full(16000,.1),np.zeros(16000))).astype(np.float32)
+    instances=[]
+    class Stream:
+        def __init__(self,**options):
+            self.callback=options['callback']
+            self.started=False
+            self.closed=False
+            self.cursor=0
+            instances.append(self)
+        def start(self):
+            self.started=True
+        @property
+        def active(self):
+            if self.started and self.cursor<len(frames):
+                chunk=frames[self.cursor:self.cursor+800]
+                self.cursor+=len(chunk)
+                self.callback(chunk.reshape(-1,1),len(chunk),None,None)
+            return self.started
+        def abort(self):
+            self.started=False
+        def close(self):
+            self.closed=True
+    monkeypatch.setattr(sounddevice,'InputStream',Stream)
+    monkeypatch.setattr(cache,'configure',lambda root:None)
+    monkeypatch.setattr(devices,'resolve_device',lambda *args:{'rate':16000,'index':0})
+    monkeypatch.setattr(devices,'default_endpoint',lambda kind:'fixed')
+    commands,replies=queue.Queue(),queue.Queue()
+    stopping=threading.Event()
+    thread=threading.Thread(target=speech_main,args=(commands,replies,SimpleNamespace(value=0),stopping,str(tmp_path),False),kwargs={'role':'capture','capture_gate':SimpleNamespace(value=True)},daemon=True)
+    thread.start()
+    try:
+        commands.put({'kind':'capture','generation':0,'operation_id':uuid4(),'endpoint':True})
+        for _ in range(100):
+            event=replies.get(timeout=3)
+            if event['kind']=='captured':
+                break
+            assert event['kind'] not in {'capture_error','speech_error'}
+        else:
+            raise AssertionError('No endpoint result')
+        assert .9*16000*4<=len(event['pcm'])<=1.5*16000*4
+        assert all(s.closed for s in instances)
+    finally:
+        stopping.set()
+        thread.join(timeout=2)
+        assert not thread.is_alive()

@@ -34,3 +34,16 @@ def test_login_startup_honors_the_saved_preference_without_opening_audio():
         assert not vm.voice.enabled and not vm.voice.service.sent
     finally:
         vm.shutdown()
+
+
+def test_personal_startup_primes_speech_without_turning_on_the_microphone():
+    vm=fixtures.make_vm()
+    try:
+        vm.settings=vm.settings.model_copy(update={'hands_free_on_launch':True})
+        vm.launch_services=True
+        vm.launch_stage='pending'
+        vm.launch_tick()
+        assert [(role,kind) for role,kind,_ in vm.voice.service.sent]==[('recognition','warm'),('playback','warm')]
+        assert not vm.voice.recording and not vm.voice.enabled
+    finally:
+        vm.shutdown()

@@ -84,7 +84,7 @@ def main() -> int:
         qInstallMessageHandler(qt_message)
     app.setApplicationName("Autumn")
     app.setOrganizationName("Autumn Local")
-    app.setApplicationVersion("0.7.1")
+    app.setApplicationVersion("0.7.2")
     app.setWindowIcon(QIcon(str(Path(__file__).parent/'ui/Autumn.ico')))
     root = args.data_dir.resolve() if args.data_dir else app_directory()
     try:

@@ -20,6 +20,7 @@ class Recognizer:
         self.assets = Assets()
         self.model = None
         self.loaded = None
+        self.threads = min(8, os.cpu_count() or 4)
 
     def transcribe(self, pcm, model_key, root, checkpoint):
         audio = np.frombuffer(pcm, dtype="<f4").copy()
@@ -37,30 +38,10 @@ class Recognizer:
         if stats["voiced_seconds"] < 0.30 or stats["voiced_ratio"] < 0.08:
             return {"accepted": False, "code": "NO_SPEECH", "stats": stats}
         deadline = time.monotonic() + 15
-        path = self.assets.get(model_key, root)
-        if not checkpoint():
+        try:
+            self.prepare(model_key, root, checkpoint)
+        except InterruptedError:
             return {"accepted": False, "code": "CANCELLED"}
-        if self.loaded != str(path):
-            import _pywhispercpp
-            from pywhispercpp.model import Model
-
-            _pywhispercpp.whisper_log_set(_discard_native_log)
-            self.model = None
-            # Windowed executables have sys.stderr=None; the library flushes it on load.
-            with open(os.devnull, "w") as sink, contextlib.redirect_stderr(sink), contextlib.redirect_stdout(sink):
-                self.model = Model(
-                    native_path(path),
-                    context_params={"use_gpu": False},
-                    n_threads=4,
-                    redirect_whispercpp_logs_to=os.devnull,
-                    print_realtime=False,
-                    print_progress=False,
-                    print_timestamps=False,
-                    language="en",
-                    no_context=True,
-                    initial_prompt="Autumn. Open apps and folders. Volume, mute, music, screenshots, filenames.",
-                )
-            self.loaded = str(path)
         # Both Python and native diagnostic streams are silenced: no recognized text in logs.
         with (
             open(os.devnull, "w") as sink,
@@ -84,18 +65,40 @@ class Recognizer:
             return {"accepted": False, "code": "CANCELLED"}
         if any(not np.isfinite(s.probability) or s.probability < 0.35 for s in segments):
             return {"accepted": False, "code": "LOW_CONFIDENCE", "stats": stats}
-        usable = segments
-        text = " ".join(s.text for s in usable).strip()
+        text = " ".join(s.text for s in segments).strip()
         if (
             not text
             or not re.search("[A-Za-z]", text)
             or re.search(r"\[(?:blank|silence|music|noise)|\((?:silence|music|noise)", text, re.I)
         ):
             return {"accepted": False, "code": "LOW_CONFIDENCE", "stats": stats}
-        return {
-            "accepted": True,
-            "code": "OK",
-            "text": text[:2000],
-            "stats": stats,
-            "confidence": float(min(s.probability for s in usable)),
-        }
+        return {"accepted": True, "code": "OK", "text": text[:2000], "stats": stats,
+                "confidence": float(min(s.probability for s in segments))}
+
+    def prepare(self, model_key, root, checkpoint):
+        path = self.assets.get(model_key, root)
+        if not checkpoint():
+            raise InterruptedError()
+        if self.loaded != str(path):
+            import _pywhispercpp
+            from pywhispercpp.model import Model
+
+            _pywhispercpp.whisper_log_set(_discard_native_log)
+            self.model = None
+            # Windowed executables have sys.stderr=None; the library flushes it on load.
+            with open(os.devnull, "w") as sink, contextlib.redirect_stderr(sink), contextlib.redirect_stdout(sink):
+                self.model = Model(
+                    native_path(path),
+                    context_params={"use_gpu": False},
+                    n_threads=self.threads,
+                    redirect_whispercpp_logs_to=os.devnull,
+                    print_realtime=False,
+                    print_progress=False,
+                    print_timestamps=False,
+                    language="en",
+                    no_context=True,
+                    initial_prompt="Autumn. Open apps and folders. Volume, mute, music, screenshots, filenames.",
+                )
+            self.loaded = str(path)
+        if not checkpoint():
+            raise InterruptedError()

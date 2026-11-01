@@ -544,7 +544,7 @@ class ViewModel(QObject):
                 if kind == "action_result":
                     outcome = message["outcome"]
                     self.append("Autumn", outcome["message"])
-                    self.voice.action_result(outcome['message'])
+                    self.voice.action_result(outcome['message'],message.get('skill',''),outcome['status'])
                     self.notice = outcome["status"].title() + ": " + outcome["message"]
                     if message.get("skill") == "files.search" or outcome.get("matches") or outcome.get("artifacts"):
                         self.result_cards = [*outcome.get("matches", []), *outcome.get("artifacts", [])][-20:]
@@ -568,6 +568,8 @@ class ViewModel(QObject):
         if not self.launch_services or not self.canSend or self.settings_pending or self.session.active is not None:
             return
         if self.launch_stage == 'pending':
+            if self.settings.hands_free_on_launch and self.launch_listening:
+                self.voice.prewarm()
             self.launch_stage = 'discover'
             if self.settings.start_brain_on_launch and self.settings.model_enabled:
                 self.checkLocalBrain()

@@ -1,0 +1,25 @@
+{
+  "scope": "public synthetic speech at simulated native capture rate; no audio hardware or actions",
+  "source_rate": 48000,
+  "cases": [
+    {
+      "index": 0,
+      "accepted": true,
+      "exact": true,
+      "trimmed_seconds": 2.32
+    },
+    {
+      "index": 1,
+      "accepted": true,
+      "exact": true,
+      "trimmed_seconds": 1.81
+    },
+    {
+      "index": 2,
+      "accepted": true,
+      "exact": true,
+      "trimmed_seconds": 1.9
+    }
+  ],
+  "passed": true
+}

@@ -56,6 +56,15 @@ class VoiceViewModel(QObject):
         self.microphone_checked = False
         self.hands_free = False
         self.next_listen = 0.0
+        self.prewarmed = False
+
+    def prewarm(self):
+        if self.prewarmed:
+            return
+        self.prewarmed = True
+        fields={'assets_root':self.host.settings.speech_assets_dir,'model_key':self.recognitionModel}
+        self.send('recognition','warm',**fields)
+        self.send('playback','warm',**fields)
 
     @Property(bool, notify=changed)
     def handsFree(self):
@@ -64,12 +73,21 @@ class VoiceViewModel(QObject):
     @Slot(bool)
     def setHandsFree(self, enabled):
         self.cancel_voice_requests()
-        self.cancel(disable=True)
+        if not enabled or self.recording or self.recognizing or self.playing or self.delayed_playback:
+            self.cancel(disable=True)
+        else:
+            # Enabling an idle microphone must not cancel in-progress speech priming.
+            # Keep any acoustic tail even when no stream is currently playing.
+            self.hands_free = self.enabled = False
+            self.pending_reply = ''
+            self.test_pcm = b''
+            self.level = 0
+            self.host.session.capture = C.DISABLED
         self.host.wake.disarm()
         if enabled and not self.host.session.suspended:
             self.hands_free = self.enabled = True
             self.host.session.capture = C.PTT_READY
-            self.next_listen = time.monotonic() + .15
+            self.next_listen = time.monotonic() + .05
             self.status = 'Hands-free on. Say “Autumn, open Spotify”. Listening continues in the tray; Stop pauses it.'
         self.changed.emit()
         self.host.changed.emit()
@@ -131,6 +149,15 @@ class VoiceViewModel(QObject):
     @Property(str, notify=changed)
     def recognitionModel(self):
         return self.host.settings.recognition_model
+
+    @Property(int,notify=changed)
+    def responsePauseMs(self):
+        return self.host.settings.speech_pause_ms
+
+    @Slot(int)
+    def saveResponseTiming(self,milliseconds):
+        if self.host.canConfigure:
+            self.host.update_settings(speech_pause_ms=milliseconds)
 
     @Property(float, notify=changed)
     def volume(self):
@@ -330,10 +357,13 @@ class VoiceViewModel(QObject):
             device_id=self.inputId,
             seconds=4 if test else 20,
             endpoint=not test and (hands_free or wake or self.mode == "toggle"),
+            endpoint_pause_ms=self.host.settings.speech_pause_ms,
         ):
             self.recording = False
             self.capture_id = None
             self.host.session.capture = C.DEVICE_ERROR
+            if hands_free:
+                self.hands_free = self.enabled = False
         self.host.changed.emit()
         self.changed.emit()
 
@@ -444,10 +474,11 @@ class VoiceViewModel(QObject):
         self.changed.emit()
         self.host.changed.emit()
 
-    def action_result(self, message):
+    def action_result(self, message, skill='', status=''):
         active = self.host.session.active
         if active is not None and active.origin in {"ptt_voice","wake_voice"} and self.spokenReplies:
-            self.pending_reply = message
+            from autumn.speech.synthesis import action_reply
+            self.pending_reply = action_reply(message,skill,status)
 
     def action_finished(self):
         text = self.pending_reply
@@ -530,7 +561,7 @@ class VoiceViewModel(QObject):
                         self.transcript = ''
                         self.cancel_voice_requests()
                         self.status = 'Listening for “Autumn, …”; other speech was discarded.'
-                        self.next_listen = time.monotonic() + .3
+                        self.next_listen = time.monotonic() + .05
                         self.changed.emit()
                         self.host.changed.emit()
                         continue
@@ -577,7 +608,7 @@ class VoiceViewModel(QObject):
                 if self.hands_free:
                     if event['code'] not in {'SILENT_CAPTURE','EMPTY_AUDIO'}:
                         self.cancel(disable=True)
-                    self.next_listen = time.monotonic()+.3
+                    self.next_listen = time.monotonic()+.05
             elif (
                 kind == "played"
                 and self.playback_id is not None
@@ -609,7 +640,7 @@ class VoiceViewModel(QObject):
                 and self.host.session.active is None and not self.host.advanced.pending
                 and not self.host.setup.busy and not self.host.wake.busy
                 and time.monotonic() >= self.next_listen):
-            self.next_listen = time.monotonic()+.3
+            self.next_listen = time.monotonic()+.05
             self.begin(hands_free=True)
 
     def shutdown(self):

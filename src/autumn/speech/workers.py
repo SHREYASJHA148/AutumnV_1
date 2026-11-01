@@ -24,6 +24,7 @@ class SpeechJob(Contract):
         "play_pcm",
         "health",
         "synthesize",
+        "warm",
     ]
     generation: int = Field(ge=0)
     operation_id: UUID | None = None
@@ -37,6 +38,7 @@ class SpeechJob(Contract):
     rate: float = Field(default=1, ge=0.6, le=1.6)
     seconds: int = Field(default=20, ge=1, le=20)
     endpoint: bool = False
+    endpoint_pause_ms: int = Field(default=450,ge=400,le=1500)
     discard: bool = False
 
 
@@ -57,8 +59,9 @@ def speech_main(
 ):
     import numpy as np
 
-    from autumn.audio.buffer import CaptureBuffer, normalize, resample, speech_stats
+    from autumn.audio.buffer import CaptureBuffer, normalize, resample
     from autumn.audio.devices import default_endpoint, enumerate_devices, resolve_device
+    from autumn.audio.endpoint import SpeechEndpoint
     from autumn.speech.recognition import Recognizer
     from autumn.speech.synthesis import Synthesizer
 
@@ -69,8 +72,8 @@ def speech_main(
     current = None
     began = 0.0
     last_meter = 0.0
-    last_voice = 0.0
-    voiced_seen = False
+    endpoint_detector = None
+    endpoint_cursor = 0
     device = None
     default_input = None
     last_default_check = 0.0
@@ -100,7 +103,7 @@ def speech_main(
         return alive() and generation.value == job.generation
 
     def finish(discard=False, code="OK"):
-        nonlocal stream, buffer, current
+        nonlocal stream, buffer, current, endpoint_detector
         job = current
         if stream is not None:
             stream.abort()
@@ -108,7 +111,12 @@ def speech_main(
             stream = None
         if job is not None and buffer is not None:
             if not discard and checkpoint(job) and not buffer.overflow:
-                data = normalize(buffer.take(), device["rate"])
+                raw = buffer.take()
+                try:
+                    start,end = endpoint_detector.bounds(device['rate'],len(raw)) if endpoint_detector else (0,len(raw))
+                    data = normalize(raw[start:end], device["rate"])
+                finally:
+                    raw.fill(0)
                 send(
                     "captured",
                     operation_id=str(job.operation_id),
@@ -128,6 +136,9 @@ def speech_main(
                 )
         buffer = None
         current = None
+        if endpoint_detector:
+            endpoint_detector.discard()
+            endpoint_detector = None
         send("idle")
 
     try:
@@ -155,7 +166,7 @@ def speech_main(
                         if default_endpoint("input") != default_input:
                             finish(True, "DEVICE_UNAVAILABLE")
                             continue
-                    if now - last_meter > 0.10:
+                    if now - last_meter > 0.05:
                         recent = buffer.recent().copy()
                         level = float(np.sqrt(np.mean(recent**2))) if len(recent) else 0
                         send(
@@ -164,18 +175,18 @@ def speech_main(
                             value=min(1, level * 8),
                             seconds=round(now - began, 1),
                         )
-                        if current.endpoint and len(recent):
-                            data = normalize(recent, device["rate"])
-                            stats = speech_stats(data)
-                            if stats["voiced_seconds"]:
-                                voiced_seen = True
-                                last_voice = now
+                        if endpoint_detector and buffer.used > endpoint_cursor:
+                            available = buffer.used
+                            data = normalize(buffer.data[endpoint_cursor:available].copy(), device["rate"])
+                            endpoint_cursor = available
+                            endpoint_detector.feed(data)
+                            data.fill(0)
                         last_meter = now
                     if now - began >= current.seconds - 0.05:
                         finish(False, "LIMIT_REACHED")
-                    elif current.endpoint and voiced_seen and now - last_voice >= 0.8:
+                    elif endpoint_detector and endpoint_detector.finished:
                         finish()
-                    elif current.endpoint and not voiced_seen and now - began >= 5:
+                    elif endpoint_detector and not endpoint_detector.heard_speech and now - began >= 5:
                         finish(True, "SILENT_CAPTURE")
             try:
                 job = SpeechJob.model_validate(commands.get(timeout=0.02))
@@ -187,7 +198,23 @@ def speech_main(
             if not checkpoint(job):
                 continue
             try:
-                if job.kind == "devices" and role == "capture":
+                if job.kind == 'warm' and role in {'recognition','playback'}:
+                    send('busy',timeout=30)
+                    try:
+                        if role == 'recognition':
+                            recognizer.prepare(job.model_key,job.assets_root,lambda:checkpoint(job))
+                        else:
+                            warm_audio,_ = synthesizer.render('Ready.',job.assets_root,job.volume,job.rate,lambda:checkpoint(job))
+                            warm_audio.fill(0)
+                        if checkpoint(job):
+                            send('speech_warmed',role=role,generation=job.generation)
+                    except InterruptedError:
+                        pass
+                    except Exception:
+                        if checkpoint(job):
+                            send('speech_warm_error',role=role,generation=job.generation)
+                    send('idle')
+                elif job.kind == "devices" and role == "capture":
                     send("devices", rows=enumerate_devices())
                 elif job.kind == "health" and role == "recognition":
                     import shutil
@@ -249,8 +276,8 @@ def speech_main(
                         callback=callback,
                     )
                     began = time.monotonic()
-                    last_voice = began
-                    voiced_seen = False
+                    endpoint_cursor = 0
+                    endpoint_detector = SpeechEndpoint(silence_ms=job.endpoint_pause_ms) if job.endpoint else None
                     if not checkpoint(job) or (capture_gate is not None and not capture_gate.value):
                         finish(True, "CANCELLED")
                         continue
@@ -405,6 +432,8 @@ def speech_main(
             stream.close()
         if buffer is not None:
             buffer.discard()
+        if endpoint_detector is not None:
+            endpoint_detector.discard()
 
 
 def windows_speak(text, volume, rate, checkpoint, root):

@@ -84,7 +84,7 @@ ApplicationWindow {
                     Label { text: "LOCAL WORKSPACE"; color: "#ffc27e"; font.pixelSize: 10; font.letterSpacing: 1.2 }
                     Label { Layout.fillWidth: true; text: vm.broadOpenAccess ? "Installed apps and local paths enabled.\nListening follows your launch preference." : "Commands use reviewed targets.\nVoice follows your launch preference."; wrapMode: Text.WordWrap; color: "#9bb0c9"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
-                    Label { text: "PREVIEW 0.7.1"; color: "#8fa6a8"; font.pixelSize: 11 }
+                    Label { text: "PREVIEW 0.7.2"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
                 }
             }
@@ -316,6 +316,10 @@ ApplicationWindow {
                         ColumnLayout {
                             width: parent.width - 22; spacing: 14
                             Label { Layout.fillWidth: true; text: voice.handsFree && voice.isRecording ? "Listening for ‘Autumn, …’. Pause to finish your command." : voice.statusText; wrapMode: Text.WordWrap; color: "#b3d9ea"; Accessible.name: text }
+                            Label { text: "Response timing"; color: "#ffc27e" }
+                            ComboBox { id: responsePause; model: ["Quick replies", "Natural pauses", "Longer pauses"]; currentIndex: voice.responsePauseMs <= 500 ? 0 : voice.responsePauseMs <= 1000 ? 1 : 2; enabled: vm.canConfigure; Accessible.name: "Pause before responding" }
+                            NeonButton { text: "Save response timing"; enabled: vm.canConfigure; onClicked: voice.saveResponseTiming([450,800,1200][responsePause.currentIndex]) }
+                            Label { Layout.fillWidth: true; text: "Quick replies responds sooner after you stop speaking. Choose a longer pause if Autumn ends your sentence too early; pause listening before changing this setting."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
                             ProgressBar { Layout.fillWidth: true; from: 0; to: 1; value: voice.inputLevel; Accessible.name: "Microphone level" }
                             Label { Layout.fillWidth: true; text: "Enable voice, then hold the talk button or shortcut while speaking. Toggle mode ends after a pause. Recordings stop at 20 seconds. Audio stays in memory."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
                             Label { Layout.fillWidth: true; text: "Shortcuts may not reach administrator windows. Use Autumn's on-screen talk and Stop controls; Autumn runs with ordinary user access."; wrapMode: Text.WordWrap; color: "#9bb0c9" }

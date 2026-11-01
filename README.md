@@ -1,10 +1,10 @@
 # Autumn
 
-Autumn 0.7.1 adds your requested personal launch profile: open `C:\adu\Autumn.lnk` to start the local brain, discover installed apps and begin hands-free listening. Say “Autumn, open Spotify”. Minimize to the tray to keep listening; Stop pauses it. See [Personal launch and listening](docs/PERSONAL_LAUNCH.md) for the current behavior and opening scope.
+Autumn 0.7.2 includes your personal launch profile: open `C:\adu\Autumn.lnk` to start the local brain, discover installed apps and begin hands-free listening. Say “Autumn, open Spotify”. Minimize to the tray to keep listening; Stop pauses it. Speech components now preload, CPU recognition uses the measured faster thread setting, and confirmations are shorter. See [Personal launch and listening](docs/PERSONAL_LAUNCH.md).
 
 A local Windows desktop assistant named Autumn: English push-to-talk, a female local voice and the pinned `qwen3:1.7b` planner. Phase 7 adds a futuristic animated command deck, verified model setup, per-user installer and crash recovery. This is an engineering preview: earlier accuracy targets failed and human/hardware acceptance remains incomplete.
 
-Use `dist/Autumn-0.7.1-preview/AutumnSetup.exe` for per-user installation, or the Autumn shortcut in `C:\adu` for the configured developer build. First close asks whether to quit or keep running in the tray. A second launch brings the existing window forward and refreshes the local brain. A shared Ollama service is left running. See [User guide](docs/USER_GUIDE.md), [Troubleshooting](docs/TROUBLESHOOTING.md) and [Known issues](docs/KNOWN_ISSUES.md).
+Use `dist/Autumn-0.7.2-preview/AutumnSetup.exe` for per-user installation, or the Autumn shortcut in `C:\adu` for the configured developer build. First close asks whether to quit or keep running in the tray. A second launch brings the existing window forward and refreshes the local brain. A shared Ollama service is left running. See [User guide](docs/USER_GUIDE.md), [Troubleshooting](docs/TROUBLESHOOTING.md) and [Known issues](docs/KNOWN_ISSUES.md).
 
 For development, run these commands from this folder in PowerShell:
 

@@ -1,0 +1,119 @@
+{
+  "date": "2026-11-01",
+  "version": "0.7.2",
+  "implementation": "complete",
+  "unique_passing_tests": 456,
+  "full_suite": 450,
+  "additional_unique_regressions": 6,
+  "scope": "Controlled synthetic component measurements and software verification; NO microphone/speaker end-to-end latency claim",
+  "controlled_recognition": {
+    "same_pcm_model_and_confidence_gates": true,
+    "before_threads": 4,
+    "after_threads": 8,
+    "median_before_seconds": 3.0643,
+    "median_after_seconds": 2.2893,
+    "reduction_percent": 25.3,
+    "all_six_synthetic_decodes_exact": true
+  },
+  "endpoint": {
+    "scope": "public synthetic speech; not microphone/room acceptance",
+    "old_end_after_energy_seconds": 0.9272,
+    "new_end_after_energy_seconds": 0.4772,
+    "saved_seconds": 0.45,
+    "trimmed_seconds": 2.11,
+    "recorded_seconds_at_finish": 2.55,
+    "last_energy_preserved": true,
+    "audio_saved": false
+  },
+  "priming": {
+    "audio_hardware_opened": false,
+    "audio_saved": false,
+    "actions": 0,
+    "recognition_ready_seconds": 1.557,
+    "playback_ready_seconds": 3.401,
+    "primed_synthesis_seconds": 0.075,
+    "primed_recognition_seconds": 2.405,
+    "accepted": true,
+    "passed": true,
+    "clean_shutdown": true
+  },
+  "spoken_handoff_duration": {
+    "old_seconds": 6.014,
+    "new_seconds": 2.345,
+    "scope": "generated voice duration only; no speaker playback",
+    "uncertainty_preserved": true
+  },
+  "app_open_change": "If Windows returns no launch PID, immediately return the same unverified handoff; remove the futile two-second PID-match poll. Known-PID verification remains tested.",
+  "fresh_process_timings_note": "latency_before/after.json are observations with cache/load differences; use the interleaved sweep for the controlled percentage.",
+  "source_ui_under_speech_load": {
+    "input": {
+      "samples": 40,
+      "p95_ms": 16.0
+    },
+    "stop": {
+      "samples": 40,
+      "p95_ms": 15.0
+    }
+  },
+  "frozen_synthetic_speech": {
+    "processed": 10,
+    "exact": 9,
+    "pipeline_operational": true,
+    "warm_recognition_p50_seconds": 2.672,
+    "microphone_or_speakers_opened": false
+  },
+  "installed_validation": {
+    "passed": true,
+    "scope": "same Windows account, scrubbed environment, disposable per-user install, NO registry writes; not clean-account acceptance",
+    "readiness_upper_bounds": [
+      {
+        "run": "cold",
+        "launch_to_typed_ready_upper_bound_seconds": 3.66,
+        "direct_readiness_timestamp": false
+      },
+      {
+        "run": "warm",
+        "launch_to_typed_ready_upper_bound_seconds": 1.285,
+        "direct_readiness_timestamp": false
+      },
+      {
+        "run": "scale2",
+        "launch_to_typed_ready_upper_bound_seconds": 1.27,
+        "direct_readiness_timestamp": false
+      }
+    ],
+    "developer_asset_path_removed": true,
+    "owner_fixtures_retained": true,
+    "models_downloaded": false,
+    "audio_hardware_opened": false,
+    "installed_application_removed": true,
+    "fixture": "installed preview \u00e9-9c6df975"
+  },
+  "freeze_integrity": {
+    "passed": true,
+    "modules_checked": 71,
+    "bytecode_mismatches": [],
+    "ui_mismatches": []
+  },
+  "new_dependencies": false,
+  "brain_speech_voice_models_changed": false,
+  "confidence_and_policy_gates_changed": false,
+  "gpu_or_windows_power_settings_changed": false,
+  "capture_limit_seconds": 20,
+  "response_timing_ui": [
+    "Quick replies 450 ms",
+    "Natural pauses 800 ms",
+    "Longer pauses 1200 ms"
+  ],
+  "installer_bytes": 227897164,
+  "checksums": {
+    "AutumnSetup.exe": "a2d6cc82e20e51ae4e60d5ae6952ced3837cae12f98897170507f9914fb22a0f",
+    "payload.zip": "50ed758a1503c5ee25bcce5a50e07236420805d0aab777c97ceb79d4538c9d03",
+    "release-manifest.json": "865c5377390744d151cb5ac23d5f99922028fe82dc1e6487e50663bc7271cb8e"
+  },
+  "existing_launcher": "C:\\adu\\Autumn.lnk",
+  "existing_preferences_preserved": true,
+  "overall_release_acceptance": "NOT PASSED; existing accuracy/performance/hardware gaps remain",
+  "pending": "Owner microphone/speaker/room and false-activation trials, GPU, aggregate resources, clean-account/registry, offline trace, Narrator/power and two-hour stability remain unverified.",
+  "questions": []
+}

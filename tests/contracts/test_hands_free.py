@@ -107,3 +107,33 @@ def test_reply_playback_and_its_tail_pause_hands_free_capture():
         assert vm.voice.hands_free and vm.voice.recording
     finally:
         vm.shutdown()
+
+
+def test_unavailable_capture_queue_disarms_instead_of_retrying_in_a_loop():
+    vm=fixtures.make_vm()
+    try:
+        vm.voice.service.send=lambda *args,**kwargs:False
+        vm.voice.setHandsFree(True)
+        vm.voice.next_listen=0
+        vm.poll()
+        assert not vm.voice.hands_free and not vm.voice.enabled
+    finally:
+        vm.shutdown()
+
+
+def test_enabling_idle_listening_preserves_warm_workers_and_playback_tail():
+    import time
+    vm=fixtures.make_vm()
+    try:
+        vm.voice.prewarm()
+        epoch=vm.voice.service.epoch
+        tail=time.monotonic()+.3
+        vm.voice.tail_until=tail
+        vm.voice.setHandsFree(True)
+        assert vm.voice.service.epoch==epoch
+        assert vm.voice.tail_until==tail
+        vm.voice.next_listen=0
+        vm.poll()
+        assert not vm.voice.recording
+    finally:
+        vm.shutdown()

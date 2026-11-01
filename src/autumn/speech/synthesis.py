@@ -12,6 +12,21 @@ def short_reply(text):
     return " ".join(" ".join(sentences).split()[:36])[:350]
 
 
+def action_reply(message, skill='', status=''):
+    """Keep full verification detail on screen; speak brief, truthful acknowledgments."""
+    if skill in {'app.open','folder.open','website.open'}:
+        if status == 'succeeded':
+            return 'App started.' if skill == 'app.open' else 'Opened.'
+        if status == 'unverified':
+            return 'Opening requested; not verified.'
+    if status == 'succeeded':
+        return {'audio.set_volume':'Volume updated.','audio.set_mute':'Audio updated.',
+                'screen.capture':'Screenshot saved.','media.control':'Media updated.'}.get(skill,message)
+    if status == 'unverified' and skill == 'media.control':
+        return 'Media request sent; not verified.'
+    return message
+
+
 class Synthesizer:
     def __init__(self):
         self.assets = Assets()

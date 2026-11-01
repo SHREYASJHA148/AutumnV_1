@@ -1,0 +1,48 @@
+{
+  "scope": "redacted recent action-stage metadata only; excludes capture and speech-recognition time",
+  "available": true,
+  "groups": [
+    {
+      "skill": "app.open",
+      "status": "unverified",
+      "count": 1,
+      "average_ms": 2094.0,
+      "maximum_ms": 2094
+    },
+    {
+      "skill": "audio.set_volume",
+      "status": "succeeded",
+      "count": 1,
+      "average_ms": 31.0,
+      "maximum_ms": 31
+    },
+    {
+      "skill": "controller.request",
+      "status": "cancelled",
+      "count": 3,
+      "average_ms": 6858.0,
+      "maximum_ms": 12280
+    },
+    {
+      "skill": "controller.request",
+      "status": "failed",
+      "count": 8,
+      "average_ms": 0.0,
+      "maximum_ms": 0
+    },
+    {
+      "skill": "files.search",
+      "status": "succeeded",
+      "count": 1,
+      "average_ms": 3640.0,
+      "maximum_ms": 3640
+    },
+    {
+      "skill": "help.capabilities",
+      "status": "succeeded",
+      "count": 2,
+      "average_ms": 0.0,
+      "maximum_ms": 0
+    }
+  ]
+}

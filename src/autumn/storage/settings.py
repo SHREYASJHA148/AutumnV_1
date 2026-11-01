@@ -39,7 +39,8 @@ class Hotkeys(Contract):
 
 
 class Settings(Contract):
-    schema_version: Literal[1, 2, 3, 4, 5, 6, 7, 8] = 8
+    schema_version: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9] = 9
+    speech_pause_ms: int = Field(default=450,ge=400,le=1500)
     start_brain_on_launch: bool = True
     broad_open_access: bool = False
     hands_free_on_launch: bool = False
@@ -120,8 +121,8 @@ def load_settings(path: Path) -> tuple[Settings, str]:
         if path.stat().st_size > 2_000_000:
             raise ValueError("Settings too large")
         settings = Settings.model_validate_json(path.read_text(encoding="utf-8"))
-        if settings.schema_version in {1,2,3,4,5,6,7}:
-            changes = {"schema_version":8}
+        if settings.schema_version in {1,2,3,4,5,6,7,8}:
+            changes = {"schema_version":9}
             if settings.schema_version == 1:
                 changes["enabled_skills"] = DEFAULT_ENABLED
             elif settings.schema_version < 5:

@@ -1,0 +1,47 @@
+{
+  "scope": "interleaved CPU threads on identical synthetic speech, unchanged small.en/confidence rules; no hardware/actions",
+  "cases": [
+    {
+      "threads": 4,
+      "seconds": 3.0582,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "threads": 6,
+      "seconds": 2.4845,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "threads": 8,
+      "seconds": 2.2804,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "threads": 8,
+      "seconds": 2.2981,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "threads": 6,
+      "seconds": 2.4619,
+      "accepted": true,
+      "exact": true
+    },
+    {
+      "threads": 4,
+      "seconds": 3.0704,
+      "accepted": true,
+      "exact": true
+    }
+  ],
+  "medians": {
+    "4": 3.0643,
+    "6": 2.4732,
+    "8": 2.2893
+  },
+  "complete": true
+}

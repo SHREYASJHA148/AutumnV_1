@@ -1,0 +1,10 @@
+{
+  "scope": "public synthetic speech; not microphone/room acceptance",
+  "old_end_after_energy_seconds": 0.9272,
+  "new_end_after_energy_seconds": 0.4772,
+  "saved_seconds": 0.45,
+  "trimmed_seconds": 2.11,
+  "recorded_seconds_at_finish": 2.55,
+  "last_energy_preserved": true,
+  "audio_saved": false
+}

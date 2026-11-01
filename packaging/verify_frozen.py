@@ -1,4 +1,5 @@
 """Check bundled Autumn bytecode and UI against the current source candidate."""
+import argparse
 import json
 import types
 from pathlib import Path
@@ -15,6 +16,9 @@ def equal(a,b):
 
 def main():
     root=Path(__file__).resolve().parents[1]
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--report',type=Path,default=root/'docs/reports/personal_freeze_integrity.json')
+    args=parser.parse_args()
     archive=ZlibArchiveReader(str(root/'build/phase1/Autumn/PYZ-00.pyz'))
     mismatches=[]
     checked=0
@@ -38,7 +42,7 @@ def main():
         if not bundled.is_file() or source.read_bytes()!=bundled.read_bytes():
             data_mismatches.append(source.name)
     report={'passed':checked>0 and not mismatches and not data_mismatches,'modules_checked':checked,'bytecode_mismatches':mismatches,'ui_mismatches':data_mismatches}
-    (root/'docs/reports/personal_freeze_integrity.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+    args.report.write_text(json.dumps(report,indent=2),encoding='utf-8')
     print(json.dumps(report))
     return 0 if report['passed'] else 1
 
