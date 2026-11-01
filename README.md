@@ -1,5 +1,7 @@
 # Autumn
 
+**Project status: initial working prototype.** Autumn is in an early phase of development. This version demonstrates the core idea and is still being tested and improved. Better versions with improved reliability, responsiveness and capabilities are planned.
+
 Autumn 0.8.1 fixes the general-planner timeout: shorter example-led instructions, bounded streamed generation and direct native matching for ordinary polite app requests prevent the repeating-link failure. General computer control stays enabled: the pinned local brain can answer, run Windows commands and operate accessible app controls. Open `C:\adu\Autumn.lnk` to start the configured local brain and hands-free profile; minimize to keep listening. Follow steps in chat and use Stop to cancel active work. This runs under your normal account and the small model can make mistakes. See [Personal launch and listening](docs/PERSONAL_LAUNCH.md).
 
 A local Windows desktop assistant named Autumn: English push-to-talk, a female local voice and the pinned `qwen3:1.7b` planner. Phase 7 adds a futuristic animated command deck, verified model setup, per-user installer and crash recovery. This is an engineering preview: earlier accuracy targets failed and human/hardware acceptance remains incomplete.
