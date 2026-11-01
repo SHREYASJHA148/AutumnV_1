@@ -1,0 +1,76 @@
+{
+  "scope": "public disposable development checks; not owner microphone/room acceptance",
+  "native": [
+    {
+      "input": "open Spotify",
+      "seconds": 0.0,
+      "verified_dispatch": true,
+      "model_called": false
+    },
+    {
+      "input": "please open Calculator",
+      "seconds": 0.0,
+      "verified_dispatch": true,
+      "model_called": false
+    },
+    {
+      "input": "Autumn, could you open Spotify for me?",
+      "seconds": 0.0,
+      "verified_dispatch": true,
+      "model_called": false
+    }
+  ],
+  "model": [
+    {
+      "input": "please open calculator",
+      "seconds": 3.766,
+      "step": {
+        "tool": "open",
+        "summary": "Open Calculator",
+        "content": "Calculator",
+        "requires_confirmation": false
+      }
+    },
+    {
+      "input": "open spotify",
+      "seconds": 1.344,
+      "step": {
+        "tool": "open",
+        "summary": "Open Spotify",
+        "content": "spotify",
+        "requires_confirmation": false
+      }
+    },
+    {
+      "input": "tell me the current date and time",
+      "seconds": 1.547,
+      "step": {
+        "tool": "powershell",
+        "summary": "Read time",
+        "content": "Get-Date",
+        "requires_confirmation": false
+      }
+    }
+  ],
+  "end_to_end": [
+    {
+      "input": "Use PowerShell to read the current date and time, then tell me the result.",
+      "seconds": 4.984,
+      "outcome": {
+        "status": "unverified",
+        "code": "OK",
+        "message": "01 November 2026 13:30:25",
+        "verification": "local model summary of observed tool results; account-level automation",
+        "artifacts": [],
+        "matches": []
+      },
+      "tools": [
+        {
+          "script": "Get-Date",
+          "allowed": true
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

@@ -71,3 +71,33 @@ def test_oversized_body_is_rejected_without_reading_it():
             await transport.request("/api/tags",None,time.monotonic()+2,lambda:True)
         assert error.value.code=="RESPONSE_LIMIT"
     run_server(b"HTTP/1.1 200 OK\r\nContent-Length: 9999999\r\n\r\n",check)
+
+
+def test_stream_guard_closes_connection_before_waiting_for_final_packet():
+    async def trial():
+        closed = asyncio.Event()
+        async def serve(reader,writer):
+            try:
+                await reader.readuntil(b'\r\n\r\n')
+                packet = json.dumps({'message':{'content':'x'*32},'done':False}).encode()+b'\n'
+                writer.write(b'HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n'+f'{len(packet):x}\r\n'.encode()+packet+b'\r\n')
+                await writer.drain()
+                # Consume the request body, then observe client EOF without sending completion.
+                while await reader.read(4096):
+                    pass
+                closed.set()
+            finally:
+                writer.close()
+        server=await asyncio.start_server(serve,'127.0.0.1',0)
+        try:
+            from autumn.agent.controller import GenerationGuard
+            transport=LoopbackTransport(server.sockets[0].getsockname()[1])
+            started=time.monotonic()
+            with pytest.raises(BrainError) as error:
+                await transport.request('/api/chat',{},started+10,lambda:True,streaming=True,on_packet=GenerationGuard())
+            assert error.value.code=='REPEATED_OUTPUT' and time.monotonic()-started < 1
+            await asyncio.wait_for(closed.wait(),1)
+        finally:
+            server.close()
+            await server.wait_closed()
+    asyncio.run(trial())

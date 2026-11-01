@@ -1,0 +1,84 @@
+[
+  {
+    "public_input": "please open calculator",
+    "seconds": 40.016,
+    "result": {
+      "error": "TIMEOUT"
+    },
+    "requests": [
+      {
+        "path": "/api/tags",
+        "seconds": 0.0
+      },
+      {
+        "path": "/api/show",
+        "seconds": 0.016
+      },
+      {
+        "path": "/api/chat",
+        "error": "TIMEOUT",
+        "seconds": 40.0
+      }
+    ]
+  },
+  {
+    "public_input": "open spotify",
+    "seconds": 40.0,
+    "result": {
+      "error": "TIMEOUT"
+    },
+    "requests": [
+      {
+        "path": "/api/tags",
+        "seconds": 0.0
+      },
+      {
+        "path": "/api/show",
+        "seconds": 0.016
+      },
+      {
+        "path": "/api/chat",
+        "error": "TIMEOUT",
+        "seconds": 39.984
+      }
+    ]
+  },
+  {
+    "public_input": "tell me the current date and time",
+    "seconds": 2.063,
+    "result": {
+      "tool": "inspect",
+      "summary": "Get current date and time",
+      "content": "Get-Date"
+    },
+    "requests": [
+      {
+        "path": "/api/tags",
+        "seconds": 0.0
+      },
+      {
+        "path": "/api/show",
+        "seconds": 0.016
+      },
+      {
+        "path": "/api/chat",
+        "seconds": 2.031,
+        "done_reason": "stop",
+        "prompt_eval_count": 652,
+        "eval_count": 25,
+        "load_duration": 6341400,
+        "prompt_eval_duration": 183702000,
+        "eval_duration": 1694375000,
+        "tail": "{\"tool\":\"inspect\",\"summary\":\"Get current date and time\",\"content\":\"Get-Date\",\"requires_confirmation\":false}"
+      },
+      {
+        "path": "/api/tags",
+        "seconds": 0.0
+      },
+      {
+        "path": "/api/show",
+        "seconds": 0.016
+      }
+    ]
+  }
+]

@@ -18,7 +18,8 @@ class LoopbackTransport:
         self.port = port
 
     async def request(self, path: str, body: dict | None, deadline: float,
-                      checkpoint: Callable[[], bool], *, streaming: bool = False):
+                      checkpoint: Callable[[], bool], *, streaming: bool = False,
+                      on_packet: Callable[[dict], None] | None = None):
         if path not in PATHS:
             raise BrainError("ENDPOINT_DENIED")
         writer = None
@@ -97,12 +98,18 @@ class LoopbackTransport:
                         line, _, rest = pending.partition(b"\n")
                         pending = bytearray(rest)
                         if line.strip():
-                            objects.append(json.loads(line))
+                            packet = json.loads(line)
+                            objects.append(packet)
+                            if on_packet is not None:
+                                on_packet(packet)
                     if len(pending) > 16384 or len(objects) > 600:
                         raise BrainError("RESPONSE_LIMIT")
             if streaming:
                 if pending.strip():
-                    objects.append(json.loads(pending))
+                    packet = json.loads(pending)
+                    objects.append(packet)
+                    if on_packet is not None:
+                        on_packet(packet)
                 return objects
             return json.loads(pending)
         except BrainError:

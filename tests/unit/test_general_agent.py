@@ -4,7 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from autumn.agent.controller import GeneralAgent, Step, needs_review
+from autumn.agent.controller import GeneralAgent, GenerationGuard, Step, needs_review
+from autumn.agent.routing import native_route
 from autumn.agent.shell import ShellResult
 from autumn.brain.contracts import BrainError
 from autumn.controller.contracts import Request
@@ -111,6 +112,46 @@ def test_step_payload_validation_and_explicit_effect_review():
         step('powershell')
     assert needs_review(step('open',target='test',requires_confirmation=True))
     assert not needs_review(step('powershell',script='Get-Date'))
+
+
+@pytest.mark.parametrize('part',['\\'*32,'&context=0&autoplay=0'*5])
+def test_runaway_stream_is_rejected_across_packets(part):
+    guard = GenerationGuard()
+    with pytest.raises(BrainError) as error:
+        for chunk in part:
+            guard({'message':{'content':chunk}})
+    assert error.value.code=='REPEATED_OUTPUT'
+
+
+def test_short_valid_stream_and_inspect_payload_semantics():
+    guard = GenerationGuard()
+    guard({'message':{'content':step('open',target='Spotify').model_dump_json()}})
+    assert 'Spotify' in guard.content
+    with pytest.raises(ValueError):
+        Step(tool='inspect',summary='Read date',content='Get-Date',requires_confirmation=False)
+
+
+def test_one_planning_repair_does_not_dispatch_a_broken_suggestion():
+    agent = FakeAgent([BrainError('REPEATED_OUTPUT'),step('powershell',script='Get-Date'),step()])
+    assert agent.command().status=='unverified'
+    assert agent.calls==['Get-Date']
+    failed = FakeAgent([BrainError('REPEATED_OUTPUT'),BrainError('REPEATED_OUTPUT')])
+    assert failed.command().code=='COMPONENT_UNAVAILABLE' and not failed.calls
+
+
+@pytest.mark.parametrize('text',['please open Editor','can you open Editor please','Autumn, open the Editor','could you launch my Editor for me?'])
+def test_polite_known_openings_use_native_route_without_model(text):
+    from autumn.actions.catalog import AppEntry
+    settings = Settings(master_control=True,apps=(AppEntry(id='editor',name='Editor',kind='package',target='Fixture!App',enabled=True,reviewed=True),))
+    assert native_route(text,settings).plan.steps[0].arguments.app_id=='editor'
+    assert native_route(text,settings.model_copy(update={'master_control':False})).plan is None
+
+
+@pytest.mark.parametrize('text',["please don't open Editor",'please open Editor and delete things','can you open Editor; remove-item files','please open Editro','please open Editor except when busy'])
+def test_native_courtesy_matching_does_not_drop_real_instructions(text):
+    from autumn.actions.catalog import AppEntry
+    settings = Settings(master_control=True,apps=(AppEntry(id='editor',name='Editor',kind='package',target='Fixture!App',enabled=True,reviewed=True),))
+    assert native_route(text,settings).plan is None
 
 
 def test_shell_unicode_cancellation_timeout_and_no_script_file(tmp_path):

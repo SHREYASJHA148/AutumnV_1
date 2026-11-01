@@ -1,4 +1,6 @@
-# Autumn 0.8.0 — engineering preview limitations
+# Autumn 0.8.1 — engineering preview limitations
+
+- The reproduced 0.8.0 app-planning timeout came from an invented URI repeating until the 40-second limit. 0.8.1 uses compact examples, 256-token/20-second model steps, streamed repetition detection and direct native matching for positive courtesy phrases. Two public model-only opening checks now finish in 1–4 seconds; a real model/PowerShell/date-answer trial took about five. This fixes the measured regression, not every possible model or microphone failure.
 
 - General control removes the finite-phrase restriction and deliberately permits generated local commands under the current account. It is not a code sandbox or a guarantee of arbitrary-task accuracy. Impact labels and heuristic review cannot classify all scripts; accessible controls vary by app and no visual reasoning is implemented. Long literal Windows paths failed a public model-development case (JSON escaping/truncated suggestion); retain the failure rather than infer a broad reliability score. Conversation, real-model date lookup and the disposable app-control fixture are narrower checks. Legacy/frozen acceptance remains separate.
 

@@ -1,0 +1,20 @@
+[
+  {
+    "goal": "open spotify",
+    "seconds": 2.844,
+    "content": "{\"tool\":\"open\",\"summary\":\"Open Spotify\",\"content\":\"spotify\",\"requires_confirmation\":false}",
+    "reason": "stop"
+  },
+  {
+    "goal": "please open calculator",
+    "seconds": 1.281,
+    "content": "{\"tool\":\"open\",\"summary\":\"Open Calculator\",\"content\":\"Calculator\",\"requires_confirmation\":false}",
+    "reason": "stop"
+  },
+  {
+    "goal": "tell me the current date and time",
+    "seconds": 1.484,
+    "content": "{\"tool\":\"powershell\",\"summary\":\"Read time\",\"content\":\"Get-Date\",\"requires_confirmation\":false}",
+    "reason": "stop"
+  }
+]

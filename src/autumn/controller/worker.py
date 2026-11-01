@@ -14,9 +14,9 @@ from pydantic import Field
 
 from autumn.actions.engine import Engine, Outcome
 from autumn.actions.registry import REGISTRY, capabilities
-from autumn.actions.router import route
 from autumn.actions.schemas import Plan
 from autumn.agent.controller import GeneralAgent
+from autumn.agent.routing import native_route
 from autumn.agent.shell import PowerShell
 from autumn.brain.contracts import Answer, BrainError, Clarification
 from autumn.brain.planner import Planner, recovery_message
@@ -111,7 +111,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     from autumn.actions.broad_open import direct_open
                     routing, command_settings = direct_open(job.text or '',settings) if job.plan is None else (None,settings)
                     engine.settings = command_settings
-                    routing = routing or (route(job.text or "", command_settings) if job.plan is None else None)
+                    routing = routing or (native_route(job.text or "", command_settings) if job.plan is None else None)
                     plan = job.plan or (routing.plan if routing else None)
                     if settings.master_control and job.plan is None and (plan is None or any(s.skill=='help.capabilities' or (s.skill=='website.open' and s.arguments.url and req.origin=='wake_voice') for s in plan.steps)):
                         from uuid import uuid4
