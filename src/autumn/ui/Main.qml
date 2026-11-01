@@ -82,7 +82,7 @@ ApplicationWindow {
                     }
                     Item { Layout.fillHeight: true }
                     Label { text: "LOCAL WORKSPACE"; color: "#ffc27e"; font.pixelSize: 10; font.letterSpacing: 1.2 }
-                    Label { Layout.fillWidth: true; text: vm.broadOpenAccess ? "Installed apps and local paths enabled.\nListening follows your launch preference." : "Commands use reviewed targets.\nVoice follows your launch preference."; wrapMode: Text.WordWrap; color: "#9bb0c9"; font.pixelSize: 12 }
+                    Label { Layout.fillWidth: true; text: vm.masterControl ? "General computer control enabled.\nLocal brain · your Windows account." : vm.broadOpenAccess ? "Installed apps and local paths enabled.\nListening follows your launch preference." : "Commands use reviewed targets.\nVoice follows your launch preference."; wrapMode: Text.WordWrap; color: "#9bb0c9"; font.pixelSize: 12 }
                     Label { Layout.fillWidth: true; text: "Stop: " + vm.stopShortcut; wrapMode: Text.Wrap; color: "#cad7d3"; font.pixelSize: 12; Layout.topMargin: 10 }
                     Label { text: "PREVIEW 0.7.2"; color: "#8fa6a8"; font.pixelSize: 11 }
                 }
@@ -451,6 +451,8 @@ ApplicationWindow {
                             Label { Layout.fillWidth: true; text: "Say ‘Autumn, open Spotify’ in one utterance. English speech is processed locally; unaddressed speech is discarded. Listening continues when minimized. Stop pauses it; lock, sleep and Quit close the microphone. This mode is experimental and has separate acceptance checks from calibrated hey-jarvis wake."; wrapMode: Text.WordWrap; color: "#9bb0c9" }
                             CheckBox { text: "Start the local brain when Autumn opens"; checked: vm.modelAutostart; enabled: vm.canConfigure; onClicked: vm.saveLaunchOptions(checked,vm.broadOpenAccess,vm.handsFreeAutostart); Accessible.name: text }
                             CheckBox { text: "Allow discovered installed apps and explicit local paths"; checked: vm.broadOpenAccess; enabled: vm.canConfigure; onClicked: vm.saveLaunchOptions(vm.modelAutostart,checked,vm.handsFreeAutostart); Accessible.name: text }
+                            CheckBox { text: "General computer control — let the local brain use Windows tools"; checked: vm.masterControl; enabled: vm.canConfigure; onClicked: vm.setMasterControl(checked); Accessible.name: text }
+                            Label { Layout.fillWidth: true; text: "General control can run local commands and operate accessible app controls using your account. Follow its steps in chat; Stop cancels active work. Identified destructive or external actions show a review. The small brain can make mistakes; application permissions still apply."; wrapMode: Text.WordWrap; color: "#ffc27e" }
                             CheckBox { text: "Start hands-free listening when Autumn opens"; checked: vm.handsFreeAutostart; enabled: vm.canConfigure; onClicked: vm.saveLaunchOptions(vm.modelAutostart,vm.broadOpenAccess,checked); Accessible.name: text }
                             CheckBox { id: reducedMotion; text: "Reduced motion"; checked: desktop.reducedMotion; Accessible.name: text }
                             Label { Layout.fillWidth: true; text: "Reduced motion disables orbit, hover and page animations. Controls support Tab, Shift+Tab, Space and Enter; Stop and confirmation shortcuts remain global."; wrapMode: Text.WordWrap; color: "#9bb0c9" }

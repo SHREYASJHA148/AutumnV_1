@@ -141,6 +141,15 @@ class ViewModel(QObject):
         return self.settings.broad_open_access
 
     @Property(bool, notify=settingsChanged)
+    def masterControl(self):
+        return self.settings.master_control
+
+    @Slot(bool)
+    def setMasterControl(self, enabled):
+        if self.canConfigure:
+            self.update_settings(master_control=enabled)
+
+    @Property(bool, notify=settingsChanged)
     def handsFreeAutostart(self):
         return self.settings.hands_free_on_launch
 
@@ -538,6 +547,11 @@ class ViewModel(QObject):
                     self.append("Autumn", "Preview complete. No computer action was performed.")
                     self.notice = "Preview complete."
                     self.finish_request()
+            elif kind == 'agent_step':
+                if self.session.active is None or str(self.session.active.request_id) != message['request_id'] or self.session.generation != message['generation']:
+                    continue
+                self.notice = 'Computer control: '+message['message']
+                self.append('Autumn · action',message['message'])
             elif kind in {"action_result", "action_finished"}:
                 if self.session.active is None or str(self.session.active.request_id) != message["request_id"] or self.session.generation != message["generation"]:
                     continue

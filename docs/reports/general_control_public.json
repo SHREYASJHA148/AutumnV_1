@@ -1,0 +1,195 @@
+{
+  "scope": "public disposable development goals; not a broad accuracy or physical-device acceptance result",
+  "previous_format_failures": [
+    {
+      "cases": [
+        {
+          "goal": "Reply with a brief friendly introduction as Autumn. Do not use tools.",
+          "status": "succeeded",
+          "error": null
+        },
+        {
+          "goal": "In the folder C:\\adu\\jarvis-planning\\.cache\\general-control-public é, create a NEW text file autumn-note.txt containing exactly hello autumn and then read that file to check it. Use PowerShell, not inspect. The folder already exists; do not create other folders or use any other files.",
+          "status": "failed",
+          "error": "INVALID_PLAN"
+        },
+        {
+          "goal": "Use PowerShell to tell me the current date and time, then answer in English.",
+          "status": "unverified",
+          "error": null
+        }
+      ]
+    },
+    {
+      "cases": [
+        {
+          "goal": "Reply with a brief friendly introduction as Autumn. Do not use tools.",
+          "status": "succeeded",
+          "error": null
+        },
+        {
+          "goal": "In the folder C:\\adu\\jarvis-planning\\.cache\\general-control-public é, create a NEW text file autumn-note.txt containing exactly hello autumn and then read that file to check it. Use PowerShell, not inspect. The folder already exists; do not create other folders or use any other files.",
+          "status": "cancelled",
+          "error": null
+        },
+        {
+          "goal": "Use PowerShell to tell me the current date and time, then answer in English.",
+          "status": "unverified",
+          "error": null
+        }
+      ]
+    },
+    {
+      "cases": [
+        {
+          "goal": "Reply with a brief friendly introduction as Autumn. Do not use tools.",
+          "status": "succeeded",
+          "error": null
+        },
+        {
+          "goal": "Use PowerShell to tell me the current date and time, then answer in English.",
+          "status": "unverified",
+          "error": null
+        },
+        {
+          "goal": "In the current working directory, create a new file called second-note.txt containing exactly hello autumn, then read it back. Do not overwrite any existing file. Use PowerShell, not inspect.",
+          "status": "cancelled",
+          "error": null
+        }
+      ]
+    },
+    {
+      "cases": [
+        {
+          "goal": "Reply with a brief friendly introduction as Autumn. Do not use tools.",
+          "status": "succeeded",
+          "error": null
+        },
+        {
+          "goal": "Use PowerShell to tell me the current date and time, then answer in English.",
+          "status": "unverified",
+          "error": null
+        },
+        {
+          "goal": "In the current working directory, create a new file called second-note.txt containing exactly hello autumn, then read it back. Do not overwrite any existing file. Use PowerShell, not inspect.",
+          "status": "cancelled",
+          "error": null
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "goal": "Reply with a brief friendly introduction as Autumn. Do not use tools.",
+      "seconds": 4.813,
+      "outcome": {
+        "status": "succeeded",
+        "code": "OK",
+        "message": "Hello! I'm Autumn, your local Windows computer assistant. I'm here to help you with your tasks and provide support. Feel free to ask me anything you need!",
+        "verification": "local model summary of observed tool results; account-level automation",
+        "artifacts": [],
+        "matches": []
+      },
+      "progress": [
+        "Thinking through the next step…"
+      ],
+      "scripts": [],
+      "error": null,
+      "last_model_reply": "{\"tool\":\"done\",\"summary\":\"Friendly Introduction\",\"content\":\"Hello! I'm Autumn, your local Windows computer assistant. I'm here to help you with your tasks and provide support. Feel free to ask me anything you need!\",\"requires_confirmation\":false}",
+      "model_content": [
+        "{\"tool\":\"done\",\"summary\":\"Friendly Introduction\",\"content\":\"Hello! I'm Autumn, your local Windows computer assistant. I'm here to help you with your tasks and provide support. Feel free to ask me anything you need!\",\"requires_confirmation\":false}"
+      ]
+    },
+    {
+      "goal": "Use PowerShell to tell me the current date and time, then answer in English.",
+      "seconds": 7.906,
+      "outcome": {
+        "status": "unverified",
+        "code": "OK",
+        "message": "The current date and time is 01 November 2026 13:07:15.",
+        "verification": "local model summary of observed tool results; account-level automation",
+        "artifacts": [],
+        "matches": []
+      },
+      "progress": [
+        "Thinking through the next step…",
+        "Get current date and time",
+        "Thinking through the next step…"
+      ],
+      "scripts": [
+        {
+          "approved": true,
+          "script": "Get-Date"
+        }
+      ],
+      "error": null,
+      "last_model_reply": "{\"tool\": \"done\", \"summary\": \"Current date and time\", \"content\": \"The current date and time is 01 November 2026 13:07:15.\",\"requires_confirmation\":false}",
+      "model_content": [
+        "{\"tool\":\"powershell\",\"summary\":\"Get current date and time\",\"content\":\"Get-Date\",\"requires_confirmation\":false}",
+        "{\"tool\": \"done\", \"summary\": \"Current date and time\", \"content\": \"The current date and time is 01 November 2026 13:07:15.\",\"requires_confirmation\":false}"
+      ]
+    },
+    {
+      "goal": "In the current working directory, create a new file called second-note.txt containing exactly hello autumn, then read it back. Do not overwrite any existing file. Use PowerShell, not inspect.",
+      "seconds": 10.328,
+      "outcome": {
+        "status": "failed",
+        "code": "PARTIAL",
+        "message": "Stopped a repeated action to avoid applying it twice. Check the visible result before continuing.",
+        "verification": "bounded general-control loop; no automatic replay",
+        "artifacts": [],
+        "matches": []
+      },
+      "progress": [
+        "Thinking through the next step…",
+        "Create and read a file",
+        "Thinking through the next step…"
+      ],
+      "scripts": [
+        {
+          "approved": true,
+          "script": "New-Item -Path 'second-note.txt' -Value 'hello autumn' && Get-Content -Path 'second-note.txt'"
+        }
+      ],
+      "error": null,
+      "last_model_reply": "{\"tool\":\"powershell\",\"summary\":\"Fix syntax error\",\"content\":\"New-Item -Path 'second-note.txt' -Value 'hello autumn' && Get-Content -Path 'second-note.txt'\",\"requires_confirmation\":true}",
+      "model_content": [
+        "{\"tool\":\"powershell\",\"summary\":\"Create and read a file\",\"content\":\"New-Item -Path 'second-note.txt' -Value 'hello autumn' && Get-Content -Path 'second-note.txt'\",\"requires_confirmation\":true}",
+        "{\"tool\":\"powershell\",\"summary\":\"Fix syntax error\",\"content\":\"New-Item -Path 'second-note.txt' -Value 'hello autumn' && Get-Content -Path 'second-note.txt'\",\"requires_confirmation\":true}"
+      ]
+    }
+  ],
+  "known_blocked_literal_path_case": {
+    "goal": "In the folder C:\\adu\\jarvis-planning\\.cache\\general-control-public é, create a NEW text file autumn-note.txt containing exactly hello autumn and then read that file to check it. Use PowerShell, not inspect. The folder already exists; do not create other folders or use any other files.",
+    "seconds": 3.234,
+    "outcome": {
+      "status": "cancelled",
+      "code": "CANCELLED",
+      "message": "That action was not approved. Earlier completed changes remain.",
+      "verification": "bounded general-control loop; no automatic replay",
+      "artifacts": [],
+      "matches": []
+    },
+    "progress": [
+      "Thinking through the next step…"
+    ],
+    "scripts": [],
+    "error": null,
+    "last_model_reply": "{\"tool\":\"powershell\",\"summary\":\"Create and read a text file\",\"content\":\"New-Item -Path 'C:\\\\\", \"requires_confirmation\":true}",
+    "model_content": [
+      "{\"tool\":\"powershell\",\"summary\":\"Create and read a text file\",\"content\":\"New-Item -Path 'C:\\\\\", \"requires_confirmation\":true}"
+    ]
+  },
+  "fixture_content_verified": false,
+  "owned_ui_snapshot": {
+    "code": "OK",
+    "output": "[{\"title\":\"Autumn disposable automation fixture\",\"id\":\"42.2689000\",\"controls\":[{\"name\":\"Autumn fixture editor\",\"id\":\"42.2689000.4.-2147483647\",\"type\":\"ControlType.Edit\",\"enabled\":true},{\"name\":\"Autumn fixture save\",\"id\":\"42.2689000.4.-2147483646\",\"type\":\"ControlType.Button\",\"enabled\":true}]}]",
+    "returncode": 0
+  },
+  "owned_ui_fixture": {
+    "inspect": "OK",
+    "type": "OK",
+    "click": "OK",
+    "verified": true
+  }
+}

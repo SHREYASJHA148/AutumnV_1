@@ -1,4 +1,6 @@
-# Autumn 0.7.2 — engineering preview limitations
+# Autumn 0.8.0 — engineering preview limitations
+
+- General control removes the finite-phrase restriction and deliberately permits generated local commands under the current account. It is not a code sandbox or a guarantee of arbitrary-task accuracy. Impact labels and heuristic review cannot classify all scripts; accessible controls vary by app and no visual reasoning is implemented. Long literal Windows paths failed a public model-development case (JSON escaping/truncated suggestion); retain the failure rather than infer a broad reliability score. Conversation, real-model date lookup and the disposable app-control fixture are narrower checks. Legacy/frozen acceptance remains separate.
 
 - Quick replies uses a shorter pause after speech; choose Natural pauses or Longer pauses in Voice setup if sentences end too early. The optimized small.en model/confidence gates and pinned brain are unchanged. Synthetic timing/word-preservation checks are narrower than the owner's microphone and room trials.
 

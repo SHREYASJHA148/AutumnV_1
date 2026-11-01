@@ -124,3 +124,17 @@ def test_microphone_lease_rejects_old_voice_but_preserves_typed_commands(tmp_pat
         assert event["outcome"]["status"] == "succeeded"
     finally:
         assert supervisor.shutdown()
+
+
+def test_general_mode_bypasses_legacy_phrase_rejection_without_starting_model(tmp_path):
+    supervisor = Supervisor(tmp_path)
+    try:
+        wait_for(supervisor,'ready')
+        supervisor.submit(Job(kind='save_settings',generation=0,settings=Settings(master_control=True,model_enabled=False)))
+        wait_for(supervisor,'settings_saved')
+        supervisor.submit(Job(kind='execute',generation=0,request=Request(generation=0),text='open spotify and then play some music'))
+        result,_ = wait_for(supervisor,'action_result')
+        assert result['outcome']['code']=='DISABLED'
+        assert 'supported command' not in result['outcome']['message']
+    finally:
+        assert supervisor.shutdown()

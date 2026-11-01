@@ -35,6 +35,10 @@ def main():
         if not equal(original,frozen):
             mismatches.append(name)
     data_mismatches=[]
+    helper=root/'src/autumn/agent/windows.ps1'
+    bundled_helper=root/'dist/Autumn preview é/Autumn/_internal/autumn/agent/windows.ps1'
+    if not bundled_helper.is_file() or helper.read_bytes()!=bundled_helper.read_bytes():
+        data_mismatches.append('agent/windows.ps1')
     for source in (root/'src/autumn/ui').glob('*'):
         if source.suffix not in {'.qml','.ico'}:
             continue

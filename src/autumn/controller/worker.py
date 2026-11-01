@@ -16,6 +16,8 @@ from autumn.actions.engine import Engine, Outcome
 from autumn.actions.registry import REGISTRY, capabilities
 from autumn.actions.router import route
 from autumn.actions.schemas import Plan
+from autumn.agent.controller import GeneralAgent
+from autumn.agent.shell import PowerShell
 from autumn.brain.contracts import Answer, BrainError, Clarification
 from autumn.brain.planner import Planner, recovery_message
 from autumn.controller.contracts import Contract, Event, HistoryEvent, Request, TaskState
@@ -50,6 +52,7 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
     adapter = WindowsAdapter(data_dir=Path(root))
     engine = Engine(adapter, settings)
     brain = Planner()
+    agent = GeneralAgent(brain,PowerShell(Path(root)))
     adapter.engine = engine
     last_beat = 0.0
     last_voice_generation = voice_generation.value if voice_generation is not None else 0
@@ -110,6 +113,53 @@ def worker_main(commands, replies, generation, stopping, root: str, allow_faults
                     engine.settings = command_settings
                     routing = routing or (route(job.text or "", command_settings) if job.plan is None else None)
                     plan = job.plan or (routing.plan if routing else None)
+                    if settings.master_control and job.plan is None and (plan is None or any(s.skill=='help.capabilities' or (s.skill=='website.open' and s.arguments.url and req.origin=='wake_voice') for s in plan.steps)):
+                        from uuid import uuid4
+
+                        started = time.monotonic()
+
+                        def progress(message):
+                            send('busy',timeout=44)
+                            send('agent_step',request_id=str(req.request_id),generation=req.generation,message=message)
+
+                        def review(step):
+                            token = uuid4().hex
+                            send('event',event=Event(kind='TaskStateChanged',request_id=req.request_id,
+                                generation=req.generation,state=TaskState.AWAITING_CONFIRMATION).model_dump(mode='json'))
+                            send('busy',timeout=32)
+                            send('confirmation',request_id=str(req.request_id),generation=req.generation,
+                                token=token,skill='computer.control',text=step.summary+'\n\n'+(step.script or step.target),
+                                destination='General computer control — your Windows account')
+                            expires = time.monotonic()+30
+                            try:
+                                while checkpoint() and time.monotonic() < expires:
+                                    try:
+                                        answer = Job.model_validate(commands.get(timeout=.025))
+                                    except queue.Empty:
+                                        continue
+                                    if answer.kind == 'confirm':
+                                        if answer.generation == req.generation and answer.confirmation_id == token:
+                                            return answer.approved and checkpoint()
+                                    elif len(deferred) < 16:
+                                        deferred.append(answer)
+                                return False
+                            finally:
+                                send('confirmation_closed',token=token)
+                                if checkpoint():
+                                    send('event',event=Event(kind='TaskStateChanged',request_id=req.request_id,
+                                        generation=req.generation,state=TaskState.EXECUTING).model_dump(mode='json'))
+
+                        send('event',event=Event(kind='TaskStateChanged',request_id=req.request_id,
+                            generation=req.generation,state=TaskState.EXECUTING).model_dump(mode='json'))
+                        outcome = agent.run(job.text or '',settings,req,checkpoint,progress,review)
+                        if checkpoint():
+                            if history is not None:
+                                history.add(HistoryEvent(request_id=req.request_id,origin=req.origin,status=outcome.status,
+                                    code=outcome.code,duration_ms=int((time.monotonic()-started)*1000),skill_id='controller.request'))
+                            send('action_result',request_id=str(req.request_id),generation=req.generation,
+                                skill='computer.control',outcome=outcome.model_dump(mode='json'),finished=True)
+                        send('idle')
+                        continue
                     model_reply = None
                     model_error = None
                     if plan is None and routing and routing.allow_model and settings.model_enabled:

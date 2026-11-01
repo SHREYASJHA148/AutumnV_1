@@ -23,7 +23,7 @@ def test_schema5_migration_preserves_explicitly_disabled_phase5_skills(tmp_path)
     settings=Settings(schema_version=5,enabled_skills=('help.capabilities',))
     atomic_save(path,settings)
     restored,code=load_settings(path)
-    assert code=='MIGRATED' and restored.schema_version==9
+    assert code=='MIGRATED' and restored.schema_version==10
     assert restored.enabled_skills==('help.capabilities',)
     assert not restored.microphone_enabled_at_start and not restored.wake_enabled
 

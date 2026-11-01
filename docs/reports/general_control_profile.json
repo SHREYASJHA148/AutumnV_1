@@ -1,0 +1,12 @@
+{
+  "master_control_enabled": true,
+  "schema": 10,
+  "changed_keys": [
+    "master_control",
+    "schema_version"
+  ],
+  "brain_autostart": true,
+  "hands_free_on_launch": true,
+  "microphone_opened": false,
+  "backup_created": true
+}
